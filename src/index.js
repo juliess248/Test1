@@ -245,20 +245,50 @@ function json(data, status) {
 }
 
 const AUTH_CSS = `<style>
-#cf-account-btn svg{width:18px;height:18px;display:block;}
-#cf-account-group{
+#cf-account-wrap{
+  position:relative;
   display:flex;
   align-items:center;
-  gap:7px;
 }
-#cf-account-label{
+#cf-account-btn svg{width:18px;height:18px;display:block;}
+#cf-account-btn.signed-in{
+  background:var(--flag);
+  border-color:var(--flag);
+  color:var(--ink-fixed);
+}
+#cf-account-popover{
   display:none;
-  align-items:center;
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  min-width:150px;
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+  box-shadow:0 12px 30px rgba(0,0,0,.25);
+  z-index:10000;
+}
+#cf-account-popover.open{display:block;}
+.cf-popover-name{
   font-family:'Karla',sans-serif;
   font-size:13px;
-  font-weight:600;
+  font-weight:700;
   color:var(--ink);
+  margin-bottom:10px;
   white-space:nowrap;
+}
+.cf-logout-btn{
+  border:1px solid var(--line);
+  background:transparent;
+  border-radius:11px;
+  color:var(--dim);
+  cursor:pointer;
+  font-family:'Karla',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  padding:8px 12px;
+  width:100%;
 }
 #cf-auth-overlay{
   display:none;
@@ -314,14 +344,17 @@ const AUTH_CSS = `<style>
 </style>`;
 
 const AUTH_ICON_HTML = `
-<span id="cf-account-group">
-  <span id="cf-account-label"></span>
+<span id="cf-account-wrap">
   <button id="cf-account-btn" class="header-btn" aria-label="Kuenta">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
       <circle cx="12" cy="7" r="4"></circle>
     </svg>
   </button>
+  <div id="cf-account-popover">
+    <div class="cf-popover-name" id="cf-popover-name"></div>
+    <button class="cf-logout-btn" id="cf-logout-btn" type="button">Sali</button>
+  </div>
 </span>`;
 
 const AUTH_MODAL_HTML = `
@@ -343,7 +376,9 @@ const AUTH_MODAL_HTML = `
 </div>
 <script>(function(){
   var openBtn=document.getElementById('cf-account-btn'),
-      label=document.getElementById('cf-account-label'),
+      popover=document.getElementById('cf-account-popover'),
+      popoverName=document.getElementById('cf-popover-name'),
+      logoutBtn=document.getElementById('cf-logout-btn'),
       overlay=document.getElementById('cf-auth-overlay'),
       closeBtn=document.getElementById('cf-auth-close'),
       title=document.getElementById('cf-auth-title'),
@@ -361,17 +396,37 @@ const AUTH_MODAL_HTML = `
 
   function openModal(){ setMode('signin'); overlay.classList.add('open'); }
   function closeModal(){ overlay.classList.remove('open'); }
+  function closePopover(){ popover.classList.remove('open'); }
 
   function setSignedIn(username){
+    openBtn.dataset.user = username;
+    openBtn.classList.add('signed-in');
     openBtn.setAttribute('aria-label', username);
-    label.textContent = 'Hi, ' + username;
-    label.style.display = 'flex';
+    popoverName.textContent = username;
   }
 
-  openBtn.addEventListener('click', function(){
-    if(openBtn.dataset.user){ return; }
-    openModal();
+  function setSignedOut(){
+    delete openBtn.dataset.user;
+    openBtn.classList.remove('signed-in');
+    openBtn.setAttribute('aria-label', 'Kuenta');
+    closePopover();
+    localStorage.removeItem('cf_user');
+  }
+
+  openBtn.addEventListener('click', function(e){
+    e.stopPropagation();
+    if(openBtn.dataset.user){
+      popover.classList.toggle('open');
+    }else{
+      openModal();
+    }
   });
+  document.addEventListener('click', function(e){
+    if(!popover.contains(e.target) && e.target!==openBtn){
+      closePopover();
+    }
+  });
+  logoutBtn.addEventListener('click', setSignedOut);
   closeBtn.addEventListener('click', closeModal);
   overlay.addEventListener('click', function(e){ if(e.target===overlay) closeModal(); });
   toggle.addEventListener('click', function(){ setMode(mode==='signin' ? 'signup' : 'signin'); });
@@ -391,7 +446,6 @@ const AUTH_MODAL_HTML = `
         errorEl.style.display='block';
       }else{
         localStorage.setItem('cf_user', d.username);
-        openBtn.dataset.user = d.username;
         setSignedIn(d.username);
         closeModal();
       }
@@ -403,7 +457,6 @@ const AUTH_MODAL_HTML = `
 
   var saved=localStorage.getItem('cf_user');
   if(saved){
-    openBtn.dataset.user = saved;
     setSignedIn(saved);
   }
 })();</script>`;
