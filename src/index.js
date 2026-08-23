@@ -10,6 +10,12 @@ export default class extends WorkerEntrypoint {
     if (url.pathname === "/api/auth/signin" && request.method === "POST") {
       return this.handleSignin(request);
     }
+    if (url.pathname === "/api/leaderboard" && request.method === "GET") {
+      return this.handleLeaderboardGet(request);
+    }
+    if (url.pathname === "/api/leaderboard" && request.method === "POST") {
+      return this.handleLeaderboardPost(request);
+    }
 
     const assetResponse = await this.env.ASSETS.fetch(request);
     const contentType = assetResponse.headers.get("content-type") || "";
@@ -34,6 +40,139 @@ export default class extends WorkerEntrypoint {
     }
 
     return assetResponse;
+  }
+
+  async ensureLeaderboardTable() {
+    await this.env.GAME_HISTORY
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS leaderboard_scores (
+          player_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          date TEXT NOT NULL,
+          score INTEGER NOT NULL DEFAULT 0,
+          words INTEGER NOT NULL DEFAULT 0,
+          pangrams INTEGER NOT NULL DEFAULT 0,
+          max_score INTEGER NOT NULL DEFAULT 0,
+          updated_at TEXT DEFAULT (datetime('now')),
+          PRIMARY KEY (player_id, date)
+        )`
+      )
+      .run();
+  }
+
+  async handleLeaderboardGet(request) {
+    try {
+      await this.ensureLeaderboardTable();
+      const url = new URL(request.url);
+      const date = url.searchParams.get("date");
+      if (!date) {
+        return json({ error: "date query param required" }, 400);
+      }
+
+      const today = await this.env.GAME_HISTORY
+        .prepare(
+          `SELECT player_id AS playerId, name, score, words, pangrams
+           FROM leaderboard_scores
+           WHERE date = ?
+           ORDER BY score DESC
+           LIMIT 100`
+        )
+        .bind(date)
+        .all();
+
+      const allTime = await this.env.GAME_HISTORY
+        .prepare(
+          `SELECT
+             l1.player_id AS playerId,
+             (SELECT name FROM leaderboard_scores l2
+                WHERE l2.player_id = l1.player_id
+                ORDER BY date DESC LIMIT 1) AS name,
+             SUM(l1.score) AS score,
+             COUNT(DISTINCT l1.date) AS days
+           FROM leaderboard_scores l1
+           GROUP BY l1.player_id
+           ORDER BY score DESC
+           LIMIT 100`
+        )
+        .all();
+
+      return json({
+        today: today.results || [],
+        allTime: allTime.results || [],
+      }, 200);
+    } catch (e) {
+      return json({ error: "Server error" }, 500);
+    }
+  }
+
+  async handleLeaderboardPost(request) {
+    try {
+      await this.ensureLeaderboardTable();
+      const { playerId, name, date, score, words, pangrams, maxScore } =
+        await request.json();
+
+      if (!playerId || !name || !date) {
+        return json({ error: "playerId, name, and date required" }, 400);
+      }
+
+      await this.env.GAME_HISTORY
+        .prepare(
+          `INSERT INTO leaderboard_scores
+             (player_id, name, date, score, words, pangrams, max_score)
+           VALUES (?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(player_id, date) DO UPDATE SET
+             name = excluded.name,
+             score = excluded.score,
+             words = excluded.words,
+             pangrams = excluded.pangrams,
+             max_score = excluded.max_score,
+             updated_at = datetime('now')`
+        )
+        .bind(
+          playerId,
+          name,
+          date,
+          score || 0,
+          words || 0,
+          pangrams || 0,
+          maxScore || 0
+        )
+        .run();
+
+      const today = await this.env.GAME_HISTORY
+        .prepare(
+          `SELECT player_id AS playerId, name, score, words, pangrams
+           FROM leaderboard_scores
+           WHERE date = ?
+           ORDER BY score DESC
+           LIMIT 100`
+        )
+        .bind(date)
+        .all();
+
+      const allTime = await this.env.GAME_HISTORY
+        .prepare(
+          `SELECT
+             l1.player_id AS playerId,
+             (SELECT name FROM leaderboard_scores l2
+                WHERE l2.player_id = l1.player_id
+                ORDER BY date DESC LIMIT 1) AS name,
+             SUM(l1.score) AS score,
+             COUNT(DISTINCT l1.date) AS days
+           FROM leaderboard_scores l1
+           GROUP BY l1.player_id
+           ORDER BY score DESC
+           LIMIT 100`
+        )
+        .all();
+
+      return json({
+        today: today.results || [],
+        allTime: allTime.results || [],
+      }, 200);
+    } catch (e) {
+      return json({ error: "Server error" }, 500);
+    }
   }
 
   async handleSignup(request) {
@@ -105,8 +244,6 @@ function json(data, status) {
   });
 }
 
-// Reuses the site's own design tokens (--ink, --line, --overlay, --flag, --dim)
-// so this never needs its own separate color palette.
 const AUTH_CSS = `<style>
 #cf-account-btn svg{width:18px;height:18px;display:block;}
 #cf-account-label{
