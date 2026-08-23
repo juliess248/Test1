@@ -2046,6 +2046,8 @@ button:focus-visible{
   position:relative;
   z-index:1;
 
+  margin-top:28px;
+
   font-family:'Bricolage Grotesque',sans-serif;
 
   font-size:42px;
@@ -2224,16 +2226,6 @@ button:focus-visible{
 <div
   class="landing"
   id="landingPage">
-
-  <div class="landing-icon">
-    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 58 L8 30 L18 22 L28 30 L28 14 L36 8 L44 14 L44 26 L54 20 L54 58 Z"
-            fill="var(--ink)"/>
-      <rect x="16" y="38" width="5" height="7" rx="1" fill="var(--curacao)"/>
-      <rect x="34" y="30" width="5" height="7" rx="1" fill="var(--curacao)"/>
-      <rect x="48" y="34" width="5" height="7" rx="1" fill="var(--curacao)"/>
-    </svg>
-  </div>
 
   <div class="landing-title">
     Palabra di <span>Kòrsou</span>
@@ -2965,8 +2957,6 @@ button:focus-visible{
               Kuenta
             </span>
 
-            <span id="accountEmail"></span>
-
           </div>
 
         </div>
@@ -3021,29 +3011,17 @@ button:focus-visible{
       hunga ku e mesun score riba tur bo aparatonan.
     </div>
 
-    <div
-      class="auth-providers"
-      id="authProviders">
-    </div>
-
-    <div
-      class="auth-divider"
-      id="authDivider"
-      style="display:none">
-      òf
-    </div>
-
     <form
       class="auth-fields"
       id="authForm">
 
       <input
         class="name-input"
-        id="authEmail"
-        type="email"
-        autocomplete="email"
+        id="authUsername"
+        type="text"
+        autocomplete="username"
         spellcheck="false"
-        placeholder="Bo e-mail">
+        placeholder="Bo nòmber di uzuario">
 
       <input
         class="name-input"
@@ -3070,13 +3048,6 @@ button:focus-visible{
         id="authToggle"
         type="button">
         Bo tin kuenta kaba? Drenta
-      </button>
-
-      <button
-        class="auth-link"
-        id="authForgot"
-        type="button">
-        Lubidá bo kontraseña?
       </button>
 
     </div>
@@ -29497,59 +29468,91 @@ let editingName = false;
 
 /* ---------------------------------------------------------
    ACCOUNT
+
+   Backed directly by the Worker's own D1-backed routes
+   (/api/auth/signup, /api/auth/signin) — no third-party
+   auth service involved. There's no session token: the
+   Worker just checks username/password against D1 and
+   hands back the username, so "being signed in" here just
+   means the browser remembers that username locally.
 --------------------------------------------------------- */
 
-const ACCOUNT_ENDPOINT =
-  '/api/account';
+const AUTH_ENDPOINT =
+  '/api/auth/';
+
+const ACCOUNT_KEY =
+  'palabraDiKorsouAccount';
 
 
-/*
-  Only the providers the project has actually turned on are
-  offered, so the buttons never point at a dead flow.
-*/
-
-const PROVIDER_LABELS = {
-
-  google:'Sigui ku Google',
-
-  github:'Sigui ku GitHub',
-
-  gitlab:'Sigui ku GitLab',
-
-  bitbucket:'Sigui ku Bitbucket',
-
-  facebook:'Sigui ku Facebook'
-
-};
-
-
-const GOOGLE_MARK =
-  '<svg viewBox="0 0 48 48">' +
-  '<path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.2 17.7 9.5 24 9.5z"/>' +
-  '<path fill="#4285F4" d="M46.9 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.9c-.6 3-2.3 5.6-4.9 7.3l7.6 5.9c4.4-4.1 7.3-10.2 7.3-17.7z"/>' +
-  '<path fill="#FBBC05" d="M10.4 28.7c-.5-1.5-.8-3.1-.8-4.7s.3-3.2.8-4.7l-7.8-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.8-6.1z"/>' +
-  '<path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.8 2.3-8.3 2.3-6.3 0-11.7-3.7-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/>' +
-  '</svg>';
-
-
-let identity = null;
-
-let session = null;
+let account = loadAccount();
 
 let authMode = 'signup';
 
 let authBusy = false;
 
 
+function loadAccount(){
+
+  try{
+
+    const stored =
+      JSON.parse(
+        localStorage.getItem(
+          ACCOUNT_KEY
+        )
+      );
+
+    if(
+      stored &&
+      stored.username
+    ){
+
+      return stored;
+
+    }
+
+  }catch{}
+
+
+  return null;
+
+}
+
+
+function saveAccountLocal(){
+
+  if(account){
+
+    localStorage.setItem(
+
+      ACCOUNT_KEY,
+
+      JSON.stringify(account)
+
+    );
+
+  }else{
+
+    localStorage.removeItem(
+      ACCOUNT_KEY
+    );
+
+  }
+
+}
+
+
 /*
   The id and name the rest of the game should use: the
-  account when signed in, the device otherwise.
+  account when signed in, the device otherwise. Using the
+  username itself as the playerId means the leaderboard
+  row follows the account across devices.
 */
 
 function activePlayerId(){
 
-  return session
-    ? session.id
+  return account
+    ? 'acct:' + account.username
     : player.id;
 
 }
@@ -29557,84 +29560,9 @@ function activePlayerId(){
 
 function activeName(){
 
-  return session
-    ? session.name
+  return account
+    ? account.username
     : player.name;
-
-}
-
-
-/*
-  Creates or updates the account row and hands the server
-  the anonymous id, so the days played before signing up
-  are folded into the account instead of being orphaned.
-*/
-
-async function saveAccount(extra){
-
-  if(!session)
-    return null;
-
-
-  try{
-
-    const response =
-      await fetch(
-
-        ACCOUNT_ENDPOINT,
-
-        {
-
-          method:'POST',
-
-          headers:{
-            'content-type':
-              'application/json'
-          },
-
-          body:JSON.stringify(
-
-            Object.assign(
-              { claimId:player.id },
-              extra || {}
-            )
-
-          )
-
-        }
-
-      );
-
-
-    if(!response.ok)
-      return null;
-
-
-    const data =
-      await response.json();
-
-
-    if(data.me){
-
-      session.name =
-        data.me.name;
-
-      session.email =
-        data.me.email ||
-        session.email;
-
-      renderName();
-
-    }
-
-
-    return data;
-
-  }catch{
-
-    return null;
-
-  }
 
 }
 
@@ -29665,26 +29593,20 @@ function renderName(){
 
 
   $('accountMeta').style.display =
-    session ? '' : 'none';
+    account ? '' : 'none';
 
   $('authLogout').style.display =
-    session ? '' : 'none';
+    account ? '' : 'none';
 
-  $('accountEmail').textContent =
-    session
-      ? session.email
-      : '';
+  $('nameEdit').style.display =
+    account ? 'none' : '';
 
   $('accountBadge').textContent =
-    session &&
-    session.provider &&
-    session.provider !== 'email'
-      ? session.provider
-      : 'Kuenta';
+    'Kuenta';
 
 
   $('nameHint').textContent =
-    session
+    account
       ? 'Bo score ta wardá den bo kuenta. Drenta riba otro aparato pa sigui.'
       : named
         ? 'Bo score ta manda outomátikamente ora bo haña palabra.'
@@ -29694,6 +29616,15 @@ function renderName(){
 
 
 function setName(){
+
+  /*
+    While signed in, the account's username IS the display
+    name — there's no separate rename on the server.
+  */
+
+  if(account)
+    return;
+
 
   const name =
     cleanName(
@@ -29711,24 +29642,6 @@ function setName(){
 
 
   editingName = false;
-
-
-  /*
-    An account keeps its name on the server, so the whole
-    board sees the change from every device.
-  */
-
-  if(session){
-
-    session.name = name;
-
-    renderName();
-
-    saveAccount({ name });
-
-    return;
-
-  }
 
 
   player.name = name;
@@ -29779,114 +29692,11 @@ function showAuthMessage(text,kind){
   turn the few that a player can act on into plain language.
 */
 
-function authError(error){
-
-  if(!identity)
-    return 'Login no ta disponibel awor aki.';
-
-
-  if(
-    error instanceof
-      identity.MissingIdentityError
-  ){
-
-    return 'Login no ta konfigurá riba e sitio aki.';
-
-  }
-
-
-  if(
-    error instanceof
-      identity.AuthError
-  ){
-
-    if(error.status === 401)
-      return 'E-mail òf kontraseña robes.';
-
-    if(error.status === 403)
-      return 'No por krea kuenta nobo na e momento aki.';
-
-    if(error.status === 422)
-      return 'Chèk bo e-mail i usa un kontraseña di 8 karakter òf mas.';
-
-    if(error.status === 404)
-      return 'Nos no a haña e kuenta ei.';
-
-    return error.message;
-
-  }
-
-
-  return 'Algu a bai robes. Purba atrobe.';
-
-}
-
-
 function setAuthBusy(busy){
 
   authBusy = busy;
 
   $('authSubmit').disabled = busy;
-
-}
-
-
-function renderProviders(settings){
-
-  const box =
-    $('authProviders');
-
-
-  const providers =
-    (settings && settings.providers) ||
-    {};
-
-
-  box.innerHTML =
-    Object.keys(PROVIDER_LABELS)
-      .filter(
-        key => providers[key]
-      )
-      .map(
-        key =>
-          `<button
-            class="auth-provider"
-            type="button"
-            data-provider="${key}">
-            ${key === 'google' ? GOOGLE_MARK : ''}
-            ${PROVIDER_LABELS[key]}
-          </button>`
-      )
-      .join('');
-
-
-  box.querySelectorAll(
-    '[data-provider]'
-  ).forEach(
-    button => {
-
-      button.onclick =
-        () => {
-
-          try{
-
-            identity.oauthLogin(
-              button.dataset.provider
-            );
-
-          }catch(error){
-
-            showAuthMessage(
-              authError(error),
-              'err'
-            );
-
-          }
-
-        };
-
-    }
-  );
 
 }
 
@@ -29897,11 +29707,7 @@ function renderAuth(){
     $('authCard');
 
 
-  const recovery =
-    authMode === 'recovery';
-
-
-  if(session && !recovery){
+  if(account){
 
     card.style.display = 'none';
 
@@ -29910,66 +29716,38 @@ function renderAuth(){
   }
 
 
-  card.style.display =
-    identity ? '' : 'none';
+  card.style.display = '';
 
 
   const signup =
     authMode === 'signup';
 
 
-  $('authProviders').style.display =
-    recovery ? 'none' : '';
-
-  $('authDivider').style.display =
-    !recovery &&
-    $('authProviders').children.length
-      ? ''
-      : 'none';
-
-  $('authEmail').style.display =
-    recovery ? 'none' : '';
-
-  $('authLinks').style.display =
-    recovery ? 'none' : '';
-
-
   $('authPassword').setAttribute(
 
     'autocomplete',
 
-    signup || recovery
+    signup
       ? 'new-password'
       : 'current-password'
 
   );
 
-  $('authPassword').placeholder =
-    recovery
-      ? 'Kontraseña nobo'
-      : 'Kontraseña';
-
 
   $('authTitle').textContent =
-    recovery
-      ? 'Pone un kontraseña nobo'
-      : signup
-        ? 'Krea bo kuenta'
-        : 'Drenta bo kuenta';
+    signup
+      ? 'Krea bo kuenta'
+      : 'Drenta bo kuenta';
 
   $('authIntro').textContent =
-    recovery
-      ? 'Skohe un kontraseña nobo pa bo kuenta.'
-      : signup
-        ? 'Ku un kuenta bo progreso ta keda wardá i bo por sigui hunga ku e mesun score riba tur bo aparatonan.'
-        : 'Drenta pa bo score sigui bo riba tur bo aparatonan.';
+    signup
+      ? 'Ku un kuenta bo progreso ta keda wardá i bo por sigui hunga ku e mesun score riba tur bo aparatonan.'
+      : 'Drenta pa bo score sigui bo riba tur bo aparatonan.';
 
   $('authSubmit').textContent =
-    recovery
-      ? 'Warda kontraseña'
-      : signup
-        ? 'Krea kuenta'
-        : 'Drenta';
+    signup
+      ? 'Krea kuenta'
+      : 'Drenta';
 
   $('authToggle').textContent =
     signup
@@ -29980,157 +29758,59 @@ function renderAuth(){
 
 
 /*
-  Called on every auth change, including the ones that come
-  from another tab. Signing in claims the anonymous history
-  once, then the board is reloaded so the highlighted row
-  follows the account.
+  Talks directly to the Worker's own D1-backed routes. There
+  is no session token — a successful call just means the
+  username/password matched (or a new row got created), so
+  what's remembered locally is the username itself.
 */
 
-function applySession(user){
+async function submitAuth(username,password){
 
-  const previous =
-    session ? session.id : null;
-
-
-  session =
-    user
-      ? {
-
-          id:user.id,
-
-          email:user.email || '',
-
-          name:
-            cleanName(user.name) ||
-            player.name ||
-            '',
-
-          provider:
-            user.provider || 'email'
-
-        }
-      : null;
+  const endpoint =
+    authMode === 'signup'
+      ? 'signup'
+      : 'signin';
 
 
-  editingName = false;
+  const response =
+    await fetch(
 
-  renderName();
+      AUTH_ENDPOINT + endpoint,
 
-  renderAuth();
+      {
 
+        method:'POST',
 
-  if(
-    session &&
-    session.id !== previous
-  ){
+        headers:{
+          'content-type':
+            'application/json'
+        },
 
-    saveAccount().then(
-      () => {
-
-        syncScore();
-
-        loadBoard();
-
-      }
-    );
-
-    return;
-
-  }
-
-
-  if(!session && previous){
-
-    loadBoard();
-
-  }
-
-}
-
-
-async function initAuth(){
-
-  identity =
-    self.NetlifyIdentity;
-
-
-  if(!identity)
-    return;
-
-
-  /*
-    Confirmation, recovery and OAuth all come back to the
-    site as a hash on the URL, so this has to run on load
-    before anything else looks at the session.
-  */
-
-  try{
-
-    const result =
-      await identity.handleAuthCallback();
-
-
-    if(result){
-
-      if(result.type === 'recovery'){
-
-        authMode = 'recovery';
-
-        showAuthMessage(
-          'Skohe un kontraseña nobo pa bo kuenta.',
-          'ok'
-        );
-
-      }else if(result.type === 'confirmation'){
-
-        showAuthMessage(
-          'Bo e-mail a keda konfirmá. Bon biní!',
-          'ok'
-        );
-
-      }else if(result.type === 'email_change'){
-
-        showAuthMessage(
-          'Bo e-mail a keda kambiá.',
-          'ok'
-        );
+        body:JSON.stringify({
+          username,
+          password
+        })
 
       }
 
-    }
+    );
 
-  }catch(error){
 
-    showAuthMessage(
-      authError(error),
-      'err'
+  const data =
+    await response.json();
+
+
+  if(!response.ok || data.error){
+
+    throw new Error(
+      data.error ||
+      'Algu a bai robes. Purba atrobe.'
     );
 
   }
 
 
-  try{
-
-    renderProviders(
-      await identity.getSettings()
-    );
-
-  }catch{
-
-    renderProviders(null);
-
-  }
-
-
-  identity.onAuthChange(
-    (event,user) =>
-      applySession(user)
-  );
-
-
-  applySession(
-    await identity.getUser()
-  );
+  return data;
 
 }
 
@@ -30140,20 +29820,6 @@ async function initAuth(){
 --------------------------------------------------------- */
 
 function renderBoardResponse(data){
-
-  if(session && data.me){
-
-    session.name =
-      data.me.name;
-
-    session.email =
-      data.me.email ||
-      session.email;
-
-    renderName();
-
-  }
-
 
   boardData = data;
 
@@ -30490,23 +30156,22 @@ $('authForm').onsubmit =
     event.preventDefault();
 
 
-    if(authBusy || !identity)
+    if(authBusy)
       return;
 
 
-    const email =
-      $('authEmail').value.trim();
+    const username =
+      cleanName(
+        $('authUsername').value
+      );
 
     const password =
       $('authPassword').value;
 
 
-    if(
-      authMode !== 'recovery' &&
-      !email
-    ){
+    if(!username){
 
-      $('authEmail').focus();
+      $('authUsername').focus();
 
       return;
 
@@ -30529,73 +30194,36 @@ $('authForm').onsubmit =
 
     try{
 
-      if(authMode === 'recovery'){
-
-        await identity.updateUser({
-          password
-        });
-
-        authMode = 'login';
-
-        $('authPassword').value = '';
-
-        showAuthMessage(
-          'Bo kontraseña a keda kambiá.',
-          'ok'
-        );
-
-        renderAuth();
-
-      }else if(authMode === 'signup'){
-
-        /*
-          With confirmation on, signup does not log the
-          player in; the account only becomes usable after
-          the e-mail link is opened.
-        */
-
-        const user =
-          await identity.signup(
-
-            email,
-
-            password,
-
-            player.name
-              ? { full_name:player.name }
-              : undefined
-
-          );
-
-        $('authPassword').value = '';
-
-        showAuthMessage(
-
-          user && user.confirmedAt
-            ? 'Bo kuenta ta kla.'
-            : 'Nos a manda un e-mail pa konfirmá bo kuenta. Wak bo inbox.',
-
-          'ok'
-
-        );
-
-      }else{
-
-        await identity.login(
-          email,
+      const data =
+        await submitAuth(
+          username,
           password
         );
 
-        $('authPassword').value = '';
 
-        showAuthMessage('');
+      account = {
+        username:data.username
+      };
 
-      }
+      saveAccountLocal();
+
+
+      $('authPassword').value = '';
+
+      editingName = false;
+
+      renderName();
+
+      renderAuth();
+
+      syncScore();
+
+      loadBoard();
 
     }catch(error){
 
       showAuthMessage(
-        authError(error),
+        error.message,
         'err'
       );
 
@@ -30623,78 +30251,20 @@ $('authToggle').onclick =
   };
 
 
-$('authForgot').onclick =
-  async () => {
-
-    const email =
-      $('authEmail').value.trim();
-
-
-    if(!email){
-
-      $('authEmail').focus();
-
-      return;
-
-    }
-
-
-    if(authBusy || !identity)
-      return;
-
-
-    setAuthBusy(true);
-
-
-    try{
-
-      await identity.requestPasswordRecovery(
-        email
-      );
-
-      showAuthMessage(
-        'Nos a manda un link pa kambia bo kontraseña.',
-        'ok'
-      );
-
-    }catch(error){
-
-      showAuthMessage(
-        authError(error),
-        'err'
-      );
-
-    }finally{
-
-      setAuthBusy(false);
-
-    }
-
-  };
-
-
 $('authLogout').onclick =
-  async () => {
+  () => {
 
-    if(!identity)
-      return;
+    account = null;
 
+    saveAccountLocal();
 
-    try{
+    editingName = false;
 
-      await identity.logout();
+    renderName();
 
-    }catch(error){
+    renderAuth();
 
-      showAuthMessage(
-        authError(error),
-        'err'
-      );
-
-    }
-
-
-    applySession(null);
+    loadBoard();
 
   };
 
@@ -30740,26 +30310,6 @@ document
 renderName();
 
 renderAuth();
-
-
-/*
-  The Identity library is loaded as a module, which runs
-  after this script, so start either way round.
-*/
-
-if(self.NetlifyIdentity){
-
-  initAuth();
-
-}else{
-
-  addEventListener(
-    'identity-ready',
-    initAuth,
-    { once:true }
-  );
-
-}
 
 
 /* =========================================================
@@ -31124,28 +30674,6 @@ addEventListener(
     saveCurrentGame();
 
   }
-);
-
-</script>
-
-
-<!-- =======================================================
-     NETLIFY IDENTITY
-
-     The game script above is a classic script, so the
-     library is loaded separately as a module and handed
-     over once it is ready.
-======================================================= -->
-
-<script type="module">
-
-import * as identity
-  from './vendor/netlify-identity.js';
-
-self.NetlifyIdentity = identity;
-
-dispatchEvent(
-  new Event('identity-ready')
 );
 
 </script>
