@@ -15,9 +15,19 @@ export default class extends WorkerEntrypoint {
     const contentType = assetResponse.headers.get("content-type") || "";
     if (contentType.includes("text/html")) {
       return new HTMLRewriter()
+        .on("head", {
+          element(element) {
+            element.append(AUTH_CSS, { html: true });
+          },
+        })
+        .on(".header-actions", {
+          element(element) {
+            element.append(AUTH_ICON_HTML, { html: true });
+          },
+        })
         .on("body", {
           element(element) {
-            element.prepend(AUTH_HTML, { html: true });
+            element.append(AUTH_MODAL_HTML, { html: true });
           },
         })
         .transform(assetResponse);
@@ -95,4 +105,162 @@ function json(data, status) {
   });
 }
 
-const AUTH_HTML = `<div id="cf-auth-bar" style="position:fixed;top:0;right:0;z-index:99999;display:flex;gap:8px;padding:12px 16px;font-family:system-ui,-apple-system,sans-serif;font-size:14px;"><button id="cf-signin-btn" style="padding:8px 18px;border:1px solid rgba(255,255,255,0.3);border-radius:6px;background:rgba(0,0,0,0.5);color:#fff;cursor:pointer;backdrop-filter:blur(8px);transition:background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.7)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'">Sign In</button><button id="cf-signup-btn" style="padding:8px 18px;border:none;border-radius:6px;background:#fff;color:#333;cursor:pointer;font-weight:600;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Sign Up</button></div><div id="cf-auth-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:100000;align-items:center;justify-content:center;"><div style="position:relative;background:#fff;border-radius:12px;padding:32px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);"><h2 id="cf-modal-title" style="margin:0 0 20px;font-size:22px;color:#333;font-family:system-ui,-apple-system,sans-serif;">Sign In</h2><form id="cf-auth-form" style="display:flex;flex-direction:column;gap:14px;"><input id="cf-auth-username" type="text" placeholder="Username" required style="padding:10px 14px;border:1px solid #ddd;border-radius:6px;font-size:15px;font-family:inherit;" /><input id="cf-auth-password" type="password" placeholder="Password" required style="padding:10px 14px;border:1px solid #ddd;border-radius:6px;font-size:15px;font-family:inherit;" /><div id="cf-auth-error" style="color:#e74c3c;font-size:13px;display:none;"></div><button type="submit" style="padding:11px;border:none;border-radius:6px;background:#333;color:#fff;font-size:15px;cursor:pointer;font-weight:600;font-family:inherit;">Continue</button></form><p id="cf-auth-toggle" style="text-align:center;margin:16px 0 0;font-size:13px;color:#666;font-family:system-ui,-apple-system,sans-serif;cursor:pointer;">Don't have an account? Sign up</p><button id="cf-auth-close" style="position:absolute;top:8px;right:12px;background:none;border:none;font-size:24px;cursor:pointer;color:#999;line-height:1;">&times;</button></div></div><script>(function(){var modal=document.getElementById('cf-auth-modal'),title=document.getElementById('cf-modal-title'),form=document.getElementById('cf-auth-form'),toggle=document.getElementById('cf-auth-toggle'),errorEl=document.getElementById('cf-auth-error'),mode='signin';function openModal(m){mode=m;title.textContent=m==='signin'?'Sign In':'Sign Up';toggle.textContent=m==='signin'?"Don't have an account? Sign up":"Already have an account? Sign in";errorEl.style.display='none';modal.style.display='flex';}document.getElementById('cf-signin-btn').addEventListener('click',function(){openModal('signin');});document.getElementById('cf-signup-btn').addEventListener('click',function(){openModal('signup');});document.getElementById('cf-auth-close').addEventListener('click',function(){modal.style.display='none';});modal.addEventListener('click',function(e){if(e.target===modal)modal.style.display='none';});toggle.addEventListener('click',function(){openModal(mode==='signin'?'signup':'signin');});form.addEventListener('submit',function(e){e.preventDefault();var u=document.getElementById('cf-auth-username').value,p=document.getElementById('cf-auth-password').value;errorEl.style.display='none';fetch('/api/auth/'+mode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})}).then(function(r){return r.json();}).then(function(d){if(d.error){errorEl.textContent=d.error;errorEl.style.display='block';}else{localStorage.setItem('cf_user',d.username);modal.style.display='none';var btn=document.getElementById('cf-signin-btn'),upBtn=document.getElementById('cf-signup-btn');btn.textContent='Hi, '+d.username;btn.style.cursor='default';upBtn.style.display='none';}}).catch(function(){errorEl.textContent='Network error';errorEl.style.display='block';});});var saved=localStorage.getItem('cf_user');if(saved){var b=document.getElementById('cf-signin-btn'),ub=document.getElementById('cf-signup-btn');b.textContent='Hi, '+saved;b.style.cursor='default';ub.style.display='none';}})();</script>`;
+// Reuses the site's own design tokens (--ink, --line, --overlay, --flag, --dim)
+// so this never needs its own separate color palette.
+const AUTH_CSS = `<style>
+#cf-account-btn svg{width:18px;height:18px;display:block;}
+#cf-account-label{
+  display:none;
+  align-items:center;
+  font-family:'Karla',sans-serif;
+  font-size:13px;
+  font-weight:600;
+  color:var(--ink);
+  margin-right:6px;
+  white-space:nowrap;
+}
+#cf-auth-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:rgba(8,31,54,.55);
+  backdrop-filter:blur(4px);
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+#cf-auth-overlay.open{display:flex;}
+.cf-auth-dialog{
+  position:relative;
+  width:100%;
+  max-width:360px;
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+.cf-auth-close{
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--ink);
+  font-size:16px;
+  line-height:1;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.cf-auth-error{
+  color:var(--no);
+  font-size:12px;
+  margin-bottom:10px;
+  display:none;
+}
+.cf-auth-fields{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-bottom:12px;
+}
+</style>`;
+
+const AUTH_ICON_HTML = `
+<span id="cf-account-label"></span>
+<button id="cf-account-btn" class="header-btn" aria-label="Kuenta">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+    <circle cx="12" cy="7" r="4"></circle>
+  </svg>
+</button>`;
+
+const AUTH_MODAL_HTML = `
+<div id="cf-auth-overlay">
+  <div class="cf-auth-dialog">
+    <button class="cf-auth-close" id="cf-auth-close" aria-label="Sera">&times;</button>
+    <div class="auth-title" id="cf-auth-title">Drenta</div>
+    <div class="auth-intro">Ku un kuenta bo progreso ta keda wardá i bo por sigui hunga ku e mesun score riba tur bo aparatonan.</div>
+    <div class="cf-auth-error" id="cf-auth-error"></div>
+    <form id="cf-auth-form" class="cf-auth-fields">
+      <input class="name-input" id="cf-auth-username" type="text" autocomplete="username" placeholder="Bo nòmber di uzuario" required>
+      <input class="name-input" id="cf-auth-password" type="password" autocomplete="current-password" placeholder="Kontraseña" required>
+      <button class="auth-submit" type="submit">Sigui</button>
+    </form>
+    <div class="auth-links">
+      <button class="auth-link" id="cf-auth-toggle" type="button">No tin kuenta? Krea un</button>
+    </div>
+  </div>
+</div>
+<script>(function(){
+  var openBtn=document.getElementById('cf-account-btn'),
+      label=document.getElementById('cf-account-label'),
+      overlay=document.getElementById('cf-auth-overlay'),
+      closeBtn=document.getElementById('cf-auth-close'),
+      title=document.getElementById('cf-auth-title'),
+      form=document.getElementById('cf-auth-form'),
+      toggle=document.getElementById('cf-auth-toggle'),
+      errorEl=document.getElementById('cf-auth-error'),
+      mode='signin';
+
+  function setMode(m){
+    mode=m;
+    title.textContent = m==='signin' ? 'Drenta' : 'Krea kuenta';
+    toggle.textContent = m==='signin' ? 'No tin kuenta? Krea un' : 'Bo tin kuenta kaba? Drenta';
+    errorEl.style.display='none';
+  }
+
+  function openModal(){ setMode('signin'); overlay.classList.add('open'); }
+  function closeModal(){ overlay.classList.remove('open'); }
+
+  function setSignedIn(username){
+    openBtn.setAttribute('aria-label', username);
+    label.textContent = 'Hi, ' + username;
+    label.style.display = 'flex';
+  }
+
+  openBtn.addEventListener('click', function(){
+    if(openBtn.dataset.user){ return; }
+    openModal();
+  });
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) closeModal(); });
+  toggle.addEventListener('click', function(){ setMode(mode==='signin' ? 'signup' : 'signin'); });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var u=document.getElementById('cf-auth-username').value,
+        p=document.getElementById('cf-auth-password').value;
+    errorEl.style.display='none';
+    fetch('/api/auth/'+mode,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:u,password:p})
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d.error){
+        errorEl.textContent=d.error;
+        errorEl.style.display='block';
+      }else{
+        localStorage.setItem('cf_user', d.username);
+        openBtn.dataset.user = d.username;
+        setSignedIn(d.username);
+        closeModal();
+      }
+    }).catch(function(){
+      errorEl.textContent='Error di konekshon';
+      errorEl.style.display='block';
+    });
+  });
+
+  var saved=localStorage.getItem('cf_user');
+  if(saved){
+    openBtn.dataset.user = saved;
+    setSignedIn(saved);
+  }
+})();</script>`;
