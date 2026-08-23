@@ -246,6 +246,11 @@ function json(data, status) {
 
 const AUTH_CSS = `<style>
 #cf-account-btn svg{width:18px;height:18px;display:block;}
+#cf-account-group{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
 #cf-account-label{
   display:none;
   align-items:center;
@@ -253,7 +258,6 @@ const AUTH_CSS = `<style>
   font-size:13px;
   font-weight:600;
   color:var(--ink);
-  margin-right:6px;
   white-space:nowrap;
 }
 #cf-auth-overlay{
@@ -310,13 +314,15 @@ const AUTH_CSS = `<style>
 </style>`;
 
 const AUTH_ICON_HTML = `
-<span id="cf-account-label"></span>
-<button id="cf-account-btn" class="header-btn" aria-label="Kuenta">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-    <circle cx="12" cy="7" r="4"></circle>
-  </svg>
-</button>`;
+<span id="cf-account-group">
+  <span id="cf-account-label"></span>
+  <button id="cf-account-btn" class="header-btn" aria-label="Kuenta">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+  </button>
+</span>`;
 
 const AUTH_MODAL_HTML = `
 <div id="cf-auth-overlay">
