@@ -1,0 +1,27 @@
+{
+  "name": "silent-voice-208c",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-23",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "d1_databases": [
+    {
+      "binding": "GAME_HISTORY",
+      "database_name": "game_history",
+      "database_id": "7d02c66a-8d6f-445f-b7c6-0112a02bc9aa"
+    },
+    {
+      "binding": "GAME_DICTIONARY",
+      "database_name": "game_dictionary",
+      "database_id": "40464471-ac10-4cee-ab46-2b463ab6bd7c"
+    },
+    {
+      "binding": "GAME_SCORES",
+      "database_name": "game-scores",
+      "database_id": "77d85bfc-7dc2-4249-9738-10193c65f58c"
+    }
+  ]
+}
