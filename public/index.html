@@ -1699,7 +1699,7 @@ button:focus-visible{
   border:1px solid
     rgba(249,227,0,.5);
 
-  border-radius:14px;
+  border-radius:12px;
 
   display:flex;
 
@@ -1707,39 +1707,27 @@ button:focus-visible{
 
   margin-bottom:14px;
 
-  padding:12px 12px 12px 14px;
+  padding:9px 10px 9px 12px;
 }
 
 .acct-nudge-text{
-  color:var(--ink-fixed);
+  color:var(--ink);
 
   flex:1;
 
   font-size:12.5px;
 
-  line-height:1.45;
-}
-
-.acct-nudge-text b{
-  display:block;
-
-  font-family:'Bricolage Grotesque',sans-serif;
-
-  font-size:13.5px;
-
-  font-weight:800;
-
-  margin-bottom:2px;
+  line-height:1.3;
 }
 
 .acct-nudge-cta{
-  background:var(--flag-ink);
+  background:var(--flag);
 
   border:0;
 
   border-radius:10px;
 
-  color:#fff;
+  color:var(--ink-fixed);
 
   cursor:pointer;
 
@@ -1749,7 +1737,7 @@ button:focus-visible{
 
   font-weight:700;
 
-  padding:9px 12px;
+  padding:7px 12px;
 
   white-space:nowrap;
 }
@@ -2788,6 +2776,13 @@ button:focus-visible{
       ?
     </button>
 
+    <button
+      class="header-btn"
+      id="amigaBtn"
+      aria-label="Puntra Lora pa un tip">
+      🦜
+    </button>
+
   </div>
 
 </header>
@@ -2806,9 +2801,7 @@ button:focus-visible{
     id="acctNudge">
 
     <div class="acct-nudge-text">
-      <b>Krea bo kuenta</b>
-      Sin kuenta, bo progreso i score no ta warda si bo
-      kambia di aparato.
+      Warda bo progreso riba tur aparato.
     </div>
 
     <button
@@ -2911,13 +2904,6 @@ button:focus-visible{
       id="shuffle"
       aria-label="Bolbe ordená e lèternan">
       ⇄
-    </button>
-
-    <button
-      class="btn icon"
-      id="amigaBtn"
-      aria-label="Puntra Lora pa un tip">
-      🦜
     </button>
 
     <button
@@ -3286,35 +3272,11 @@ button:focus-visible{
   </div>
 
 
-  <!-- AD SLOT (not active until AdSense is approved)
+  <!-- HISTORY -->
 
-       Paste your real ad unit here once you have it, e.g.:
-
-       <ins class="adsbygoogle"
-            style="display:block"
-            data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-            data-ad-slot="XXXXXXXXXX"
-            data-ad-format="auto"
-            data-full-width-responsive="true"></ins>
-       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-
-       Kept here on the Score page on purpose — never on the
-       game page itself, so it can't interrupt gameplay. -->
-
-  <div class="ad-slot" id="scoreAdSlot"></div>
-
-</section>
-
-
-<!-- =======================================================
-     HISTORY
-======================================================= -->
-
-<section
-  class="page"
-  id="historyPage">
-
-  <div class="panel-title">
+  <div
+    class="panel-title"
+    style="font-size:15px;margin-top:22px;margin-bottom:2px">
     Historia
   </div>
 
@@ -3347,6 +3309,24 @@ button:focus-visible{
     </div>
 
   </div>
+
+
+  <!-- AD SLOT (not active until AdSense is approved)
+
+       Paste your real ad unit here once you have it, e.g.:
+
+       <ins class="adsbygoogle"
+            style="display:block"
+            data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+            data-ad-slot="XXXXXXXXXX"
+            data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+       Kept here on the Score page on purpose — never on the
+       game page itself, so it can't interrupt gameplay. -->
+
+  <div class="ad-slot" id="scoreAdSlot"></div>
 
 </section>
 
@@ -3746,19 +3726,6 @@ button:focus-visible{
     </span>
 
     Ranking
-
-  </button>
-
-
-  <button
-    class="nav-btn"
-    data-page="historyPage">
-
-    <span class="nav-icon">
-      📅
-    </span>
-
-    Historia
 
   </button>
 
@@ -31832,7 +31799,6 @@ const pages = [
   'gamePage',
   'scorePage',
   'rankingPage',
-  'historyPage',
   'infoPage'
 
 ];
@@ -31882,7 +31848,7 @@ function showPage(
 
   if(
     pageId ===
-    'historyPage'
+    'scorePage'
   ){
 
     renderHistory();
