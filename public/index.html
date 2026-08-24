@@ -1690,6 +1690,92 @@ button:focus-visible{
   margin-bottom:14px;
 }
 
+.acct-nudge{
+  align-items:center;
+
+  background:
+    rgba(249,227,0,.14);
+
+  border:1px solid
+    rgba(249,227,0,.5);
+
+  border-radius:14px;
+
+  display:flex;
+
+  gap:10px;
+
+  margin-bottom:14px;
+
+  padding:12px 12px 12px 14px;
+}
+
+.acct-nudge-text{
+  color:var(--ink-fixed);
+
+  flex:1;
+
+  font-size:12.5px;
+
+  line-height:1.45;
+}
+
+.acct-nudge-text b{
+  display:block;
+
+  font-family:'Bricolage Grotesque',sans-serif;
+
+  font-size:13.5px;
+
+  font-weight:800;
+
+  margin-bottom:2px;
+}
+
+.acct-nudge-cta{
+  background:var(--flag-ink);
+
+  border:0;
+
+  border-radius:10px;
+
+  color:#fff;
+
+  cursor:pointer;
+
+  flex-shrink:0;
+
+  font-size:12px;
+
+  font-weight:700;
+
+  padding:9px 12px;
+
+  white-space:nowrap;
+}
+
+.acct-nudge-close{
+  background:none;
+
+  border:0;
+
+  color:var(--dim);
+
+  cursor:pointer;
+
+  flex-shrink:0;
+
+  font-size:15px;
+
+  line-height:1;
+
+  padding:4px;
+}
+
+.acct-nudge.is-hidden{
+  display:none;
+}
+
 .auth-title{
   font-family:'Bricolage Grotesque',sans-serif;
 
@@ -2715,6 +2801,33 @@ button:focus-visible{
   class="page active"
   id="gamePage">
 
+  <div
+    class="acct-nudge is-hidden"
+    id="acctNudge">
+
+    <div class="acct-nudge-text">
+      <b>Krea bo kuenta</b>
+      Sin kuenta, bo progreso i score no ta warda si bo
+      kambia di aparato.
+    </div>
+
+    <button
+      class="acct-nudge-cta"
+      id="acctNudgeCta"
+      type="button">
+      Krea kuenta
+    </button>
+
+    <button
+      class="acct-nudge-close"
+      id="acctNudgeClose"
+      type="button"
+      aria-label="Sera">
+      ✕
+    </button>
+
+  </div>
+
   <div class="daily-top">
 
     <div class="date-line">
@@ -2972,65 +3085,6 @@ button:focus-visible{
           id="amigaTable">
         </table>
 
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- GLOSSARIO -->
-
-  <div
-    class="amiga-overlay is-hidden"
-    id="glossaryOverlay">
-
-    <div
-      class="amiga-backdrop"
-      id="glossaryBackdrop">
-    </div>
-
-    <div class="amiga-sheet">
-
-      <div class="amiga-head">
-
-        <div
-          class="amiga-title"
-          id="glossaryWord">
-        </div>
-
-        <button
-          class="amiga-close"
-          id="glossaryClose"
-          aria-label="Sera">
-          ✕
-        </button>
-
-      </div>
-
-      <div
-        class="glossary-tag"
-        id="glossaryTag">
-      </div>
-
-      <div
-        class="glossary-def"
-        id="glossaryDef">
-      </div>
-
-      <div
-        class="amiga-example is-hidden"
-        id="glossaryExample">
-      </div>
-
-      <div
-        class="glossary-en is-hidden"
-        id="glossaryEn">
-      </div>
-
-      <div class="glossary-note">
-        Definishonnan aki ta indikashon general, no ta for di
-        un dikshonario ofisial.
       </div>
 
     </div>
@@ -29979,14 +30033,6 @@ function addWord(result){
     result.word;
 
 
-  element.onclick =
-    () =>
-      openGlossary(
-        result.word,
-        result.display
-      );
-
-
   const words =
     $('words');
 
@@ -30813,6 +30859,61 @@ function renderName(){
       : named
         ? 'Bo score ta manda outomátikamente ora bo haña palabra.'
         : 'Sin nòmber bo por wak e ranking, pero bo no ta aparesé.';
+
+
+  updateAcctNudge();
+
+}
+
+
+/* ---------------------------------------------------------
+   ACCOUNT NUDGE BANNER
+
+   A one-line reminder on the main game page telling
+   players without an account that their progress won't
+   follow them to another device. Dismissing it only hides
+   it for today's puzzle — it comes back once GAME_DATE
+   rolls over, so it doesn't nag mid-session but also
+   doesn't get permanently forgotten.
+--------------------------------------------------------- */
+
+const ACCT_NUDGE_DISMISS_KEY =
+  'palabraDiKorsouNudgeDismissed';
+
+function acctNudgeDismissedToday(){
+
+  return (
+    localStorage.getItem(
+      ACCT_NUDGE_DISMISS_KEY
+    ) ===
+    GAME_DATE
+  );
+
+}
+
+function dismissAcctNudge(){
+
+  localStorage.setItem(
+    ACCT_NUDGE_DISMISS_KEY,
+    GAME_DATE
+  );
+
+  $('acctNudge').classList.add(
+    'is-hidden'
+  );
+
+}
+
+function updateAcctNudge(){
+
+  const shouldShow =
+    !account &&
+    !acctNudgeDismissedToday();
+
+  $('acctNudge').classList.toggle(
+    'is-hidden',
+    !shouldShow
+  );
 
 }
 
@@ -31829,6 +31930,24 @@ $('infoBtn').onclick =
     );
 
 
+$('acctNudgeCta').onclick =
+  () => {
+
+    showPage(
+      'rankingPage'
+    );
+
+    $('authUsername').focus();
+
+  };
+
+$('acctNudgeClose').onclick =
+  dismissAcctNudge;
+
+
+updateAcctNudge();
+
+
 /* =========================================================
    28b. LANDING
 ========================================================= */
@@ -32088,13 +32207,6 @@ $('feedbackForm').onsubmit =
   };
 
 
-$('glossaryClose').onclick =
-  closeGlossary;
-
-$('glossaryBackdrop').onclick =
-  closeGlossary;
-
-
 /* =========================================================
    30. KEYBOARD
 ========================================================= */
@@ -32280,10 +32392,6 @@ function renderFoundWords(){
 
       element.dataset.word =
         word;
-
-      element.onclick =
-        () =>
-          openGlossary(word,display);
 
       words.appendChild(element);
 
