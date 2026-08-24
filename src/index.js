@@ -418,10 +418,10 @@ export default class extends WorkerEntrypoint {
   async seedBadgeDefinitions() {
     const badges = [
       // --- streak ---
-      ["streak_bronze", "streak", "Bee Bronse", "Hunga 3 dia sigui.", "longest_streak", 3, 10],
-      ["streak_silver", "streak", "Bee Plata", "Hunga 7 dia sigui.", "longest_streak", 7, 11],
-      ["streak_gold", "streak", "Bee Oro", "Hunga 30 dia sigui.", "longest_streak", 30, 12],
-      ["streak_platinum", "streak", "Bee Platinu", "Hunga 100 dia sigui.", "longest_streak", 100, 13],
+      ["streak_bronze", "streak", "Bon Trabou!", "Hunga 3 dia sigui.", "longest_streak", 3, 10],
+      ["streak_silver", "streak", "Masha Bon!", "Hunga 7 dia sigui.", "longest_streak", 7, 11],
+      ["streak_gold", "streak", "Dushi!", "Hunga 30 dia sigui.", "longest_streak", 30, 12],
+      ["streak_platinum", "streak", "Kandela!", "Hunga 100 dia sigui.", "longest_streak", 100, 13],
 
       // --- performance ---
       ["perfect_day_1", "performance", "Perfekshonista", "Haña tur palabra den un wega.", "perfect_days", 1, 20],
