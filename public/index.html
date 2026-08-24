@@ -2724,7 +2724,7 @@ button:focus-visible{
       </span>
 
       <span class="reset-label">
-        Reset 09:00
+        Reset mèdia anochi
       </span>
 
     </div>
@@ -3230,7 +3230,7 @@ button:focus-visible{
   <div class="reset-note">
 
     ⏰ E wega ta reset kada dia na
-    <strong>09:00 ora di Kòrsou</strong>.
+    <strong>mèdia anochi, na bo ora lokal</strong>.
     Bo resultado anterior ta warda den bo historia.
 
   </div>
@@ -3424,7 +3424,7 @@ button:focus-visible{
     <strong>Reset diario:</strong>
 
     kada dia nobo puzzle ta kuminsá na
-    <strong>09:00 ora di Kòrsou</strong>.
+    <strong>mèdia anochi, na bo ora lokal</strong>.
 
     Bo palabra i score di e dia anterior ta warda
     pa bo por wak nan despues.
@@ -3558,8 +3558,8 @@ button:focus-visible{
     <div
       class="auth-intro"
       id="authIntro">
-      Ku un kuenta bo progreso ta keda wardá i bo por sigui
-      hunga ku e mesun score riba tur bo aparatonan.
+      Ku un kuenta bo ranking ta konektá ku bo nòmber.
+      Bo progreso di e wega ta keda wardá riba e aparato aki.
     </div>
 
     <form
@@ -3648,7 +3648,7 @@ button:focus-visible{
 
     Tur hungadó ku a skirbi un nòmber ta aparesé aki.
     E ranking di awe ta reset huntu ku e wega na
-    <strong>09:00 ora di Kòrsou</strong>.
+    <strong>mèdia anochi, na bo ora lokal</strong>.
 
   </div>
 
@@ -28264,116 +28264,28 @@ class Puzzle{
 
 
 /* =========================================================
-   8. CURAÇAO GAME DATE
+   8. VISITOR GAME DATE
 ========================================================= */
 
-const GAME_TIMEZONE =
-  'America/Curacao';
-
-const RESET_HOUR =
-  9;
-
-
 /*
-   Returns YYYY-MM-DD
-   according to Curaçao time.
+   Returns YYYY-MM-DD according to the visitor's own local
+   timezone (whatever the browser reports). The puzzle — and
+   the daily reset — happens at midnight in each visitor's
+   own time, not a single fixed timezone for everyone.
 */
 
 function getGameDate(){
 
-  const now =
-    new Date();
+  return new Intl.DateTimeFormat(
+    'en-CA',
+    {
 
-
-  const parts =
-    new Intl.DateTimeFormat(
-      'en-CA',
-      {
-
-        timeZone:
-          GAME_TIMEZONE,
-
-        year:'numeric',
-        month:'2-digit',
-        day:'2-digit',
-
-        hour:'2-digit',
-        hour12:false
-
-      }
-    ).formatToParts(now);
-
-
-  const data = {};
-
-  parts.forEach(
-    part => {
-
-      data[part.type] =
-        part.value;
+      year:'numeric',
+      month:'2-digit',
+      day:'2-digit'
 
     }
-  );
-
-
-  let year =
-    Number(data.year);
-
-  let month =
-    Number(data.month);
-
-  let day =
-    Number(data.day);
-
-  let hour =
-    Number(data.hour);
-
-
-  /*
-     Before 09:00 belongs to
-     the previous game day.
-  */
-
-  if(
-    hour < RESET_HOUR
-  ){
-
-    const previous =
-      new Date(
-        Date.UTC(
-          year,
-          month - 1,
-          day
-        )
-      );
-
-    previous.setUTCDate(
-      previous.getUTCDate() - 1
-    );
-
-    year =
-      previous.getUTCFullYear();
-
-    month =
-      previous.getUTCMonth() + 1;
-
-    day =
-      previous.getUTCDate();
-
-  }
-
-
-  return [
-
-    year,
-
-    String(month)
-      .padStart(2,'0'),
-
-    String(day)
-      .padStart(2,'0')
-
-  ].join('-');
+  ).format(new Date());
 
 }
 
@@ -28483,6 +28395,57 @@ if(
   saveHistory(history);
 
 }
+
+
+/* =========================================================
+   12b. RESTORE CURRENT GAME
+========================================================= */
+
+function restoreCurrentGame(){
+
+  const saved =
+    history[GAME_DATE];
+
+  if(!saved)
+    return;
+
+  /*
+     Restore only words that still belong to today's puzzle.
+     This prevents stale/corrupt local data from breaking
+     the active game.
+  */
+
+  const restoredWords =
+    Array.isArray(saved.found)
+      ? saved.found.filter(
+          word =>
+            P.answers.has(word)
+        )
+      : [];
+
+  P.found =
+    new Set(restoredWords);
+
+  /*
+     Recalculate the score from the restored words instead
+     of trusting an old stored score. This keeps the score,
+     word count and found-word list in sync.
+  */
+
+  P.score =
+    restoredWords.reduce(
+      (total,word) =>
+        total +
+        scoreWord(
+          word,
+          P.letters
+        ).points,
+      0
+    );
+
+}
+
+restoreCurrentGame();
 
 
 /* =========================================================
@@ -30246,6 +30209,8 @@ function saveCurrentGame(){
 
   queueScoreSync();
 
+  queueProgressSync();
+
 }
 
 
@@ -30586,10 +30551,9 @@ function renderHistoryEntry(
    generated id and a name in localStorage, and the id is
    what identifies a row on the server.
 
-   Signing in with Netlify Identity swaps that id for the
-   Identity user id, so an account carries the same score
-   between devices. Whatever was played anonymously on the
-   device is claimed by the account on first sign-in.
+   Signing in switches leaderboard identity from the local
+   device id to the account username. The current puzzle is
+   restored from this browser's saved history on reload.
 
 ========================================================= */
 
@@ -30849,7 +30813,7 @@ function renderName(){
 
   $('nameHint').textContent =
     account
-      ? 'Bo score ta wardá den bo kuenta. Drenta riba otro aparato pa sigui.'
+      ? 'Bo kuenta ta konektá ku bo ranking. Bo progreso di e wega ta restorá riba e aparato aki.'
       : named
         ? 'Bo score ta manda outomátikamente ora bo haña palabra.'
         : 'Sin nòmber bo por wak e ranking, pero bo no ta aparesé.';
@@ -30983,8 +30947,8 @@ function renderAuth(){
 
   $('authIntro').textContent =
     signup
-      ? 'Ku un kuenta bo progreso ta keda wardá i bo por sigui hunga ku e mesun score riba tur bo aparatonan.'
-      : 'Drenta pa bo score sigui bo riba tur bo aparatonan.';
+      ? 'Krea un kuenta pa konektá bo ranking ku bo nòmber. Bo progreso di e wega ta keda wardá riba e aparato aki.'
+      : 'Drenta pa konektá bo ranking ku bo kuenta.';
 
   $('authSubmit').textContent =
     signup
@@ -31144,7 +31108,7 @@ async function syncScore(){
 
           body:JSON.stringify({
 
-            playerId:player.id,
+            playerId:activePlayerId(),
 
             name:activeName(),
 
@@ -31203,6 +31167,205 @@ function queueScoreSync(){
   syncTimer =
     setTimeout(
       syncScore,
+      1200
+    );
+
+}
+
+
+/* ---------------------------------------------------------
+   CROSS-DEVICE WORD PROGRESS
+
+   Only kept in sync for signed-in accounts — anonymous
+   device play keeps working purely from localStorage, as
+   before. On sign-in (or on load, if already signed in) any
+   words found on another device are merged in; every new
+   word found here is queued to sync back out the same way
+   score already does.
+--------------------------------------------------------- */
+
+const PROGRESS_ENDPOINT =
+  '/api/progress';
+
+let progressSyncTimer =
+  null;
+
+
+function mergeFoundWords(words){
+
+  if(
+    !Array.isArray(words) ||
+    !words.length
+  ){
+
+    return;
+
+  }
+
+
+  let changed = false;
+
+
+  words.forEach(
+
+    word => {
+
+      if(
+        P.answers.has(word) &&
+        !P.found.has(word)
+      ){
+
+        P.found.add(word);
+
+        changed = true;
+
+      }
+
+    }
+
+  );
+
+
+  if(!changed)
+    return;
+
+
+  P.score =
+    [...P.found].reduce(
+
+      (total,word) =>
+
+        total +
+        scoreWord(
+          word,
+          P.letters
+        ).points,
+
+      0
+
+    );
+
+
+  renderFoundWords();
+
+  updateGame();
+
+  saveCurrentGame();
+
+}
+
+
+async function loadProgress(){
+
+  if(!account)
+    return;
+
+
+  try{
+
+    const response =
+      await fetch(
+
+        PROGRESS_ENDPOINT +
+        '?playerId=' +
+        encodeURIComponent(
+          activePlayerId()
+        ) +
+        '&date=' +
+        encodeURIComponent(
+          GAME_DATE
+        )
+
+      );
+
+
+    if(!response.ok)
+      return;
+
+
+    const data =
+      await response.json();
+
+
+    mergeFoundWords(
+      data.found
+    );
+
+  }catch{
+
+    /*
+      Offline or request failed — local
+      progress keeps working as-is.
+    */
+
+  }
+
+}
+
+
+async function syncProgress(){
+
+  if(!account)
+    return;
+
+
+  try{
+
+    await fetch(
+
+      PROGRESS_ENDPOINT,
+
+      {
+
+        method:'POST',
+
+        headers:{
+          'content-type':
+            'application/json'
+        },
+
+        body:JSON.stringify({
+
+          playerId:
+            activePlayerId(),
+
+          date:GAME_DATE,
+
+          found:
+            [...P.found]
+
+        })
+
+      }
+
+    );
+
+  }catch{
+
+    /*
+      Offline play keeps working; progress is
+      sent again on the next found word.
+    */
+
+  }
+
+}
+
+
+function queueProgressSync(){
+
+  if(!account)
+    return;
+
+
+  clearTimeout(
+    progressSyncTimer
+  );
+
+
+  progressSyncTimer =
+    setTimeout(
+      syncProgress,
       1200
     );
 
@@ -31460,6 +31623,8 @@ $('authForm').onsubmit =
 
       syncScore();
 
+      loadProgress();
+
       loadBoard();
 
     }catch(error){
@@ -31552,6 +31717,13 @@ document
 renderName();
 
 renderAuth();
+
+
+if(account){
+
+  loadProgress();
+
+}
 
 
 /* =========================================================
@@ -32016,9 +32188,10 @@ addEventListener(
    31. RESET CHECK
 =========================================================
 
-   If the browser remains open around
-   09:00 Curaçao time, reload the page
-   so the new puzzle can start.
+   If the browser remains open past
+   midnight in the visitor's own local
+   time, reload the page so the new
+   puzzle can start.
 
 ========================================================= */
 
@@ -32062,6 +32235,68 @@ setInterval(
 );
 
 
+function renderFoundWords(){
+
+  const words =
+    $('words');
+
+  words.innerHTML =
+    '';
+
+
+  const sorted =
+    [...P.found].sort(
+      (a,b) =>
+        P.displayForm(a).localeCompare(
+          P.displayForm(b),
+          'pap'
+        )
+    );
+
+
+  sorted.forEach(
+    word => {
+
+      const display =
+        P.displayForm(word);
+
+      const isPangram =
+        P.pangrams.has(word);
+
+      const points =
+        scoreWord(
+          word,
+          P.letters
+        ).points;
+
+      const element =
+        document.createElement('div');
+
+      element.className =
+        'w' +
+        (isPangram ? ' pan' : '');
+
+      element.textContent =
+        display;
+
+      element.title =
+        points + ' punto';
+
+      element.dataset.word =
+        word;
+
+      element.onclick =
+        () =>
+          openGlossary(word,display);
+
+      words.appendChild(element);
+
+    }
+  );
+
+}
+
+
 /* =========================================================
    32. INITIALISE
 ========================================================= */
@@ -32071,6 +32306,8 @@ drawHive();
 renderEntry();
 
 updateGame();
+
+renderFoundWords();
 
 renderHistory();
 

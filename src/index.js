@@ -16,6 +16,12 @@ export default class extends WorkerEntrypoint {
     if (url.pathname === "/api/leaderboard" && request.method === "POST") {
       return this.handleLeaderboardPost(request);
     }
+    if (url.pathname === "/api/progress" && request.method === "GET") {
+      return this.handleProgressGet(request);
+    }
+    if (url.pathname === "/api/progress" && request.method === "POST") {
+      return this.handleProgressPost(request);
+    }
     if (url.pathname === "/api/feedback" && request.method === "POST") {
       return this.handleFeedbackPost(request);
     }
@@ -177,6 +183,108 @@ export default class extends WorkerEntrypoint {
         allTime: allTime.results || [],
       }, 200);
     } catch (e) {
+      return json({ error: "Server error" }, 500);
+    }
+  }
+
+  async ensureProgressTable() {
+    await this.env.GAME_HISTORY
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS game_progress (
+          player_id TEXT NOT NULL,
+          date TEXT NOT NULL,
+          found_words TEXT NOT NULL DEFAULT '[]',
+          updated_at TEXT DEFAULT (datetime('now')),
+          PRIMARY KEY (player_id, date)
+        )`
+      )
+      .run();
+  }
+
+  /*
+    Cross-device word progress is only stored for signed-in
+    accounts (playerId prefixed "acct:"). Anonymous device
+    play keeps working exactly as before, via localStorage
+    only — there is nothing meaningful to key a server row
+    on for an anonymous device id, so those requests are
+    accepted but treated as a no-op.
+  */
+  async handleProgressGet(request) {
+    try {
+      await this.ensureProgressTable();
+      const url = new URL(request.url);
+      const playerId = url.searchParams.get("playerId");
+      const date = url.searchParams.get("date");
+
+      if (!playerId || !date) {
+        return json({ error: "playerId and date query params required" }, 400);
+      }
+      if (!playerId.startsWith("acct:")) {
+        return json({ found: [] }, 200);
+      }
+
+      const row = await this.env.GAME_HISTORY
+        .prepare(
+          `SELECT found_words FROM game_progress
+           WHERE player_id = ? AND date = ?`
+        )
+        .bind(playerId, date)
+        .first();
+
+      let found = [];
+      if (row && row.found_words) {
+        try {
+          const parsed = JSON.parse(row.found_words);
+          if (Array.isArray(parsed)) found = parsed;
+        } catch {
+          found = [];
+        }
+      }
+
+      return json({ found }, 200);
+    } catch (e) {
+      if (e.message && e.message.includes("no such table")) {
+        await this.ensureProgressTable();
+        return this.handleProgressGet(request);
+      }
+      return json({ error: "Server error" }, 500);
+    }
+  }
+
+  async handleProgressPost(request) {
+    try {
+      await this.ensureProgressTable();
+      const { playerId, date, found } = await request.json();
+
+      if (!playerId || !date || !Array.isArray(found)) {
+        return json({ error: "playerId, date, and found[] required" }, 400);
+      }
+      if (!playerId.startsWith("acct:")) {
+        return json({ ok: true, skipped: true }, 200);
+      }
+
+      const cleaned = found
+        .filter((word) => typeof word === "string")
+        .slice(0, 500)
+        .map((word) => word.slice(0, 40));
+
+      await this.env.GAME_HISTORY
+        .prepare(
+          `INSERT INTO game_progress (player_id, date, found_words)
+           VALUES (?, ?, ?)
+           ON CONFLICT(player_id, date) DO UPDATE SET
+             found_words = excluded.found_words,
+             updated_at = datetime('now')`
+        )
+        .bind(playerId, date, JSON.stringify(cleaned))
+        .run();
+
+      return json({ ok: true }, 200);
+    } catch (e) {
+      if (e.message && e.message.includes("no such table")) {
+        await this.ensureProgressTable();
+        return this.handleProgressPost(request);
+      }
       return json({ error: "Server error" }, 500);
     }
   }
