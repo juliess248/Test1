@@ -8,6 +8,21 @@
 
 <title>Palabra di Kòrsou</title>
 
+<!--
+  GOOGLE ADSENSE (not active yet)
+
+  Once your site is approved, uncomment the script tag below
+  and replace ca-pub-XXXXXXXXXXXXXXXX with your real publisher
+  ID (from your AdSense account, under Sites). This one script
+  tag is the only site-wide piece; the actual ad unit that
+  renders lives in the Score page, marked "AD SLOT" further
+  down in this file.
+
+<script async
+  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+  crossorigin="anonymous"></script>
+-->
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -1202,6 +1217,52 @@ header{
   cursor:pointer;
 }
 
+.amiga-search{
+  margin-bottom:12px;
+}
+
+.amiga-search-result{
+  background:rgba(var(--overlay),.04);
+
+  border:1px solid var(--line);
+
+  border-radius:14px;
+
+  padding:14px;
+
+  margin-bottom:16px;
+}
+
+.amiga-search-result.is-hidden{
+  display:none;
+}
+
+.amiga-search-word{
+  font-family:'Bricolage Grotesque',sans-serif;
+
+  font-size:17px;
+  font-weight:800;
+
+  margin-bottom:8px;
+}
+
+.amiga-example{
+  font-size:13px;
+  line-height:1.5;
+
+  color:var(--dim);
+
+  margin-top:6px;
+
+  padding-top:10px;
+
+  border-top:1px solid var(--line);
+}
+
+.amiga-example b{
+  color:var(--ink);
+}
+
 .amiga-msg{
   font-size:13.5px;
   line-height:1.5;
@@ -1724,6 +1785,86 @@ button:focus-visible{
   gap:8px;
 }
 
+.feedback-chips{
+  display:flex;
+
+  flex-wrap:wrap;
+
+  gap:8px;
+
+  margin-bottom:14px;
+}
+
+.feedback-chip{
+  font-family:'Karla',sans-serif;
+
+  font-size:13px;
+  font-weight:700;
+
+  padding:8px 13px;
+
+  border-radius:999px;
+
+  background:rgba(var(--overlay),.06);
+
+  border:1.5px solid var(--line);
+
+  color:var(--ink);
+
+  cursor:pointer;
+
+  transition:
+    background .15s,
+    border-color .15s,
+    transform .1s;
+}
+
+.feedback-chip:active{
+  transform:scale(.96);
+}
+
+.feedback-chip.active{
+  background:rgba(249,227,0,.16);
+
+  border-color:var(--flag);
+
+  color:var(--flag-ink);
+}
+
+.feedback-textarea{
+  width:100%;
+
+  resize:vertical;
+
+  min-height:90px;
+
+  background:rgba(var(--overlay),.04);
+
+  border:1px solid var(--line);
+
+  border-radius:12px;
+
+  color:var(--ink);
+
+  font-family:'Karla',sans-serif;
+
+  font-size:15px;
+
+  padding:11px 13px;
+
+  margin-bottom:12px;
+}
+
+.feedback-textarea::placeholder{
+  color:var(--dim2);
+}
+
+.feedback-textarea:focus{
+  outline:none;
+
+  border-color:rgba(249,227,0,.5);
+}
+
 .auth-submit{
   border:0;
 
@@ -2169,6 +2310,95 @@ button:focus-visible{
   margin-top:4px;
 }
 
+.landing-legal{
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  gap:8px;
+
+  margin-top:16px;
+}
+
+.landing-legal-link{
+  background:transparent;
+
+  border:0;
+
+  color:rgba(var(--overlay),.45);
+
+  cursor:pointer;
+
+  font-family:'Karla',sans-serif;
+
+  font-size:11.5px;
+
+  font-weight:600;
+
+  padding:0;
+
+  text-decoration:underline;
+}
+
+.landing-legal-link:hover{
+  color:rgba(var(--overlay),.7);
+}
+
+.landing-legal-dot{
+  color:rgba(var(--overlay),.3);
+
+  font-size:11.5px;
+}
+
+.legal-text{
+  font-size:13.5px;
+  line-height:1.55;
+
+  color:var(--ink);
+}
+
+.legal-text p{
+  margin-bottom:14px;
+}
+
+.legal-text h4{
+  font-family:'Bricolage Grotesque',sans-serif;
+
+  font-size:14px;
+  font-weight:800;
+
+  margin:18px 0 6px;
+}
+
+.legal-text h4:first-child{
+  margin-top:0;
+}
+
+.legal-text a{
+  color:var(--curacao);
+}
+
+.legal-placeholder{
+  background:rgba(217,106,91,.14);
+
+  border-radius:6px;
+
+  color:#B33A2E;
+  font-weight:700;
+
+  padding:1px 5px;
+}
+
+.ad-slot{
+  margin-top:16px;
+}
+
+.ad-slot:empty{
+  display:none;
+}
+
 
 /* =========================================================
    DARK MODE
@@ -2232,7 +2462,7 @@ button:focus-visible{
   </div>
 
   <div class="landing-sub">
-    Kuantu palabra na Papiamentu bo por traha ku 7 lèter?
+    Kon bon bo Papiamentu ta?
   </div>
 
   <div class="landing-actions">
@@ -2262,6 +2492,185 @@ button:focus-visible{
       Un wega nobo tur dia
     </div>
 
+    <div class="landing-legal">
+
+      <button
+        class="landing-legal-link"
+        id="privacyLinkBtn"
+        type="button">
+        Privasidat
+      </button>
+
+      <span class="landing-legal-dot">·</span>
+
+      <button
+        class="landing-legal-link"
+        id="aboutLinkBtn"
+        type="button">
+        Tokante nos
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- PRIVACY POLICY -->
+
+<div
+  class="amiga-overlay is-hidden"
+  id="privacyOverlay">
+
+  <div
+    class="amiga-backdrop"
+    id="privacyBackdrop">
+  </div>
+
+  <div class="amiga-sheet">
+
+    <div class="amiga-head">
+
+      <div class="amiga-title">
+        Polítika di Privasidat
+      </div>
+
+      <button
+        class="amiga-close"
+        id="privacyClose"
+        aria-label="Sera">
+        ✕
+      </button>
+
+    </div>
+
+    <div class="legal-text">
+
+      <p>
+        <b>Palabra di Kòrsou</b> ta un wega gratis. E página aki ta
+        splika kiko informashon nos ta kolektá i kon nos ta usé.
+      </p>
+
+      <h4>Kiko nos ta warda</h4>
+
+      <p>
+        Si bo krea un kuenta: bo nòmber di uzuario i un versíon
+        encriptá (hash) di bo kontraseña — nunka e kontraseña mes.
+        Si bo skirbi un nòmber pa aparesé den e ranking, e nòmber
+        ei. Bo progreso, score i palabra ku bo haña den e wega.
+        Komentario ku bo manda via e formulario di opinion.
+      </p>
+
+      <h4>Cookies i publisidat</h4>
+
+      <p>
+        E sitio aki ta usa Google AdSense pa mustra reklamo.
+        Google i su sosionan por usa cookies pa mustra reklamo
+        basá riba bo bishitanan na e sitio aki i otro sitionan.
+        Bo por desaktivá reklamo personalisá bishitando
+        <a
+          href="https://myadcenter.google.com"
+          target="_blank"
+          rel="noopener">
+          Google Ad Center
+        </a>, i lesa mas tokante e uzo di data den
+        <a
+          href="https://policies.google.com/technologies/partner-sites"
+          target="_blank"
+          rel="noopener">
+          e polítika di Google pa página di sosio
+        </a>.
+      </p>
+
+      <h4>Unda e data ta wòrdu wardá</h4>
+
+      <p>
+        Nos ta warda e data riba Cloudflare (D1 database), un
+        servisio di cloud storage.
+      </p>
+
+      <h4>Bo derecho</h4>
+
+      <p>
+        Bo por pidi nos kita bo kuenta i data kontaktando nos
+        na <span class="legal-placeholder">[email di kontakto]</span>.
+      </p>
+
+      <h4>Mucha</h4>
+
+      <p>
+        E wega no ta dirigí spesífikamente na mucha bou di 13
+        aña, i nos no ta kolektá informashon konsientemente for
+        di mucha.
+      </p>
+
+      <h4>Kambio den e polítika</h4>
+
+      <p>
+        Nos por aktualisá e polítika aki di tempu na tempu.
+        Último aktualisashon:
+        <span class="legal-placeholder">[fecha]</span>.
+      </p>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ABOUT -->
+
+<div
+  class="amiga-overlay is-hidden"
+  id="aboutOverlay">
+
+  <div
+    class="amiga-backdrop"
+    id="aboutBackdrop">
+  </div>
+
+  <div class="amiga-sheet">
+
+    <div class="amiga-head">
+
+      <div class="amiga-title">
+        Tokante nos
+      </div>
+
+      <button
+        class="amiga-close"
+        id="aboutClose"
+        aria-label="Sera">
+        ✕
+      </button>
+
+    </div>
+
+    <div class="legal-text">
+
+      <p>
+        <b>Palabra di Kòrsou</b> ta un wega di palabra diario na
+        Papiamentu, inspirá pa e riko idioma i kultura di Kòrsou.
+        Meta di e wega ta pa laga hende praktiká i disfrutá di
+        Papiamentu tur dia, sea nan ta biba na Kòrsou òf keda
+        lehos di kas.
+      </p>
+
+      <p>
+        E wega ta ainda den desaroyo — si bo tin idea, deskubrí
+        un fout, òf ke duna un opinion, usa e ikono di komentario
+        den e wega mes.
+      </p>
+
+      <p>
+        Kontakto:
+        <span class="legal-placeholder">[email di kontakto]</span>
+      </p>
+
+    </div>
+
   </div>
 
 </div>
@@ -2282,6 +2691,15 @@ button:focus-visible{
   </div>
 
   <div class="header-actions">
+
+    <button
+      class="header-btn"
+      id="feedbackBtn"
+      aria-label="Duna bo opinion">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+      </svg>
+    </button>
 
     <button
       class="header-btn"
@@ -2408,6 +2826,105 @@ button:focus-visible{
   </div>
 
 
+  <!-- FEEDBACK -->
+
+  <div
+    class="amiga-overlay is-hidden"
+    id="feedbackOverlay">
+
+    <div
+      class="amiga-backdrop"
+      id="feedbackBackdrop">
+    </div>
+
+    <div class="amiga-sheet">
+
+      <div class="amiga-head">
+
+        <div class="amiga-title">
+          Bo opinion ta importante
+        </div>
+
+        <button
+          class="amiga-close"
+          id="feedbackClose"
+          aria-label="Sera">
+          ✕
+        </button>
+
+      </div>
+
+      <div
+        class="amiga-msg"
+        id="feedbackIntro">
+        E wega ta ainda den desaroyo. Kontami kiko bo ta pensa,
+        kiko bo ta gusta, i kiko nos por mehorá.
+      </div>
+
+      <div
+        class="feedback-chips"
+        id="feedbackChips">
+
+        <button
+          class="feedback-chip"
+          type="button"
+          data-category="bug">
+          🐛 Bug
+        </button>
+
+        <button
+          class="feedback-chip"
+          type="button"
+          data-category="idea">
+          💡 Idea
+        </button>
+
+        <button
+          class="feedback-chip"
+          type="button"
+          data-category="like">
+          ❤️ Mi ta gusta
+        </button>
+
+        <button
+          class="feedback-chip"
+          type="button"
+          data-category="confused">
+          😕 Konfuso
+        </button>
+
+      </div>
+
+      <form id="feedbackForm">
+
+        <textarea
+          class="feedback-textarea"
+          id="feedbackMessage"
+          rows="4"
+          maxlength="2000"
+          placeholder="Skirbi bo komentario aki...">
+        </textarea>
+
+        <button
+          class="auth-submit"
+          id="feedbackSubmit"
+          type="submit">
+          Manda
+        </button>
+
+      </form>
+
+      <div
+        class="auth-msg"
+        id="feedbackMsg"
+        style="display:none">
+      </div>
+
+    </div>
+
+  </div>
+
+
   <!-- AMIGA -->
 
   <div
@@ -2434,6 +2951,23 @@ button:focus-visible{
           ✕
         </button>
 
+      </div>
+
+      <div class="amiga-search">
+
+        <input
+          class="name-input"
+          id="amigaSearchInput"
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="Buska un palabra di awe...">
+
+      </div>
+
+      <div
+        class="amiga-search-result is-hidden"
+        id="amigaSearchResult">
       </div>
 
       <div
@@ -2492,6 +3026,11 @@ button:focus-visible{
       <div
         class="glossary-def"
         id="glossaryDef">
+      </div>
+
+      <div
+        class="amiga-example is-hidden"
+        id="glossaryExample">
       </div>
 
       <div
@@ -2701,6 +3240,24 @@ button:focus-visible{
     Bo resultado anterior ta warda den bo historia.
 
   </div>
+
+
+  <!-- AD SLOT (not active until AdSense is approved)
+
+       Paste your real ad unit here once you have it, e.g.:
+
+       <ins class="adsbygoogle"
+            style="display:block"
+            data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+            data-ad-slot="XXXXXXXXXX"
+            data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+       Kept here on the Score page on purpose — never on the
+       game page itself, so it can't interrupt gameplay. -->
+
+  <div class="ad-slot" id="scoreAdSlot"></div>
 
 </section>
 
@@ -26820,6 +27377,102 @@ const EN_TRANSLATIONS = {
 
 
 /* =========================================================
+   5e. USE CASES
+
+   One example sentence per word that has a definition
+   above, so a search result is never definition-only.
+   Hand-written, same coverage as DEFINITIONS.
+========================================================= */
+
+const EXAMPLES = {
+
+  "daña":"E awaseru fuerte a daña e kunuku.",
+  "abou":"E buki ta abou di mesa.",
+  "abraso":"El a duna su mama un abraso kayente.",
+  "abusa":"No mag abusa di e animalnan.",
+  "abusador":"E abusador a wòrdu kastigá pa lei.",
+  "abuso":"Abuso di poder no ta korekto.",
+  "baba":"E beibi tin baba riba su kachete.",
+  "bara":"Nan a usa un bara di heru pa drecha e porta.",
+  "barba":"Su tata tin un barba largu i blanku.",
+  "barbaro":"E kustumber ei tabata un akto barbaro.",
+  "basa":"Su opinion ta basa riba echo, no riba emoshon.",
+  "baso":"Dunami un baso di awa, por fabor.",
+  "basora":"El a kohe e basora pa hasi limpi e sala.",
+  "bobo":"No sea bobo, wak bon prome ku bo kompra.",
+  "boda":"Nan boda tabata na e otro siman.",
+  "bora":"El a bora e palabra robes for di e frase.",
+  "bordado":"E bistí tin un bordado di flor bunita.",
+  "borda":"Su mama ta borda un tapete pa e kas.",
+  "bordo":"Tur pasahero mester ta na bordo prome ku e barku sali.",
+  "boso":"Boso tur ta invitá pa e fiesta.",
+  "brabu":"E kachó tabata masha brabu ora stranhero a yega.",
+  "brasa":"El a pone e karni riba e brasa pa asa.",
+  "bros":"El a regalá su tawela un bros di oro.",
+  "brua":"Mucha nan tabata konta storia di brua den anochi.",
+  "bubu":"Un bubu chikí a bula bin serka e lampi.",
+  "buro":"El a pone e dokumentonan riba su buro.",
+  "burs":"Presio di akshon a subi na e burs awe.",
+  "dobar":"Dobla e paña prome ku warda den kashi.",
+  "obra":"E outor a publiká su último obra e aña aki.",
+  "rabo":"E kachó tabata move su rabo di alegria.",
+  "roba":"Nan a wòrdu deteni pa purba roba e tienda.",
+  "robo":"Polis a investigá e robo di e joyeria.",
+  "sabado":"Nos ta bishitá tawela tur sabado.",
+  "sabor":"E sabor di e stobá tabata delisioso.",
+  "sabroso":"E kuminda tabata masha sabroso.",
+  "soba":"Despues di kore, mi ta gusta soba mi pia.",
+  "sobra":"Warda e sobra di kuminda den frishider.",
+  "deterioro":"E kaminda ta mustra siñal di deterioro.",
+  "editor":"E editor a korigí e teksto prome ku publiká e buki.",
+  "emerito":"E profesor emerito ainda ta duna un par di klas.",
+  "eredero":"El ta e único eredero di e propiedat.",
+  "eroe":"Tur hende ta mira e bòmbero komo un eroe.",
+  "eror":"E programa tin un eror ku mester wòrdu drechá.",
+  "idiot":"No trata otro hende komo si fuera nan ta idiot.",
+  "medio":"Nos por buska un medio pa resolvé e problema.",
+  "memo":"El a manda un memo pa tur empleado.",
+  "memoir":"El a skirbí su memoir despues di retirá.",
+  "merito":"El a gana e premio pa su merito komo atleta.",
+  "mero":"Peskadó a kapturá un mero grandi awe.",
+  "meteor":"Nos a mira un meteor kore den shelu anochi.",
+  "meteorit":"Sientífikonan a haña un meteorit den desierto.",
+  "metodo":"Maestra ta usa un metodo nobo pa siña mucha lesa.",
+  "morde":"E kachó a morde e kabuya di su koya.",
+  "morto":"E flor den e vas ta morto kaba.",
+  "motor":"Motor di e outo mester wòrdu drechá.",
+  "odio":"Odio no ta trese nada bon pa niun hende.",
+  "oido":"El a pèrdè un poko di su oido despues di e konsierto.",
+  "omiti":"No omiti niun detaye importante den bo rapòrt.",
+  "otro":"Dunami otro oportunidat, por fabor.",
+  "remitido":"E plaka remitido a yega e siguiente dia.",
+  "retiro":"Su retiro ta plania pa aña ku ta bin.",
+  "reto":"Kompletá e maraton tabata un reto grandi p'e.",
+  "ritmo":"E kantika tin un ritmo masha pega.",
+  "rito":"Kada kultura tin nan mes rito pa kasamentu.",
+  "rooi":"Awa di yobida ta kore den e rooi despues di tempestat.",
+  "roti":"Nos a kome roti ku pòyo pa merdia.",
+  "temor":"El a sinti temor ora e tempestat a kuminsá.",
+  "teremoto":"E teremoto a kousa hopi daño na e pueblo.",
+  "teritorio":"E animal ta protehá su teritorio kontra otro bestia.",
+  "termometer":"Usa e termometer pa midi si bo tin fiber.",
+  "teror":"E pelíkula tabata yen di teror i suspenso.",
+  "tetero":"Mama ta duna e beibi su tetero kada trè ora.",
+  "timido":"Mucha ei ta masha timido ora stranhero ta papia kuné.",
+  "tiroide":"Dòkter a chèk su tiroide despues di e sintomanan.",
+  "tiroteo":"Un tiroteo a kaba den e kaya anochi ayera.",
+  "tomo":"E buki tin tres tomo den total.",
+  "torero":"E torero a demostrá masha kurashi den e arena.",
+  "toro":"E toro a kore tras di e torero den e arena.",
+  "torre":"Nan a traha un torre haltu na sentro di stat.",
+  "trio":"E trio musikal a toka den e fiesta.",
+  "trom":"El a siña bati trom for di chikitu.",
+  "trot":"E kabai a kana na trot rònt di e kancha."
+
+};
+
+
+/* =========================================================
    6. DAILY PUZZLE
 =========================================================
 
@@ -28098,6 +28751,25 @@ const SOUND = (function(){
       }catch(e){}
     },
 
+    delete(){
+      try{
+        const c = getCtx();
+        const t = c.currentTime;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(520,t);
+        osc.frequency.exponentialRampToValueAtTime(280,t+0.09);
+        gain.gain.setValueAtTime(0,t);
+        gain.gain.linearRampToValueAtTime(0.07,t+0.006);
+        gain.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
+        osc.connect(gain);
+        gain.connect(c.destination);
+        osc.start(t);
+        osc.stop(t+0.11);
+      }catch(e){}
+    },
+
     word(){
       try{
         const c = getCtx();
@@ -28139,6 +28811,11 @@ function typeLetter(letter){
 
 
 function deleteLetter(){
+
+  if(!typed)
+    return;
+
+  SOUND.delete();
 
   typed =
     typed.slice(
@@ -28250,6 +28927,158 @@ function celebratePangram(){
 
     navigator.vibrate(
       [30,50,30,50,70]
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   18a. FEEDBACK
+========================================================= */
+
+let feedbackCategory = null;
+
+
+function openFeedback(){
+
+  $('feedbackOverlay').classList.remove(
+    'is-hidden'
+  );
+
+  $('feedbackMessage').focus();
+
+}
+
+
+function closeFeedback(){
+
+  $('feedbackOverlay').classList.add(
+    'is-hidden'
+  );
+
+}
+
+
+function toggleFeedbackChip(button){
+
+  const category =
+    button.dataset.category;
+
+
+  const alreadyActive =
+    button.classList.contains(
+      'active'
+    );
+
+
+  document
+    .querySelectorAll(
+      '.feedback-chip'
+    )
+    .forEach(
+      chip =>
+        chip.classList.remove(
+          'active'
+        )
+    );
+
+
+  if(alreadyActive){
+
+    feedbackCategory = null;
+
+    return;
+
+  }
+
+
+  button.classList.add(
+    'active'
+  );
+
+  feedbackCategory =
+    category;
+
+}
+
+
+function showFeedbackMessage(text,kind){
+
+  const box =
+    $('feedbackMsg');
+
+
+  if(!text){
+
+    box.style.display = 'none';
+
+    box.textContent = '';
+
+    return;
+
+  }
+
+
+  box.className =
+    'auth-msg ' +
+    (kind || 'ok');
+
+  box.textContent = text;
+
+  box.style.display = '';
+
+}
+
+
+async function submitFeedback(message){
+
+  const response =
+    await fetch(
+
+      '/api/feedback',
+
+      {
+
+        method:'POST',
+
+        headers:{
+          'content-type':
+            'application/json'
+        },
+
+        body:JSON.stringify({
+
+          playerId:
+            activePlayerId(),
+
+          name:
+            activeName(),
+
+          category:
+            feedbackCategory,
+
+          message,
+
+          date:GAME_DATE
+
+        })
+
+      }
+
+    );
+
+
+  const data =
+    await response.json();
+
+
+  if(!response.ok || data.error){
+
+    throw new Error(
+      data.error ||
+      'No a logra manda. Purba atrobe.'
     );
 
   }
@@ -28464,7 +29293,198 @@ function renderAmigaTable(){
 }
 
 
+let searchToken = 0;
+
+
+async function renderWordSearchResult(word){
+
+  const box =
+    $('amigaSearchResult');
+
+
+  if(!word){
+
+    box.classList.add(
+      'is-hidden'
+    );
+
+    box.innerHTML = '';
+
+    return;
+
+  }
+
+
+  if(!P.answers.has(word)){
+
+    box.classList.remove(
+      'is-hidden'
+    );
+
+    box.innerHTML =
+      '<div class="glossary-def is-missing">' +
+      'E palabra aki no ta den e wega di awe.' +
+      '</div>';
+
+    return;
+
+  }
+
+
+  const display =
+    P.displayForm(word);
+
+  const token =
+    ++searchToken;
+
+  const info =
+    getWordInfo(word,display);
+
+
+  if(isPromise(info)){
+
+    box.classList.remove(
+      'is-hidden'
+    );
+
+    box.innerHTML =
+      '<div class="amiga-search-word">' +
+      escapeHtml(display) +
+      '</div>' +
+      '<div class="glossary-def is-missing">' +
+      'Ta karga definishon...' +
+      '</div>';
+
+
+    let result = null;
+
+    try{
+
+      result =
+        await info;
+
+    }catch{
+
+      result = null;
+
+    }
+
+
+    /*
+      The player may have kept typing (or closed the popup)
+      while this was in flight — don't overwrite whatever is
+      showing now with a stale answer.
+    */
+
+    if(token !== searchToken){
+
+      return;
+
+    }
+
+
+    renderSearchInfo(
+      display,
+      result
+    );
+
+    return;
+
+  }
+
+
+  renderSearchInfo(
+    display,
+    info
+  );
+
+}
+
+
+function renderSearchInfo(display,info){
+
+  const box =
+    $('amigaSearchResult');
+
+
+  const tagHtml =
+    info && info.tags
+      ? '<div class="glossary-tag">' +
+        info.tags
+          .split(',')
+          .map(
+            code =>
+              TAG_LABELS[code.trim()] ||
+              code
+          )
+          .join(' · ') +
+        '</div>'
+      : '';
+
+
+  const defHtml =
+    info && info.definition
+      ? '<div class="glossary-def">' +
+        escapeHtml(info.definition) +
+        '</div>'
+      : '<div class="glossary-def is-missing">' +
+        'Nos no tin definishon pa e palabra aki ainda.' +
+        '</div>';
+
+
+  const exampleHtml =
+    info && info.example
+      ? '<div class="amiga-example">' +
+        '<b>Uzo:</b> ' +
+        escapeHtml(info.example) +
+        '</div>'
+      : '';
+
+
+  const enHtml =
+    info && info.english
+      ? '<div class="glossary-en">' +
+        'English: <b>' +
+        escapeHtml(info.english) +
+        '</b></div>'
+      : '';
+
+
+  box.classList.remove(
+    'is-hidden'
+  );
+
+  box.innerHTML =
+    '<div class="amiga-search-word">' +
+    escapeHtml(display) +
+    '</div>' +
+    tagHtml +
+    defHtml +
+    exampleHtml +
+    enHtml;
+
+}
+
+
+function resetWordSearch(){
+
+  clearTimeout(
+    searchDebounce
+  );
+
+  $('amigaSearchInput').value =
+    '';
+
+  renderWordSearchResult(
+    null
+  );
+
+}
+
+
 function openAmiga(){
+
+  resetWordSearch();
 
   $('amigaMsg').textContent =
     amigaMessage();
@@ -28502,26 +29522,231 @@ const TAG_LABELS = {
 };
 
 
+/* ---------------------------------------------------------
+   GLOSSARY ENGINE
+
+   Looks a word up in the bundled dictionaries first (no
+   network). If the word isn't there — which happens as soon
+   as the daily puzzle rotates onto words nobody has written
+   up yet — it asks the Worker's /api/define route, which
+   generates and permanently caches an entry the first time
+   any player needs it. Every call after that, from anyone,
+   on any day, is just a cache read.
+--------------------------------------------------------- */
+
+const REMOTE_GLOSSARY = {};
+
+
+function localWordInfo(word){
+
+  const definition =
+    DEFINITIONS[word];
+
+  if(!definition)
+    return null;
+
+
+  return {
+
+    tags:
+      WORD_TAGS[word] || '',
+
+    definition,
+
+    example:
+      EXAMPLES[word] || '',
+
+    english:
+      EN_TRANSLATIONS[word] || ''
+
+  };
+
+}
+
+
+async function fetchWordInfo(word,display){
+
+  if(REMOTE_GLOSSARY[word]){
+
+    return REMOTE_GLOSSARY[word];
+
+  }
+
+
+  const response =
+    await fetch(
+
+      '/api/define' +
+      '?word=' +
+      encodeURIComponent(word) +
+      '&display=' +
+      encodeURIComponent(display)
+
+    );
+
+
+  const data =
+    await response.json();
+
+
+  if(!response.ok || data.error){
+
+    throw new Error(
+      data.error ||
+      'No a logra haña definishon'
+    );
+
+  }
+
+
+  const info = {
+
+    tags:data.tags || '',
+
+    definition:data.definition || '',
+
+    example:data.example || '',
+
+    english:data.english || ''
+
+  };
+
+
+  REMOTE_GLOSSARY[word] =
+    info;
+
+  return info;
+
+}
+
+
+/*
+  Synchronous fast path when the word is already known
+  locally; otherwise returns a promise the caller awaits.
+*/
+
+function getWordInfo(word,display){
+
+  const local =
+    localWordInfo(word);
+
+  if(local){
+
+    return local;
+
+  }
+
+
+  return fetchWordInfo(
+    word,
+    display
+  );
+
+}
+
+
+function isPromise(value){
+
+  return Boolean(
+    value &&
+    typeof value.then ===
+    'function'
+  );
+
+}
+
+
 function openGlossary(word,display){
 
   $('glossaryWord').textContent =
     display;
 
 
-  const tags =
-    WORD_TAGS[word];
+  glossaryCurrentWord =
+    word;
+
+
+  const info =
+    getWordInfo(word,display);
+
+
+  if(isPromise(info)){
+
+    renderGlossaryInfo(
+      word,
+      null,
+      true
+    );
+
+    info
+      .then(
+        result =>
+          renderGlossaryInfo(
+            word,
+            result,
+            false
+          )
+      )
+      .catch(
+        () =>
+          renderGlossaryInfo(
+            word,
+            null,
+            false
+          )
+      );
+
+  }else{
+
+    renderGlossaryInfo(
+      word,
+      info,
+      false
+    );
+
+  }
+
+
+  $('glossaryOverlay').classList.remove(
+    'is-hidden'
+  );
+
+}
+
+
+let glossaryCurrentWord =
+  null;
+
+
+function renderGlossaryInfo(
+  word,
+  info,
+  loading
+){
+
+  /*
+    The overlay may have moved on to a different word (or
+    closed) by the time a network answer comes back.
+  */
+
+  if(word !== glossaryCurrentWord){
+
+    return;
+
+  }
+
 
   const tagEl =
     $('glossaryTag');
 
-  if(tags){
+  if(info && info.tags){
 
     tagEl.textContent =
-      tags
+      info.tags
         .split(',')
         .map(
           code =>
-            TAG_LABELS[code] ||
+            TAG_LABELS[code.trim()] ||
             code
         )
         .join(' · ');
@@ -28539,16 +29764,22 @@ function openGlossary(word,display){
   }
 
 
-  const def =
-    DEFINITIONS[word];
-
   const defEl =
     $('glossaryDef');
 
-  if(def){
+  if(loading){
 
     defEl.textContent =
-      def;
+      'Ta karga definishon...';
+
+    defEl.classList.add(
+      'is-missing'
+    );
+
+  }else if(info && info.definition){
+
+    defEl.textContent =
+      info.definition;
 
     defEl.classList.remove(
       'is-missing'
@@ -28566,17 +29797,36 @@ function openGlossary(word,display){
   }
 
 
-  const en =
-    EN_TRANSLATIONS[word];
+  const exampleEl =
+    $('glossaryExample');
+
+  if(!loading && info && info.example){
+
+    exampleEl.innerHTML =
+      '<b>Uzo:</b> ' +
+      escapeHtml(info.example);
+
+    exampleEl.classList.remove(
+      'is-hidden'
+    );
+
+  }else{
+
+    exampleEl.classList.add(
+      'is-hidden'
+    );
+
+  }
+
 
   const enEl =
     $('glossaryEn');
 
-  if(en){
+  if(!loading && info && info.english){
 
     enEl.innerHTML =
       'English: <b>' +
-      en +
+      escapeHtml(info.english) +
       '</b>';
 
     enEl.classList.remove(
@@ -28591,15 +29841,13 @@ function openGlossary(word,display){
 
   }
 
-
-  $('glossaryOverlay').classList.remove(
-    'is-hidden'
-  );
-
 }
 
 
 function closeGlossary(){
+
+  glossaryCurrentWord =
+    null;
 
   $('glossaryOverlay').classList.add(
     'is-hidden'
@@ -30506,6 +31754,176 @@ $('amigaClose').onclick =
 
 $('amigaBackdrop').onclick =
   closeAmiga;
+
+
+let searchDebounce = null;
+
+
+$('amigaSearchInput').addEventListener(
+  'input',
+  () => {
+
+    clearTimeout(
+      searchDebounce
+    );
+
+
+    const word =
+      normalise(
+        $('amigaSearchInput').value
+      );
+
+
+    searchDebounce =
+      setTimeout(
+
+        () =>
+          renderWordSearchResult(
+            word || null
+          ),
+
+        350
+
+      );
+
+  }
+);
+
+
+$('feedbackBtn').onclick =
+  openFeedback;
+
+$('feedbackClose').onclick =
+  closeFeedback;
+
+$('feedbackBackdrop').onclick =
+  closeFeedback;
+
+
+$('privacyLinkBtn').onclick =
+  () =>
+    $('privacyOverlay').classList.remove(
+      'is-hidden'
+    );
+
+$('privacyClose').onclick =
+  () =>
+    $('privacyOverlay').classList.add(
+      'is-hidden'
+    );
+
+$('privacyBackdrop').onclick =
+  () =>
+    $('privacyOverlay').classList.add(
+      'is-hidden'
+    );
+
+
+$('aboutLinkBtn').onclick =
+  () =>
+    $('aboutOverlay').classList.remove(
+      'is-hidden'
+    );
+
+$('aboutClose').onclick =
+  () =>
+    $('aboutOverlay').classList.add(
+      'is-hidden'
+    );
+
+$('aboutBackdrop').onclick =
+  () =>
+    $('aboutOverlay').classList.add(
+      'is-hidden'
+    );
+
+
+document
+  .querySelectorAll(
+    '.feedback-chip'
+  )
+  .forEach(
+    button => {
+
+      button.onclick =
+        () =>
+          toggleFeedbackChip(
+            button
+          );
+
+    }
+  );
+
+
+$('feedbackForm').onsubmit =
+  async event => {
+
+    event.preventDefault();
+
+
+    const textarea =
+      $('feedbackMessage');
+
+    const message =
+      textarea.value.trim();
+
+
+    if(!message){
+
+      textarea.focus();
+
+      return;
+
+    }
+
+
+    $('feedbackSubmit').disabled =
+      true;
+
+    showFeedbackMessage('');
+
+
+    try{
+
+      await submitFeedback(
+        message
+      );
+
+      textarea.value = '';
+
+      document
+        .querySelectorAll(
+          '.feedback-chip'
+        )
+        .forEach(
+          chip =>
+            chip.classList.remove(
+              'active'
+            )
+        );
+
+      feedbackCategory = null;
+
+      showFeedbackMessage(
+        'Danki! Bo opinion a yega serka nos.',
+        'ok'
+      );
+
+    }catch(error){
+
+      showFeedbackMessage(
+        error.message,
+        'err'
+      );
+
+    }finally{
+
+      $('feedbackSubmit').disabled =
+        false;
+
+    }
+
+  };
 
 
 $('glossaryClose').onclick =
