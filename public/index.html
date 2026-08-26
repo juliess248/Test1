@@ -1558,25 +1558,6 @@ header{
   cursor:pointer;
 }
 
-.suggest-hint-link{
-  display:block;
-
-  margin:10px auto 0;
-
-  background:none;
-
-  border:0;
-
-  color:var(--flag-ink);
-
-  font-size:12px;
-  font-weight:700;
-
-  text-decoration:underline;
-
-  cursor:pointer;
-}
-
 .hint-next{
   display:block;
 
@@ -3527,13 +3508,6 @@ button:focus-visible{
         Otro palabra ⟳
       </button>
 
-      <button
-        class="suggest-hint-link"
-        id="suggestHintLink"
-        type="button">
-        ✍️ Sugerí un kambio pa e palabra aki
-      </button>
-
     </div>
 
     <div
@@ -3693,7 +3667,7 @@ button:focus-visible{
     <div
       class="amiga-msg"
       id="suggestIntro">
-      Julia lo risibí bo sugerensia i revisá dje mes.
+      Bo sugerensia lo wordu risibí i revisá.
     </div>
 
     <div
@@ -33218,12 +33192,6 @@ $('hintBtnLetter').onclick =
 
 $('hintNextWord').onclick =
   nextHintWord;
-
-$('suggestHintLink').onclick =
-  () =>
-    openSuggestWord(
-      hintWord
-    );
 
 $('hintTableToggle').onclick =
   toggleHintTable;
