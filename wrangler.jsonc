@@ -23,6 +23,12 @@
       "database_id": "77d85bfc-7dc2-4249-9738-10193c65f58c"
     }
   ],
+  "send_email": [
+    { "name": "NOTIFY", "destination_address": "juliettesjakshie248@gmail.com" }
+  ],
+  "triggers": {
+    "crons": ["0 13 * * 1"]
+  },
   "observability": {
     "enabled": false,
     "head_sampling_rate": 1,
