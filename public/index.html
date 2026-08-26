@@ -8,6 +8,8 @@
 
 <title>Palabra di Kòrsou</title>
 
+<!-- BUILD: 2026-08-26T00:00Z -->
+
 <!--
   GOOGLE ADSENSE (not active yet)
 
@@ -3525,19 +3527,6 @@ button:focus-visible{
 
     <div
       id="yesterdayBox">
-    </div>
-
-  </div>
-
-
-  <div class="history-section">
-
-    <div class="history-title">
-      Dia anterior
-    </div>
-
-    <div
-      id="olderHistory">
     </div>
 
   </div>
@@ -30587,18 +30576,6 @@ function renderHistory(){
   renderHistoryEntry(
     yesterday,
     $('yesterdayBox')
-  );
-
-
-  const older =
-    previousGameDate(
-      yesterday
-    );
-
-
-  renderHistoryEntry(
-    older,
-    $('olderHistory')
   );
 
 }
