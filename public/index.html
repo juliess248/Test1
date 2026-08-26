@@ -76,11 +76,25 @@
   box-sizing:border-box;
   margin:0;
   padding:0;
+
+  -webkit-tap-highlight-color:transparent;
+}
+
+button,
+a,
+input,
+textarea,
+[role="button"]{
+  touch-action:manipulation;
 }
 
 html,
 body{
   min-height:100%;
+
+  background:var(--bg);
+
+  overscroll-behavior:none;
 }
 
 body{
@@ -113,7 +127,7 @@ body{
   width:100%;
   max-width:460px;
 
-  min-height:100dvh;
+  flex:1;
 
   display:flex;
   flex-direction:column;
@@ -657,12 +671,14 @@ header{
 
   overflow-y:auto;
 
+  overscroll-behavior:contain;
+
   padding-bottom:8px;
 }
 
 .words:empty::after{
   content:
-    'Buska palabra ku ta usa e lèter na sentro.';
+    'Buska palabranan ku ta usa e lèter na sentro.';
 
   font-size:12.5px;
 
@@ -732,54 +748,128 @@ header{
 
 
 /* =========================================================
-   STAT CARDS
+   PROGRESS HERO (primary scoreboard metric)
 ========================================================= */
 
-.stats{
-  display:grid;
-
-  grid-template-columns:
-    repeat(2,1fr);
-
-  gap:9px;
-
-  margin-bottom:18px;
+.progress-hero{
+  margin-bottom:20px;
 }
 
-.stat{
-  background:
-    rgba(var(--overlay),.06);
+.progress-hero-head{
+  display:flex;
 
-  border:
-    1px solid var(--line);
+  align-items:baseline;
 
-  border-radius:15px;
+  justify-content:space-between;
 
-  padding:14px;
+  margin-bottom:9px;
 }
 
-.stat-label{
-  font-size:10px;
+.progress-hero-count{
+  font-family:'Bricolage Grotesque',sans-serif;
 
-  text-transform:uppercase;
+  font-size:32px;
 
-  letter-spacing:.10em;
+  font-weight:800;
+
+  letter-spacing:-.01em;
+}
+
+.progress-hero-unit{
+  font-size:14px;
+
+  font-weight:600;
 
   color:var(--dim);
 
-  margin-bottom:5px;
+  margin-left:5px;
 }
 
-.stat-value{
+.progress-hero-pct{
   font-family:'Bricolage Grotesque',sans-serif;
 
-  font-size:24px;
+  font-size:19px;
+
+  font-weight:800;
+
+  color:var(--flag-ink);
+}
+
+.progress-hero-track{
+  height:7px;
+
+  margin-bottom:9px;
+}
+
+.progress-hero-rank{
+  font-size:12.5px;
+
+  color:var(--dim);
+}
+
+.progress-hero-rank strong{
+  color:var(--ink);
 
   font-weight:800;
 }
 
-.stat-value.star{
+
+/* =========================================================
+   COMPACT STAT ROW (secondary — points, streak, pangrams)
+========================================================= */
+
+.stat-row{
+  display:flex;
+
+  align-items:center;
+
+  justify-content:space-between;
+
+  padding:15px 2px;
+
+  margin-bottom:18px;
+
+  border-top:1px solid var(--line);
+
+  border-bottom:1px solid var(--line);
+}
+
+.stat-row-item{
+  flex:1;
+
+  text-align:center;
+}
+
+.stat-row-value{
+  font-family:'Bricolage Grotesque',sans-serif;
+
+  font-size:19px;
+
+  font-weight:800;
+}
+
+.stat-row-value.star{
   color:var(--flag-ink);
+}
+
+.stat-row-label{
+  font-size:10px;
+
+  text-transform:uppercase;
+
+  letter-spacing:.08em;
+
+  color:var(--dim);
+
+  margin-top:4px;
+}
+
+.stat-row-divider{
+  width:1px;
+
+  height:26px;
+
+  background:var(--line);
 }
 
 
@@ -798,6 +888,28 @@ header{
   padding:17px;
 
   margin-bottom:18px;
+}
+
+.pangram-card.compact{
+  padding:13px 15px;
+
+  margin-bottom:14px;
+}
+
+.pangram-card.compact .pangram-title{
+  font-size:13.5px;
+}
+
+.pangram-card.compact .star-icon{
+  font-size:16px;
+}
+
+.pangram-card.compact .pangram-number{
+  font-size:12px;
+}
+
+.pangram-card.compact .pangram-number strong{
+  font-size:15px;
 }
 
 .pangram-top{
@@ -832,52 +944,6 @@ header{
 .pangram-number strong{
   color:var(--flag-ink);
   font-size:18px;
-}
-
-
-/* =========================================================
-   SCOREBOARD
-========================================================= */
-
-.score-card{
-  background:
-    rgba(var(--overlay),.05);
-
-  border:1px solid var(--line);
-
-  border-radius:18px;
-
-  padding:17px;
-
-  margin-bottom:12px;
-}
-
-.score-row{
-  display:flex;
-
-  align-items:center;
-
-  justify-content:space-between;
-
-  padding:9px 0;
-
-  border-bottom:1px solid rgba(var(--overlay),.08);
-}
-
-.score-row:last-child{
-  border-bottom:0;
-}
-
-.score-row-label{
-  color:var(--dim);
-
-  font-size:13px;
-}
-
-.score-row-value{
-  font-weight:800;
-
-  font-family:'Bricolage Grotesque',sans-serif;
 }
 
 
@@ -1163,6 +1229,8 @@ header{
 
   overflow-y:auto;
 
+  overscroll-behavior:contain;
+
   background:var(--bg);
 
   border-radius:22px 22px 0 0;
@@ -1217,35 +1285,6 @@ header{
   cursor:pointer;
 }
 
-.amiga-search{
-  margin-bottom:12px;
-}
-
-.amiga-search-result{
-  background:rgba(var(--overlay),.04);
-
-  border:1px solid var(--line);
-
-  border-radius:14px;
-
-  padding:14px;
-
-  margin-bottom:16px;
-}
-
-.amiga-search-result.is-hidden{
-  display:none;
-}
-
-.amiga-search-word{
-  font-family:'Bricolage Grotesque',sans-serif;
-
-  font-size:17px;
-  font-weight:800;
-
-  margin-bottom:8px;
-}
-
 .amiga-example{
   font-size:13px;
   line-height:1.5;
@@ -1280,12 +1319,209 @@ header{
   margin-bottom:16px;
 }
 
+
+/* =========================================================
+   HINT CARD (graduated hint escalation)
+========================================================= */
+
+.hint-btn-num{
+  display:inline-flex;
+
+  align-items:center;
+  justify-content:center;
+
+  width:20px;
+  height:20px;
+
+  flex-shrink:0;
+
+  border-radius:50%;
+
+  background:var(--flag);
+
+  color:var(--ink-fixed);
+
+  font-size:11px;
+  font-weight:800;
+
+  margin-right:8px;
+}
+
+.hint-card.is-hidden{
+  display:none;
+}
+
+.hint-remaining{
+  font-size:12.5px;
+
+  color:var(--dim);
+
+  margin-bottom:14px;
+}
+
+.hint-remaining strong{
+  color:var(--ink);
+}
+
+.hint-reveals{
+  display:flex;
+
+  flex-direction:column;
+
+  gap:8px;
+}
+
+.hint-reveals:not(:empty){
+  margin-bottom:12px;
+}
+
+.hint-reveal-row{
+  background:rgba(var(--overlay),.04);
+
+  border:1px solid var(--line);
+
+  border-radius:12px;
+
+  padding:11px 13px;
+
+  font-size:13.5px;
+
+  line-height:1.5;
+}
+
+.hint-reveal-label{
+  display:block;
+
+  font-size:10px;
+
+  text-transform:uppercase;
+
+  letter-spacing:.08em;
+
+  color:var(--dim);
+
+  margin-bottom:3px;
+}
+
+.hint-reveal-value{
+  font-weight:700;
+}
+
+.hint-buttons{
+  display:flex;
+
+  flex-direction:column;
+
+  gap:8px;
+}
+
+.hint-btn{
+  font-family:'Karla',sans-serif;
+
+  font-size:13.5px;
+  font-weight:700;
+
+  padding:12px 16px;
+
+  border-radius:12px;
+
+  background:rgba(249,227,0,.1);
+
+  border:1px solid rgba(249,227,0,.35);
+
+  color:var(--ink);
+
+  cursor:pointer;
+
+  text-align:left;
+
+  transition:
+    background .15s,
+    opacity .15s;
+}
+
+.hint-btn:disabled{
+  opacity:.35;
+
+  cursor:default;
+}
+
+.hint-btn.done{
+  opacity:.5;
+
+  background:transparent;
+}
+
+.hint-next{
+  display:block;
+
+  margin:14px auto 0;
+
+  background:none;
+
+  border:0;
+
+  color:var(--dim);
+
+  font-size:12.5px;
+  font-weight:700;
+
+  text-decoration:underline;
+
+  cursor:pointer;
+}
+
+.amiga-empty{
+  text-align:center;
+
+  padding:20px 10px;
+
+  color:var(--dim);
+
+  font-size:13px;
+}
+
+.amiga-empty.is-hidden{
+  display:none;
+}
+
+.hint-table-toggle{
+  display:block;
+
+  width:100%;
+
+  margin-top:14px;
+
+  padding:10px 0;
+
+  background:none;
+
+  border:0;
+  border-top:1px solid var(--line);
+
+  color:var(--dim);
+
+  font-family:'Karla',sans-serif;
+  font-size:12.5px;
+  font-weight:700;
+
+  text-align:center;
+
+  cursor:pointer;
+}
+
 .amiga-table-wrap{
   overflow-x:auto;
+
+  margin-top:10px;
 
   border:1px solid var(--line);
 
   border-radius:14px;
+}
+
+.amiga-table-wrap.is-hidden{
+  display:none;
 }
 
 .amiga-table{
@@ -1351,16 +1587,6 @@ header{
   color:var(--ink);
 
   background:rgba(var(--overlay),.04);
-}
-
-.amiga-empty{
-  text-align:center;
-
-  padding:20px 10px;
-
-  color:var(--dim);
-
-  font-size:13px;
 }
 
 .glossary-tag{
@@ -1552,7 +1778,7 @@ button:focus-visible{
 
   font-family:'Karla',sans-serif;
 
-  font-size:15px;
+  font-size:16px;
 
   padding:11px 13px;
 }
@@ -1771,17 +1997,7 @@ button:focus-visible{
 
   font-weight:800;
 
-  margin-bottom:5px;
-}
-
-.auth-intro{
-  color:var(--dim);
-
-  font-size:12px;
-
-  line-height:1.5;
-
-  margin-bottom:13px;
+  margin-bottom:16px;
 }
 
 .auth-providers{
@@ -1922,7 +2138,7 @@ button:focus-visible{
 
   font-family:'Karla',sans-serif;
 
-  font-size:15px;
+  font-size:16px;
 
   padding:11px 13px;
 
@@ -2059,11 +2275,11 @@ button:focus-visible{
 }
 
 .rank-tab.active{
-  background:rgba(249,227,0,.09);
+  background:var(--flag);
 
-  border-color:rgba(249,227,0,.35);
+  border-color:var(--flag);
 
-  color:var(--flag-ink);
+  color:var(--ink-fixed);
 }
 
 .board{
@@ -2631,7 +2847,7 @@ button:focus-visible{
       <p>
         Si bo krea un kuenta: bo nòmber di uzuario i un versíon
         encriptá (hash) di bo kontraseña — nunka e kontraseña mes.
-        Si bo skirbi un nòmber pa aparesé den e ranking, e nòmber
+        Si bo skirbi un nòmber pa aparesé den e klasifikashon, e nòmber
         ei. Bo progreso, score i palabra ku bo haña den e wega.
         Komentario ku bo manda via e formulario di opinion.
       </p>
@@ -2732,7 +2948,7 @@ button:focus-visible{
       </p>
 
       <p>
-        E wega ta ainda den desaroyo — si bo tin idea, deskubrí
+        E wega ainda ta den desaroyo — si bo tin idea, deskubrí
         un fout, òf ke duna un opinion, usa e ikono di komentario
         den e wega mes.
       </p>
@@ -2779,8 +2995,8 @@ button:focus-visible{
     <button
       class="header-btn"
       id="amigaBtn"
-      aria-label="Puntra Lora pa un tip">
-      🦜
+      aria-label="Puntra Barika Hel pa un tip">
+      🐤
     </button>
 
   </div>
@@ -2801,7 +3017,7 @@ button:focus-visible{
     id="acctNudge">
 
     <div class="acct-nudge-text">
-      Warda bo progreso riba tur aparato.
+      Warda bo progreso riba tur aparatonan.
     </div>
 
     <button
@@ -2915,169 +3131,6 @@ button:focus-visible{
   </div>
 
 
-  <!-- FEEDBACK -->
-
-  <div
-    class="amiga-overlay is-hidden"
-    id="feedbackOverlay">
-
-    <div
-      class="amiga-backdrop"
-      id="feedbackBackdrop">
-    </div>
-
-    <div class="amiga-sheet">
-
-      <div class="amiga-head">
-
-        <div class="amiga-title">
-          Bo opinion ta importante
-        </div>
-
-        <button
-          class="amiga-close"
-          id="feedbackClose"
-          aria-label="Sera">
-          ✕
-        </button>
-
-      </div>
-
-      <div
-        class="amiga-msg"
-        id="feedbackIntro">
-        E wega ta ainda den desaroyo. Kontami kiko bo ta pensa,
-        kiko bo ta gusta, i kiko nos por mehorá.
-      </div>
-
-      <div
-        class="feedback-chips"
-        id="feedbackChips">
-
-        <button
-          class="feedback-chip"
-          type="button"
-          data-category="bug">
-          🐛 Bug
-        </button>
-
-        <button
-          class="feedback-chip"
-          type="button"
-          data-category="idea">
-          💡 Idea
-        </button>
-
-        <button
-          class="feedback-chip"
-          type="button"
-          data-category="like">
-          ❤️ Mi ta gusta
-        </button>
-
-        <button
-          class="feedback-chip"
-          type="button"
-          data-category="confused">
-          😕 Konfuso
-        </button>
-
-      </div>
-
-      <form id="feedbackForm">
-
-        <textarea
-          class="feedback-textarea"
-          id="feedbackMessage"
-          rows="4"
-          maxlength="2000"
-          placeholder="Skirbi bo komentario aki...">
-        </textarea>
-
-        <button
-          class="auth-submit"
-          id="feedbackSubmit"
-          type="submit">
-          Manda
-        </button>
-
-      </form>
-
-      <div
-        class="auth-msg"
-        id="feedbackMsg"
-        style="display:none">
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- AMIGA -->
-
-  <div
-    class="amiga-overlay is-hidden"
-    id="amigaOverlay">
-
-    <div
-      class="amiga-backdrop"
-      id="amigaBackdrop">
-    </div>
-
-    <div class="amiga-sheet">
-
-      <div class="amiga-head">
-
-        <div class="amiga-title">
-          🦜 Lora
-        </div>
-
-        <button
-          class="amiga-close"
-          id="amigaClose"
-          aria-label="Sera">
-          ✕
-        </button>
-
-      </div>
-
-      <div class="amiga-search">
-
-        <input
-          class="name-input"
-          id="amigaSearchInput"
-          type="text"
-          autocomplete="off"
-          spellcheck="false"
-          placeholder="Buska un palabra di awe...">
-
-      </div>
-
-      <div
-        class="amiga-search-result is-hidden"
-        id="amigaSearchResult">
-      </div>
-
-      <div
-        class="amiga-msg"
-        id="amigaMsg">
-      </div>
-
-      <div class="amiga-table-wrap">
-
-        <table
-          class="amiga-table"
-          id="amigaTable">
-        </table>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
   <!-- FOUND -->
 
   <div class="found">
@@ -3102,6 +3155,217 @@ button:focus-visible{
 </main>
 
 
+<!-- FEEDBACK -->
+
+<div
+  class="amiga-overlay is-hidden"
+  id="feedbackOverlay">
+
+  <div
+    class="amiga-backdrop"
+    id="feedbackBackdrop">
+  </div>
+
+  <div class="amiga-sheet">
+
+    <div class="amiga-head">
+
+      <div class="amiga-title">
+        Bo opinion ta importante
+      </div>
+
+      <button
+        class="amiga-close"
+        id="feedbackClose"
+        aria-label="Sera">
+        ✕
+      </button>
+
+    </div>
+
+    <div
+      class="amiga-msg"
+      id="feedbackIntro">
+      E wega ainda ta den desaroyo. Kontami kiko bo ta pensa,
+      kiko bo ta gusta, i kiko nos por mehorá.
+    </div>
+
+    <div
+      class="feedback-chips"
+      id="feedbackChips">
+
+      <button
+        class="feedback-chip"
+        type="button"
+        data-category="bug">
+        🐛 Fayo
+      </button>
+
+      <button
+        class="feedback-chip"
+        type="button"
+        data-category="idea">
+        💡 Idea
+      </button>
+
+      <button
+        class="feedback-chip"
+        type="button"
+        data-category="like">
+        ❤️ Mi ta gusta
+      </button>
+
+      <button
+        class="feedback-chip"
+        type="button"
+        data-category="confused">
+        😕 Konfuso
+      </button>
+
+    </div>
+
+    <form id="feedbackForm">
+
+      <textarea
+        class="feedback-textarea"
+        id="feedbackMessage"
+        rows="4"
+        maxlength="2000"
+        placeholder="Skirbi bo komentario aki...">
+      </textarea>
+
+      <button
+        class="auth-submit"
+        id="feedbackSubmit"
+        type="submit">
+        Manda
+      </button>
+
+    </form>
+
+    <div
+      class="auth-msg"
+      id="feedbackMsg"
+      style="display:none">
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- AMIGA -->
+
+<div
+  class="amiga-overlay is-hidden"
+  id="amigaOverlay">
+
+  <div
+    class="amiga-backdrop"
+    id="amigaBackdrop">
+  </div>
+
+  <div class="amiga-sheet">
+
+    <div class="amiga-head">
+
+      <div class="amiga-title">
+        🐤 Barika Hel
+      </div>
+
+      <button
+        class="amiga-close"
+        id="amigaClose"
+        aria-label="Sera">
+        ✕
+      </button>
+
+    </div>
+
+    <div
+      class="amiga-msg"
+      id="amigaMsg">
+    </div>
+
+    <div
+      class="hint-card"
+      id="hintCard">
+
+      <div class="hint-remaining" id="hintRemainingLine">
+        Tin <strong id="hintRemaining">0</strong> palabra pa haña ainda.
+      </div>
+
+      <div
+        class="hint-reveals"
+        id="hintReveals">
+      </div>
+
+      <div class="hint-buttons">
+
+        <button
+          class="hint-btn"
+          id="hintBtnLength"
+          type="button">
+          <span class="hint-btn-num">1</span>Largura
+        </button>
+
+        <button
+          class="hint-btn"
+          id="hintBtnLetter"
+          type="button"
+          disabled>
+          <span class="hint-btn-num">2</span>Promé lèter
+        </button>
+
+        <button
+          class="hint-btn"
+          id="hintBtnDefinition"
+          type="button"
+          disabled>
+          <span class="hint-btn-num">3</span>Definishon
+        </button>
+
+      </div>
+
+
+      <button
+        class="hint-next"
+        id="hintNextWord"
+        type="button">
+        Otro palabra ⟳
+      </button>
+
+    </div>
+
+    <div
+      class="amiga-empty is-hidden"
+      id="hintEmpty">
+      Bo a haña tur palabra kaba! 🌴
+    </div>
+
+    <button
+      class="hint-table-toggle"
+      id="hintTableToggle"
+      type="button">
+      Wak tabla di lèternan ⌄
+    </button>
+
+    <div
+      class="amiga-table-wrap is-hidden"
+      id="hintTableWrap">
+
+      <table
+        class="amiga-table"
+        id="amigaTable">
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+
 <!-- =======================================================
      SCOREBOARD
 ======================================================= -->
@@ -3119,63 +3383,83 @@ button:focus-visible{
   </div>
 
 
-  <div class="stats">
+  <!-- OVERALL PROGRESS (primary) -->
 
-    <div class="stat">
+  <div class="progress-hero">
 
-      <div class="stat-label">
-        Puntu awe
+    <div class="progress-hero-head">
+
+      <div class="progress-hero-count">
+        <span id="boardWords">0</span> di
+        <span id="boardTotalAnswers">0</span>
+        <span class="progress-hero-unit">palabra</span>
       </div>
 
       <div
-        class="stat-value"
+        class="progress-hero-pct"
+        id="boardProgressPct">
+        0%
+      </div>
+
+    </div>
+
+    <div class="track progress-hero-track">
+      <i id="progressHeroBar"></i>
+    </div>
+
+    <div class="progress-hero-rank">
+      Rango: <strong id="boardRank">Prinsipiante</strong>
+    </div>
+
+  </div>
+
+
+  <!-- SUPPORTING STATS (secondary) -->
+
+  <div class="stat-row">
+
+    <div class="stat-row-item">
+
+      <div
+        class="stat-row-value"
         id="boardScore">
         0
       </div>
 
-    </div>
-
-
-    <div class="stat">
-
-      <div class="stat-label">
-        Palabra
-      </div>
-
-      <div
-        class="stat-value"
-        id="boardWords">
-        0
+      <div class="stat-row-label">
+        Puntu
       </div>
 
     </div>
 
+    <div class="stat-row-divider"></div>
 
-    <div class="stat">
-
-      <div class="stat-label">
-        Pangrama
-      </div>
+    <div class="stat-row-item">
 
       <div
-        class="stat-value star"
+        class="stat-row-value"
+        id="boardStreak">
+        0 🔥
+      </div>
+
+      <div class="stat-row-label">
+        Racha
+      </div>
+
+    </div>
+
+    <div class="stat-row-divider"></div>
+
+    <div class="stat-row-item">
+
+      <div
+        class="stat-row-value star"
         id="boardPangrams">
         0 / 0
       </div>
 
-    </div>
-
-
-    <div class="stat">
-
-      <div class="stat-label">
-        Racha
-      </div>
-
-      <div
-        class="stat-value"
-        id="boardStreak">
-        0 🔥
+      <div class="stat-row-label">
+        Pangrama
       </div>
 
     </div>
@@ -3183,9 +3467,9 @@ button:focus-visible{
   </div>
 
 
-  <!-- PANGRAM -->
+  <!-- NEXT ACHIEVEMENT (pangram goal) -->
 
-  <div class="pangram-card">
+  <div class="pangram-card compact">
 
     <div class="pangram-top">
 
@@ -3212,62 +3496,10 @@ button:focus-visible{
   </div>
 
 
-  <!-- SCORE DETAILS -->
-
-  <div class="score-card">
-
-    <div class="score-row">
-
-      <span class="score-row-label">
-        Rango
-      </span>
-
-      <span
-        class="score-row-value"
-        id="boardRank">
-        Prinsipiante
-      </span>
-
-    </div>
-
-
-    <div class="score-row">
-
-      <span class="score-row-label">
-        Progreso
-      </span>
-
-      <span
-        class="score-row-value"
-        id="boardProgress">
-        0%
-      </span>
-
-    </div>
-
-
-    <div class="score-row">
-
-      <span class="score-row-label">
-        Total palabra
-      </span>
-
-      <span
-        class="score-row-value"
-        id="boardTotalWords">
-        0 / 0
-      </span>
-
-    </div>
-
-  </div>
-
-
   <div class="reset-note">
 
-    ⏰ E wega ta reset kada dia na
-    <strong>mèdia anochi, na bo ora lokal</strong>.
-    Bo resultado anterior ta warda den bo historia.
+    ⏰ Wega nobo kada dia na
+    <strong>meianochi</strong>.
 
   </div>
 
@@ -3363,8 +3595,8 @@ button:focus-visible{
       </h3>
 
       <p>
-        Usa e 7 lèternan den e panal pa forma palabra.
-        E lèter na centro mester ta den tur palabra.
+        Forma palabra ku e 7 lèternan.
+        E lèter di sèntro mester ta den kada un.
       </p>
 
     </div>
@@ -3387,8 +3619,8 @@ button:focus-visible{
       </h3>
 
       <p>
-        Un palabra di 4 lèter ta duna 1 punto.
-        Palabranan mas largu ta duna mas punto.
+        4 lèter ta duna 1 punto.
+        Mas largu, mas punto.
       </p>
 
     </div>
@@ -3411,8 +3643,8 @@ button:focus-visible{
       </h3>
 
       <p>
-        Un pangrama ta un palabra ku usa tur e 7
-        lèternan. Pangrama ta duna un bonus di 7 punto.
+        Palabra ku usa tur e 7 lèternan ta un pangrama —
+        bonus di 7 punto.
       </p>
 
     </div>
@@ -3425,7 +3657,7 @@ button:focus-visible{
     <div class="pangram-top">
 
       <div class="pangram-title">
-        Reto di awe
+        Pangrama di awe
       </div>
 
       <div class="star-icon">
@@ -3436,13 +3668,13 @@ button:focus-visible{
 
     <div class="pangram-number">
 
-      E reto tin
+      Tin
 
       <strong id="infoPangramCount">
         0
       </strong>
 
-      pangrama awe.
+      pangrama pa haña awe.
 
     </div>
 
@@ -3453,11 +3685,9 @@ button:focus-visible{
 
     <strong>Reset diario:</strong>
 
-    kada dia nobo puzzle ta kuminsá na
-    <strong>mèdia anochi, na bo ora lokal</strong>.
-
-    Bo palabra i score di e dia anterior ta warda
-    pa bo por wak nan despues.
+    wega nobo kada dia na
+    <strong>meianochi, na bo ora lokal</strong>.
+    Bo palabra i puntu anterior ta warda.
 
   </div>
 
@@ -3473,11 +3703,7 @@ button:focus-visible{
   id="rankingPage">
 
   <div class="panel-title">
-    Ranking
-  </div>
-
-  <div class="panel-subtitle">
-    Mira kon otro hungadónan ta hasi awe.
+    Klasifikashon
   </div>
 
 
@@ -3486,10 +3712,6 @@ button:focus-visible{
   <div class="name-card">
 
     <div id="nameSetup">
-
-      <div class="name-label">
-        Skirbi bo nòmber pa aparesé den e ranking.
-      </div>
 
       <div class="name-form">
 
@@ -3585,13 +3807,6 @@ button:focus-visible{
       Krea bo kuenta
     </div>
 
-    <div
-      class="auth-intro"
-      id="authIntro">
-      Ku un kuenta bo ranking ta konektá ku bo nòmber.
-      Bo progreso di e wega ta keda wardá riba e aparato aki.
-    </div>
-
     <form
       class="auth-fields"
       id="authForm">
@@ -3676,9 +3891,8 @@ button:focus-visible{
 
   <div class="reset-note">
 
-    Tur hungadó ku a skirbi un nòmber ta aparesé aki.
-    E ranking di awe ta reset huntu ku e wega na
-    <strong>mèdia anochi, na bo ora lokal</strong>.
+    Kuminsá di nobo kada dia na
+    <strong>meianochi</strong>.
 
   </div>
 
@@ -3712,7 +3926,7 @@ button:focus-visible{
       🏆
     </span>
 
-    Score
+    Puntu
 
   </button>
 
@@ -3725,7 +3939,7 @@ button:focus-visible{
       👥
     </span>
 
-    Ranking
+    Klasifikashon
 
   </button>
 
@@ -28937,6 +29151,9 @@ function closeFeedback(){
 
 function toggleFeedbackChip(button){
 
+  showFeedbackMessage('');
+
+
   const category =
     button.dataset.category;
 
@@ -29078,7 +29295,7 @@ function amigaMessage(){
 
   if(found === 0){
 
-    return 'Kuminsá ku e lèter di sèntro — tur palabra mester tin e! 🦜';
+    return 'Kuminsá ku e lèter di sèntro — tur palabra mester tin e! 🐤';
 
   }
 
@@ -29105,6 +29322,95 @@ function amigaMessage(){
 }
 
 
+/*
+  Graduated hint system: instead of a free-text lookup that
+  can confirm any candidate word instantly, or a full grid
+  revealing every remaining word's length/prefix at once,
+  Barika Hel picks one not-yet-found word and lets the player
+  escalate through three small, deliberate steps — length,
+  then first letter, then definition — each one a separate
+  tap. Definitions only ever come from the curated local
+  DEFINITIONS data, never the remote lookup used elsewhere,
+  since that path was removed from the game for accuracy
+  reasons and shouldn't resurface here.
+*/
+
+let hintWord = null;
+let hintLevel = 0;
+
+
+function remainingAnswers(){
+
+  return [...P.answers].filter(
+    word =>
+      !P.found.has(word)
+  );
+
+}
+
+
+function pickHintWord(avoid){
+
+  const remaining =
+    remainingAnswers();
+
+  if(!remaining.length){
+
+    return null;
+
+  }
+
+  const pool =
+    remaining.length > 1
+      ? remaining.filter(
+          word =>
+            word !== avoid
+        )
+      : remaining;
+
+  return pool[
+    Math.floor(
+      Math.random() *
+      pool.length
+    )
+  ];
+
+}
+
+
+function addHintReveal(label,value){
+
+  const row =
+    document.createElement(
+      'div'
+    );
+
+  row.className =
+    'hint-reveal-row';
+
+  row.innerHTML =
+    '<span class="hint-reveal-label">' +
+    label +
+    '</span>' +
+    '<span class="hint-reveal-value">' +
+    value +
+    '</span>';
+
+  $('hintReveals').appendChild(
+    row
+  );
+
+}
+
+
+/*
+  The full length x first-letters overview some players found
+  useful for scanning everything at once. Kept as an optional
+  expand under the graduated hint card rather than shown by
+  default, so it's available without competing with the
+  simpler step-by-step flow above it.
+*/
+
 function buildHintData(){
 
   const grouped = {};
@@ -29113,31 +29419,26 @@ function buildHintData(){
     new Set();
 
 
-  [...P.answers]
-    .filter(
-      word =>
-        !P.found.has(word)
-    )
-    .forEach(
-      word => {
+  remainingAnswers().forEach(
+    word => {
 
-        const prefix =
-          word.slice(0,2)
-            .toUpperCase();
+      const prefix =
+        word.slice(0,2)
+          .toUpperCase();
 
-        const len =
-          [...word].length;
+      const len =
+        [...word].length;
 
-        lengths.add(len);
+      lengths.add(len);
 
-        grouped[prefix] =
-          grouped[prefix] || {};
+      grouped[prefix] =
+        grouped[prefix] || {};
 
-        grouped[prefix][len] =
-          (grouped[prefix][len] || 0) + 1;
+      grouped[prefix][len] =
+        (grouped[prefix][len] || 0) + 1;
 
-      }
-    );
+    }
+  );
 
 
   return {
@@ -29172,10 +29473,7 @@ function renderAmigaTable(){
 
   if(!prefixes.length){
 
-    table.innerHTML =
-      '<tr><td class="amiga-empty">' +
-      'Bo a haña tur palabra kaba! 🌴' +
-      '</td></tr>';
+    table.innerHTML = '';
 
     return;
 
@@ -29267,203 +29565,261 @@ function renderAmigaTable(){
 }
 
 
-let searchToken = 0;
+let hintTableOpen = false;
 
 
-async function renderWordSearchResult(word){
+function collapseHintTable(){
 
-  const box =
-    $('amigaSearchResult');
+  hintTableOpen = false;
 
-
-  if(!word){
-
-    box.classList.add(
-      'is-hidden'
-    );
-
-    box.innerHTML = '';
-
-    return;
-
-  }
-
-
-  if(!P.answers.has(word)){
-
-    box.classList.remove(
-      'is-hidden'
-    );
-
-    box.innerHTML =
-      '<div class="glossary-def is-missing">' +
-      'E palabra aki no ta den e wega di awe.' +
-      '</div>';
-
-    return;
-
-  }
-
-
-  const display =
-    P.displayForm(word);
-
-  const token =
-    ++searchToken;
-
-  const info =
-    getWordInfo(word,display);
-
-
-  if(isPromise(info)){
-
-    box.classList.remove(
-      'is-hidden'
-    );
-
-    box.innerHTML =
-      '<div class="amiga-search-word">' +
-      escapeHtml(display) +
-      '</div>' +
-      '<div class="glossary-def is-missing">' +
-      'Ta karga definishon...' +
-      '</div>';
-
-
-    let result = null;
-
-    try{
-
-      result =
-        await info;
-
-    }catch{
-
-      result = null;
-
-    }
-
-
-    /*
-      The player may have kept typing (or closed the popup)
-      while this was in flight — don't overwrite whatever is
-      showing now with a stale answer.
-    */
-
-    if(token !== searchToken){
-
-      return;
-
-    }
-
-
-    renderSearchInfo(
-      display,
-      result
-    );
-
-    return;
-
-  }
-
-
-  renderSearchInfo(
-    display,
-    info
-  );
-
-}
-
-
-function renderSearchInfo(display,info){
-
-  const box =
-    $('amigaSearchResult');
-
-
-  const tagHtml =
-    info && info.tags
-      ? '<div class="glossary-tag">' +
-        info.tags
-          .split(',')
-          .map(
-            code =>
-              TAG_LABELS[code.trim()] ||
-              code
-          )
-          .join(' · ') +
-        '</div>'
-      : '';
-
-
-  const defHtml =
-    info && info.definition
-      ? '<div class="glossary-def">' +
-        escapeHtml(info.definition) +
-        '</div>'
-      : '<div class="glossary-def is-missing">' +
-        'Nos no tin definishon pa e palabra aki ainda.' +
-        '</div>';
-
-
-  const exampleHtml =
-    info && info.example
-      ? '<div class="amiga-example">' +
-        '<b>Uzo:</b> ' +
-        escapeHtml(info.example) +
-        '</div>'
-      : '';
-
-
-  const enHtml =
-    info && info.english
-      ? '<div class="glossary-en">' +
-        'English: <b>' +
-        escapeHtml(info.english) +
-        '</b></div>'
-      : '';
-
-
-  box.classList.remove(
+  $('hintTableWrap').classList.add(
     'is-hidden'
   );
 
-  box.innerHTML =
-    '<div class="amiga-search-word">' +
-    escapeHtml(display) +
-    '</div>' +
-    tagHtml +
-    defHtml +
-    exampleHtml +
-    enHtml;
+  $('hintTableToggle').textContent =
+    'Wak tabla di lèternan ⌄';
 
 }
 
 
-function resetWordSearch(){
+function toggleHintTable(){
 
-  clearTimeout(
-    searchDebounce
+  hintTableOpen =
+    !hintTableOpen;
+
+
+  if(hintTableOpen){
+
+    renderAmigaTable();
+
+    $('hintTableWrap').classList.remove(
+      'is-hidden'
+    );
+
+    $('hintTableToggle').textContent =
+      'Sera tabla ⌃';
+
+  }else{
+
+    collapseHintTable();
+
+  }
+
+}
+
+
+function renderHintCard(){
+
+  const remaining =
+    remainingAnswers();
+
+
+  $('hintRemaining').textContent =
+    remaining.length;
+
+
+  if(!remaining.length){
+
+    $('hintCard').classList.add(
+      'is-hidden'
+    );
+
+    $('hintEmpty').classList.remove(
+      'is-hidden'
+    );
+
+    $('hintTableToggle').classList.add(
+      'is-hidden'
+    );
+
+    collapseHintTable();
+
+    return;
+
+  }
+
+
+  $('hintCard').classList.remove(
+    'is-hidden'
   );
 
-  $('amigaSearchInput').value =
+  $('hintEmpty').classList.add(
+    'is-hidden'
+  );
+
+  $('hintTableToggle').classList.remove(
+    'is-hidden'
+  );
+
+  collapseHintTable();
+
+
+  $('hintReveals').innerHTML =
     '';
 
-  renderWordSearchResult(
-    null
+  $('hintBtnLength').disabled =
+    false;
+
+  $('hintBtnLength').classList.remove(
+    'done'
   );
+
+  $('hintBtnLetter').disabled =
+    true;
+
+  $('hintBtnLetter').classList.remove(
+    'done'
+  );
+
+  $('hintBtnDefinition').disabled =
+    true;
+
+  $('hintBtnDefinition').classList.remove(
+    'done'
+  );
+
+}
+
+
+function revealHintLength(){
+
+  if(
+    hintLevel !== 0 ||
+    !hintWord
+  ){
+
+    return;
+
+  }
+
+  hintLevel = 1;
+
+  addHintReveal(
+    'Largura',
+
+    [...hintWord].length +
+    ' lèter'
+  );
+
+  $('hintBtnLength').disabled =
+    true;
+
+  $('hintBtnLength').classList.add(
+    'done'
+  );
+
+  $('hintBtnLetter').disabled =
+    false;
+
+}
+
+
+function revealHintLetter(){
+
+  if(
+    hintLevel !== 1 ||
+    !hintWord
+  ){
+
+    return;
+
+  }
+
+  hintLevel = 2;
+
+  const display =
+    P.displayForm(
+      hintWord
+    );
+
+  addHintReveal(
+    'Promé lèter',
+
+    '"' +
+    [...display][0]
+      .toUpperCase() +
+    '"'
+  );
+
+  $('hintBtnLetter').disabled =
+    true;
+
+  $('hintBtnLetter').classList.add(
+    'done'
+  );
+
+  $('hintBtnDefinition').disabled =
+    false;
+
+}
+
+
+function revealHintDefinition(){
+
+  if(
+    hintLevel !== 2 ||
+    !hintWord
+  ){
+
+    return;
+
+  }
+
+  hintLevel = 3;
+
+  const local =
+    localWordInfo(
+      hintWord
+    );
+
+  addHintReveal(
+    'Definishon',
+
+    local && local.definition
+      ? escapeHtml(
+          local.definition
+        )
+      : 'Nos dikshonario ainda no tin ' +
+        'definishon pa e palabra aki.'
+  );
+
+  $('hintBtnDefinition').disabled =
+    true;
+
+  $('hintBtnDefinition').classList.add(
+    'done'
+  );
+
+}
+
+
+function nextHintWord(){
+
+  hintWord =
+    pickHintWord(
+      hintWord
+    );
+
+  hintLevel = 0;
+
+  renderHintCard();
 
 }
 
 
 function openAmiga(){
 
-  resetWordSearch();
-
   $('amigaMsg').textContent =
     amigaMessage();
 
-  renderAmigaTable();
+  hintWord =
+    pickHintWord(
+      null
+    );
+
+  hintLevel = 0;
+
+  renderHintCard();
 
   $('amigaOverlay').classList.remove(
     'is-hidden'
@@ -30157,21 +30513,25 @@ function updateGame(){
     rank.name;
 
 
-  $('boardProgress').textContent =
+  const wordPct =
+    P.answers.size
 
-    Math.round(
-      rank.progress *
-      100
-    ) +
+      ? Math.round(
+          P.found.size /
+          P.answers.size *
+          100
+        )
 
-    '%';
+      : 0;
 
-
-  $('boardTotalWords').textContent =
-
-    P.found.size +
-    ' / ' +
+  $('boardTotalAnswers').textContent =
     P.answers.size;
+
+  $('boardProgressPct').textContent =
+    wordPct + '%';
+
+  $('progressHeroBar').style.width =
+    wordPct + '%';
 
 
   $('todayPangramCount').textContent =
@@ -30822,10 +31182,10 @@ function renderName(){
 
   $('nameHint').textContent =
     account
-      ? 'Bo kuenta ta konektá ku bo ranking. Bo progreso di e wega ta restorá riba e aparato aki.'
+      ? 'Bo progreso ta sigur riba tur aparato.'
       : named
-        ? 'Bo score ta manda outomátikamente ora bo haña palabra.'
-        : 'Sin nòmber bo por wak e ranking, pero bo no ta aparesé.';
+        ? 'Bo score ta manda outomátiko.'
+        : 'Sin nòmber, bo no ta aparesé.';
 
 
   updateAcctNudge();
@@ -31008,11 +31368,6 @@ function renderAuth(){
     signup
       ? 'Krea bo kuenta'
       : 'Drenta bo kuenta';
-
-  $('authIntro').textContent =
-    signup
-      ? 'Krea un kuenta pa konektá bo ranking ku bo nòmber. Bo progreso di e wega ta keda wardá riba e aparato aki.'
-      : 'Drenta pa konektá bo ranking ku bo kuenta.';
 
   $('authSubmit').textContent =
     signup
@@ -31511,7 +31866,7 @@ function renderBoard(){
 
     box.innerHTML =
       `<div class="board-empty error">
-        No por a karga e ranking. Purba atrobe.
+        No por a karga e klasifikashon. Purba atrobe.
       </div>`;
 
     return;
@@ -32003,38 +32358,20 @@ $('amigaBackdrop').onclick =
   closeAmiga;
 
 
-let searchDebounce = null;
+$('hintBtnLength').onclick =
+  revealHintLength;
 
+$('hintBtnLetter').onclick =
+  revealHintLetter;
 
-$('amigaSearchInput').addEventListener(
-  'input',
-  () => {
+$('hintBtnDefinition').onclick =
+  revealHintDefinition;
 
-    clearTimeout(
-      searchDebounce
-    );
+$('hintNextWord').onclick =
+  nextHintWord;
 
-
-    const word =
-      normalise(
-        $('amigaSearchInput').value
-      );
-
-
-    searchDebounce =
-      setTimeout(
-
-        () =>
-          renderWordSearchResult(
-            word || null
-          ),
-
-        350
-
-      );
-
-  }
-);
+$('hintTableToggle').onclick =
+  toggleHintTable;
 
 
 $('feedbackBtn').onclick =
@@ -32106,6 +32443,18 @@ $('feedbackForm').onsubmit =
   async event => {
 
     event.preventDefault();
+
+
+    if(!feedbackCategory){
+
+      showFeedbackMessage(
+        'Skohe un kategoria promé.',
+        'err'
+      );
+
+      return;
+
+    }
 
 
     const textarea =
