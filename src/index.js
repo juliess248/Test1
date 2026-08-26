@@ -780,11 +780,6 @@ export default class extends WorkerEntrypoint {
         )
         .run();
 
-      await this.sendNotificationEmail(
-        `[Palabra di Kòrsou] Rapòrt: "${word}"`,
-        `Palabra: ${word}\nMotibu: ${reason}\nMensahe: ${message || "(nada)"}\nFecha di wega: ${date || "(desconosí)"}`
-      );
-
       return json({ ok: true }, 200);
     } catch (e) {
       if (e.message && e.message.includes("no such table")) {
@@ -848,13 +843,6 @@ export default class extends WorkerEntrypoint {
         )
         .run();
 
-      const typeLabel = { add: "AGREGÁ", adjust: "AHUSTÁ", remove: "KITA" }[type];
-
-      await this.sendNotificationEmail(
-        `[Palabra di Kòrsou] Sugerensia (${typeLabel}): "${word}"`,
-        `Tipo: ${typeLabel}\nPalabra: ${word}\nNota: ${note}\nFecha di wega: ${date || "(desconosí)"}`
-      );
-
       return json({ ok: true }, 200);
     } catch (e) {
       if (e.message && e.message.includes("no such table")) {
@@ -906,6 +894,89 @@ export default class extends WorkerEntrypoint {
       await this.env.NOTIFY.send(message);
     } catch (e) {
       console.error("Email send failed:", e);
+    }
+  }
+
+  /*
+    WEEKLY DIGEST — Cron Trigger, not called by any request.
+
+    Setup required in wrangler.jsonc:
+      "triggers": { "crons": ["0 13 * * 1"] }
+    (13:00 UTC every Monday = 9am AST/Curaçao time. Adjust the
+    cron string for a different day/time — cron field order is
+    minute hour day-of-month month day-of-week.)
+
+    Pulls every still-pending report/submission, sends ONE
+    email listing all of them, then marks those rows
+    'digested' so they don't get re-listed next week. They
+    stay in D1 either way — 'digested' just means "already
+    surfaced to Julia," not "resolved." Actually applying a
+    suggestion still means writing the definition into
+    index.html and merging it, same as every other batch.
+  */
+  async scheduled(controller) {
+    try {
+      await this.ensureReportsTable();
+      await this.ensureSubmissionsTable();
+
+      const reports = await this.env.GAME_HISTORY
+        .prepare(
+          `SELECT word, reason, message, game_date, created_at
+           FROM word_reports WHERE status = 'pending'
+           ORDER BY created_at ASC`
+        )
+        .all();
+
+      const submissions = await this.env.GAME_HISTORY
+        .prepare(
+          `SELECT type, word, note, game_date, created_at
+           FROM word_submissions WHERE status = 'pending'
+           ORDER BY created_at ASC`
+        )
+        .all();
+
+      const reportRows = reports.results || [];
+      const submissionRows = submissions.results || [];
+
+      if (reportRows.length === 0 && submissionRows.length === 0) {
+        return;
+      }
+
+      const typeLabels = { add: "AGREGÁ", adjust: "AHUSTÁ", remove: "KITA" };
+      let text = `Resúmen simanal — Palabra di Kòrsou\n\n`;
+
+      if (submissionRows.length) {
+        text += `SUGERENSIA (${submissionRows.length}):\n`;
+        submissionRows.forEach((row, i) => {
+          const label = typeLabels[row.type] || row.type;
+          text += `${i + 1}. [${label}] "${row.word}" — ${row.note}\n`;
+        });
+        text += `\n`;
+      }
+
+      if (reportRows.length) {
+        text += `RAPÒRT (${reportRows.length}):\n`;
+        reportRows.forEach((row, i) => {
+          const detail = row.message ? `: ${row.message}` : "";
+          text += `${i + 1}. "${row.word}" — ${row.reason}${detail}\n`;
+        });
+      }
+
+      await this.sendNotificationEmail(
+        `[Palabra di Kòrsou] Resúmen simanal (${submissionRows.length + reportRows.length} pendiente)`,
+        text
+      );
+
+      await this.env.GAME_HISTORY
+        .prepare(`UPDATE word_reports SET status = 'digested' WHERE status = 'pending'`)
+        .run();
+
+      await this.env.GAME_HISTORY
+        .prepare(`UPDATE word_submissions SET status = 'digested' WHERE status = 'pending'`)
+        .run();
+
+    } catch (e) {
+      console.error("Weekly digest failed:", e);
     }
   }
 
