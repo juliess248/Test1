@@ -2989,14 +2989,22 @@ button:focus-visible{
       class="header-btn"
       id="infoBtn"
       aria-label="Informashon">
-      ?
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2.2-2.4 3.7"></path>
+        <path d="M12 17h.01"></path>
+      </svg>
     </button>
 
     <button
       class="header-btn"
       id="amigaBtn"
-      aria-label="Puntra Barika Hel pa un tip">
-      🐤
+      aria-label="Pidi un tip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
+        <path d="M9 18h6"></path>
+        <path d="M10 21h4"></path>
+        <path d="M12 3a6 6 0 0 0-4 10.5c.6.55 1 1.4 1 2.25v.25h6v-.25c0-.85.4-1.7 1-2.25A6 6 0 0 0 12 3z"></path>
+      </svg>
     </button>
 
   </div>
@@ -3270,7 +3278,7 @@ button:focus-visible{
     <div class="amiga-head">
 
       <div class="amiga-title">
-        🐤 Barika Hel
+        Tip
       </div>
 
       <button
@@ -3315,14 +3323,6 @@ button:focus-visible{
           type="button"
           disabled>
           <span class="hint-btn-num">2</span>Promé lèter
-        </button>
-
-        <button
-          class="hint-btn"
-          id="hintBtnDefinition"
-          type="button"
-          disabled>
-          <span class="hint-btn-num">3</span>Definishon
         </button>
 
       </div>
@@ -29281,6 +29281,23 @@ async function submitFeedback(message){
    18b. AMIGA (HINT BUDDY)
 ========================================================= */
 
+/*
+  Graduated hint system: instead of a free-text lookup that
+  can confirm any candidate word instantly, or a full grid
+  revealing every remaining word's length/prefix at once,
+  The hint flow picks one not-yet-found word and lets the player
+  escalate through three small, deliberate steps — length,
+  then first letter, then definition — each one a separate
+  tap. Definitions only ever come from the curated local
+  DEFINITIONS data, never the remote lookup used elsewhere,
+  since that path was removed from the game for accuracy
+  reasons and shouldn't resurface here.
+*/
+
+let hintWord = null;
+let hintLevel = 0;
+
+
 function amigaMessage(){
 
   const total =
@@ -29295,7 +29312,7 @@ function amigaMessage(){
 
   if(found === 0){
 
-    return 'Kuminsá ku e lèter di sèntro — tur palabra mester tin e! 🐤';
+    return 'Kuminsá ku e lèter di sèntro — tur palabra mester tin e!';
 
   }
 
@@ -29320,23 +29337,6 @@ function amigaMessage(){
   return 'Bon kuminsá! Sigui purba kombinashon nobo di lèter.';
 
 }
-
-
-/*
-  Graduated hint system: instead of a free-text lookup that
-  can confirm any candidate word instantly, or a full grid
-  revealing every remaining word's length/prefix at once,
-  Barika Hel picks one not-yet-found word and lets the player
-  escalate through three small, deliberate steps — length,
-  then first letter, then definition — each one a separate
-  tap. Definitions only ever come from the curated local
-  DEFINITIONS data, never the remote lookup used elsewhere,
-  since that path was removed from the game for accuracy
-  reasons and shouldn't resurface here.
-*/
-
-let hintWord = null;
-let hintLevel = 0;
 
 
 function remainingAnswers(){
@@ -29671,13 +29671,6 @@ function renderHintCard(){
     'done'
   );
 
-  $('hintBtnDefinition').disabled =
-    true;
-
-  $('hintBtnDefinition').classList.remove(
-    'done'
-  );
-
 }
 
 
@@ -29745,48 +29738,6 @@ function revealHintLetter(){
     true;
 
   $('hintBtnLetter').classList.add(
-    'done'
-  );
-
-  $('hintBtnDefinition').disabled =
-    false;
-
-}
-
-
-function revealHintDefinition(){
-
-  if(
-    hintLevel !== 2 ||
-    !hintWord
-  ){
-
-    return;
-
-  }
-
-  hintLevel = 3;
-
-  const local =
-    localWordInfo(
-      hintWord
-    );
-
-  addHintReveal(
-    'Definishon',
-
-    local && local.definition
-      ? escapeHtml(
-          local.definition
-        )
-      : 'Nos dikshonario ainda no tin ' +
-        'definishon pa e palabra aki.'
-  );
-
-  $('hintBtnDefinition').disabled =
-    true;
-
-  $('hintBtnDefinition').classList.add(
     'done'
   );
 
@@ -32363,9 +32314,6 @@ $('hintBtnLength').onclick =
 
 $('hintBtnLetter').onclick =
   revealHintLetter;
-
-$('hintBtnDefinition').onclick =
-  revealHintDefinition;
 
 $('hintNextWord').onclick =
   nextHintWord;
