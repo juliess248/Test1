@@ -31,6 +31,12 @@ export default class extends WorkerEntrypoint {
     if (url.pathname === "/api/define" && request.method === "GET") {
       return this.handleDefine(request);
     }
+    if (url.pathname === "/api/report-word" && request.method === "POST") {
+      return this.handleReportWord(request);
+    }
+    if (url.pathname === "/api/submit-word" && request.method === "POST") {
+      return this.handleSubmitWord(request);
+    }
 
     const assetResponse = await this.env.ASSETS.fetch(request);
     const contentType = assetResponse.headers.get("content-type") || "";
@@ -720,6 +726,186 @@ export default class extends WorkerEntrypoint {
         return this.handleFeedbackPost(request);
       }
       return json({ error: "Server error" }, 500);
+    }
+  }
+
+  /* ---------------------------------------------------------
+     WORD REPORTS
+
+     A player flagging an existing word/definition as wrong,
+     offensive, nonsensical, or "other". Stored in D1 as a
+     durable log, and emailed to Julia immediately so it
+     doesn't require checking a database to notice.
+  --------------------------------------------------------- */
+
+  async ensureReportsTable() {
+    await this.env.GAME_HISTORY
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS word_reports (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          word TEXT NOT NULL,
+          reason TEXT NOT NULL,
+          message TEXT,
+          player_id TEXT,
+          game_date TEXT,
+          status TEXT DEFAULT 'pending',
+          created_at TEXT DEFAULT (datetime('now'))
+        )`
+      )
+      .run();
+  }
+
+  async handleReportWord(request) {
+    try {
+      await this.ensureReportsTable();
+      const { word, reason, message, playerId, date } = await request.json();
+
+      const validReasons = ["wrong", "offensive", "nonsense", "other"];
+      if (!word || !validReasons.includes(reason)) {
+        return json({ error: "Data inkompletu òf inválido" }, 400);
+      }
+
+      await this.env.GAME_HISTORY
+        .prepare(
+          `INSERT INTO word_reports
+             (word, reason, message, player_id, game_date)
+           VALUES (?, ?, ?, ?, ?)`
+        )
+        .bind(
+          String(word).slice(0, 40),
+          reason,
+          String(message || "").slice(0, 500),
+          playerId || null,
+          date || null
+        )
+        .run();
+
+      await this.sendNotificationEmail(
+        `[Palabra di Kòrsou] Rapòrt: "${word}"`,
+        `Palabra: ${word}\nMotibu: ${reason}\nMensahe: ${message || "(nada)"}\nFecha di wega: ${date || "(desconosí)"}`
+      );
+
+      return json({ ok: true }, 200);
+    } catch (e) {
+      if (e.message && e.message.includes("no such table")) {
+        await this.ensureReportsTable();
+        return this.handleReportWord(request);
+      }
+      return json({ error: "Server error" }, 500);
+    }
+  }
+
+  /* ---------------------------------------------------------
+     WORD SUBMISSIONS
+
+     A player suggesting a word be added, adjusted, or
+     removed — quick free-text, no structured fields. Also
+     the landing spot for any future AI-drafted candidates
+     from an offline batch script (tagged separately if that
+     gets built later); for now every row here comes from a
+     real player.
+  --------------------------------------------------------- */
+
+  async ensureSubmissionsTable() {
+    await this.env.GAME_HISTORY
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS word_submissions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          type TEXT NOT NULL,
+          word TEXT NOT NULL,
+          note TEXT NOT NULL,
+          player_id TEXT,
+          game_date TEXT,
+          status TEXT DEFAULT 'pending',
+          created_at TEXT DEFAULT (datetime('now'))
+        )`
+      )
+      .run();
+  }
+
+  async handleSubmitWord(request) {
+    try {
+      await this.ensureSubmissionsTable();
+      const { type, word, note, playerId, date } = await request.json();
+
+      const validTypes = ["add", "adjust", "remove"];
+      if (!validTypes.includes(type) || !word || !note) {
+        return json({ error: "Data inkompletu òf inválido" }, 400);
+      }
+
+      await this.env.GAME_HISTORY
+        .prepare(
+          `INSERT INTO word_submissions
+             (type, word, note, player_id, game_date)
+           VALUES (?, ?, ?, ?, ?)`
+        )
+        .bind(
+          type,
+          String(word).slice(0, 40),
+          String(note).slice(0, 500),
+          playerId || null,
+          date || null
+        )
+        .run();
+
+      const typeLabel = { add: "AGREGÁ", adjust: "AHUSTÁ", remove: "KITA" }[type];
+
+      await this.sendNotificationEmail(
+        `[Palabra di Kòrsou] Sugerensia (${typeLabel}): "${word}"`,
+        `Tipo: ${typeLabel}\nPalabra: ${word}\nNota: ${note}\nFecha di wega: ${date || "(desconosí)"}`
+      );
+
+      return json({ ok: true }, 200);
+    } catch (e) {
+      if (e.message && e.message.includes("no such table")) {
+        await this.ensureSubmissionsTable();
+        return this.handleSubmitWord(request);
+      }
+      return json({ error: "Server error" }, 500);
+    }
+  }
+
+  /*
+    EMAIL DELIVERY — Cloudflare Email Routing.
+
+    Setup required (one-time, in the Cloudflare dashboard):
+    1. Email > Email Routing on your domain — enable it and
+       verify juliettesjakshie248@gmail.com as a destination.
+    2. In wrangler.jsonc, add:
+         "send_email": [
+           { "name": "NOTIFY", "destination_address": "juliettesjakshie248@gmail.com" }
+         ]
+    3. The FROM address below must be a mailbox on a domain
+       YOU control through Email Routing (not gmail.com) —
+       Cloudflare only relays outbound mail for domains you've
+       verified.
+
+    If Email Routing setup is fiddly, swap this method's body
+    for the Resend version instead (see notes further below in
+    this file's git history / the worker_additions.js reference
+    — third-party API, works immediately with any from/to,
+    needs RESEND_API_KEY as a secret).
+
+    Failures here are swallowed on purpose — a broken email
+    should never block the actual D1 write, which already
+    succeeded by the time this runs.
+  */
+  async sendNotificationEmail(subject, text) {
+    try {
+      const { EmailMessage } = await import("cloudflare:email");
+      const raw =
+        `From: Palabra di Kòrsou <notify@palabradikorsou.com>\r\n` +
+        `To: juliettesjakshie248@gmail.com\r\n` +
+        `Subject: ${subject}\r\n` +
+        `Content-Type: text/plain; charset=utf-8\r\n\r\n${text}`;
+      const message = new EmailMessage(
+        "notify@palabradikorsou.com",
+        "juliettesjakshie248@gmail.com",
+        raw
+      );
+      await this.env.NOTIFY.send(message);
+    } catch (e) {
+      console.error("Email send failed:", e);
     }
   }
 
