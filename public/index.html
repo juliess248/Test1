@@ -1409,6 +1409,84 @@ header{
   font-weight:700;
 }
 
+.def-fallback-msg{
+  color:var(--dim);
+
+  font-size:13px;
+
+  line-height:1.5;
+
+  margin-top:2px;
+}
+
+.def-fallback-actions{
+  display:flex;
+
+  gap:8px;
+
+  margin-top:9px;
+
+  flex-wrap:wrap;
+}
+
+.def-fallback-btn{
+  font-family:'Karla',sans-serif;
+
+  font-size:12.5px;
+  font-weight:700;
+
+  padding:8px 12px;
+
+  border-radius:10px;
+
+  background:rgba(249,227,0,.1);
+
+  border:1px solid rgba(249,227,0,.35);
+
+  color:var(--ink);
+
+  cursor:pointer;
+}
+
+.ai-warning{
+  margin-top:8px;
+
+  padding:8px 10px;
+
+  background:rgba(217,106,91,.12);
+
+  border:1px solid rgba(217,106,91,.35);
+
+  border-radius:10px;
+
+  color:#B33A2E;
+
+  font-size:11.5px;
+
+  line-height:1.4;
+}
+
+.report-word-btn{
+  display:block;
+
+  margin-top:8px;
+
+  background:none;
+
+  border:0;
+
+  color:var(--dim);
+
+  font-size:11.5px;
+  font-weight:700;
+
+  text-decoration:underline;
+
+  cursor:pointer;
+
+  padding:0;
+}
+
 .hint-buttons{
   display:flex;
 
@@ -1452,6 +1530,51 @@ header{
   opacity:.5;
 
   background:transparent;
+}
+
+.suggest-page-btn{
+  display:block;
+
+  width:100%;
+
+  margin-top:18px;
+
+  padding:13px 16px;
+
+  border-radius:12px;
+
+  background:rgba(249,227,0,.1);
+
+  border:1px solid rgba(249,227,0,.35);
+
+  color:var(--ink);
+
+  font-family:'Karla',sans-serif;
+  font-size:13.5px;
+  font-weight:700;
+
+  text-align:center;
+
+  cursor:pointer;
+}
+
+.suggest-hint-link{
+  display:block;
+
+  margin:10px auto 0;
+
+  background:none;
+
+  border:0;
+
+  color:var(--flag-ink);
+
+  font-size:12px;
+  font-weight:700;
+
+  text-decoration:underline;
+
+  cursor:pointer;
 }
 
 .hint-next{
@@ -3165,6 +3288,65 @@ button:focus-visible{
 </main>
 
 
+<!-- GLOSSARY (tap a found word) -->
+
+<div
+  class="amiga-overlay is-hidden"
+  id="glossaryOverlay">
+
+  <div
+    class="amiga-backdrop"
+    id="glossaryBackdrop">
+  </div>
+
+  <div class="amiga-sheet">
+
+    <div class="amiga-head">
+
+      <div
+        class="amiga-title"
+        id="glossaryWord">
+      </div>
+
+      <button
+        class="amiga-close"
+        id="glossaryClose"
+        aria-label="Sera">
+        ✕
+      </button>
+
+    </div>
+
+    <div
+      class="glossary-tag is-hidden"
+      id="glossaryTag">
+    </div>
+
+    <div
+      class="glossary-def"
+      id="glossaryDef">
+    </div>
+
+    <div
+      class="amiga-example is-hidden"
+      id="glossaryExample">
+    </div>
+
+    <div
+      class="glossary-en is-hidden"
+      id="glossaryEn">
+    </div>
+
+    <div
+      class="def-fallback-actions"
+      id="glossaryActions">
+    </div>
+
+  </div>
+
+</div>
+
+
 <!-- FEEDBACK -->
 
 <div
@@ -3327,6 +3509,14 @@ button:focus-visible{
           <span class="hint-btn-num">2</span>Promé lèter
         </button>
 
+        <button
+          class="hint-btn"
+          id="hintBtnDefinition"
+          type="button"
+          disabled>
+          <span class="hint-btn-num">3</span>Definishon
+        </button>
+
       </div>
 
 
@@ -3335,6 +3525,13 @@ button:focus-visible{
         id="hintNextWord"
         type="button">
         Otro palabra ⟳
+      </button>
+
+      <button
+        class="suggest-hint-link"
+        id="suggestHintLink"
+        type="button">
+        ✍️ Sugerí un kambio pa e palabra aki
       </button>
 
     </div>
@@ -3361,6 +3558,204 @@ button:focus-visible{
         id="amigaTable">
       </table>
 
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- REPORT WORD -->
+
+<div
+  class="amiga-overlay is-hidden"
+  id="reportOverlay">
+
+  <div
+    class="amiga-backdrop"
+    id="reportBackdrop">
+  </div>
+
+  <div class="amiga-sheet">
+
+    <div class="amiga-head">
+
+      <div class="amiga-title">
+        Rapòrtá palabra
+      </div>
+
+      <button
+        class="amiga-close"
+        id="reportClose"
+        aria-label="Sera">
+        ✕
+      </button>
+
+    </div>
+
+    <div
+      class="amiga-msg"
+      id="reportWordLabel">
+    </div>
+
+    <div
+      class="feedback-chips"
+      id="reportChips">
+
+      <button
+        class="feedback-chip"
+        type="button"
+        data-reason="wrong">
+        ❌ Definishon robes
+      </button>
+
+      <button
+        class="feedback-chip"
+        type="button"
+        data-reason="offensive">
+        🚫 Ofensivo
+      </button>
+
+      <button
+        class="feedback-chip"
+        type="button"
+        data-reason="nonsense">
+        ❓ No tin sentido
+      </button>
+
+      <button
+        class="feedback-chip"
+        type="button"
+        data-reason="other">
+        💬 Otro
+      </button>
+
+    </div>
+
+    <form id="reportForm">
+
+      <textarea
+        class="feedback-textarea"
+        id="reportMessage"
+        rows="3"
+        maxlength="500"
+        placeholder="Splika (opshonal)...">
+      </textarea>
+
+      <button
+        class="auth-submit"
+        id="reportSubmit"
+        type="submit">
+        Manda rapòrt
+      </button>
+
+    </form>
+
+    <div
+      class="auth-msg"
+      id="reportMsg"
+      style="display:none">
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- SUGGEST WORD -->
+
+<div
+  class="amiga-overlay is-hidden"
+  id="suggestOverlay">
+
+  <div
+    class="amiga-backdrop"
+    id="suggestBackdrop">
+  </div>
+
+  <div class="amiga-sheet">
+
+    <div class="amiga-head">
+
+      <div class="amiga-title">
+        Sugerí un kambio
+      </div>
+
+      <button
+        class="amiga-close"
+        id="suggestClose"
+        aria-label="Sera">
+        ✕
+      </button>
+
+    </div>
+
+    <div
+      class="amiga-msg"
+      id="suggestIntro">
+      Julia lo risibí bo sugerensia i revisá dje mes.
+    </div>
+
+    <div
+      class="feedback-chips"
+      id="suggestTypeChips">
+
+      <button
+        class="feedback-chip"
+        type="button"
+        data-type="add">
+        ➕ Agregá
+      </button>
+
+      <button
+        class="feedback-chip"
+        type="button"
+        data-type="adjust">
+        ✏️ Ahustá
+      </button>
+
+      <button
+        class="feedback-chip"
+        type="button"
+        data-type="remove">
+        ➖ Kita
+      </button>
+
+    </div>
+
+    <form
+      class="auth-fields"
+      id="suggestForm">
+
+      <input
+        class="name-input"
+        id="suggestWord"
+        type="text"
+        maxlength="40"
+        placeholder="Palabra">
+
+      <textarea
+        class="feedback-textarea"
+        id="suggestNote"
+        rows="3"
+        maxlength="500"
+        placeholder="Splika kortiku kiko bo ta pensa (definishon, korekshon, motibu pa kita, etc.)"
+        required>
+      </textarea>
+
+      <button
+        class="auth-submit"
+        id="suggestSubmit"
+        type="submit">
+        Manda sugerensia
+      </button>
+
+    </form>
+
+    <div
+      class="auth-msg"
+      id="suggestMsg"
+      style="display:none">
     </div>
 
   </div>
@@ -3679,6 +4074,13 @@ button:focus-visible{
     Bo palabra i puntu anterior ta warda.
 
   </div>
+
+  <button
+    class="suggest-page-btn"
+    id="suggestLinkBtn"
+    type="button">
+    ✍️ Sugerí agregá, ahustá, òf kita un palabra
+  </button>
 
 </section>
 
@@ -29155,7 +29557,7 @@ function toggleFeedbackChip(button){
 
   document
     .querySelectorAll(
-      '.feedback-chip'
+      '#feedbackChips .feedback-chip'
     )
     .forEach(
       chip =>
@@ -29267,6 +29669,449 @@ async function submitFeedback(message){
 
 
 /* =========================================================
+   18a-2. REPORT WORD
+========================================================= */
+
+let reportReason = null;
+let reportTargetWord = null;
+
+
+function buildReportButton(word){
+
+  const btn =
+    document.createElement(
+      'button'
+    );
+
+  btn.className =
+    'report-word-btn';
+
+  btn.type = 'button';
+
+  btn.textContent =
+    '🚩 Rapòrtá e palabra aki';
+
+  btn.onclick =
+    () =>
+      openReportWord(word);
+
+  return btn;
+
+}
+
+
+function openReportWord(word){
+
+  reportTargetWord = word;
+  reportReason = null;
+
+  $('reportWordLabel').textContent =
+    'Bo ta rapòrtá e palabra "' +
+    P.displayForm(word) +
+    '".';
+
+  document
+    .querySelectorAll(
+      '#reportChips .feedback-chip'
+    )
+    .forEach(
+      chip =>
+        chip.classList.remove(
+          'active'
+        )
+    );
+
+  $('reportMessage').value = '';
+
+  showReportMessage('');
+
+  $('reportOverlay').classList.remove(
+    'is-hidden'
+  );
+
+}
+
+
+function closeReportWord(){
+
+  $('reportOverlay').classList.add(
+    'is-hidden'
+  );
+
+}
+
+
+function showReportMessage(text,kind){
+
+  const box =
+    $('reportMsg');
+
+  if(!text){
+
+    box.style.display = 'none';
+    box.textContent = '';
+    return;
+
+  }
+
+  box.className =
+    'auth-msg ' +
+    (kind || 'ok');
+
+  box.textContent = text;
+  box.style.display = '';
+
+}
+
+
+function toggleReportChip(button){
+
+  showReportMessage('');
+
+  const reason =
+    button.dataset.reason;
+
+  const alreadyActive =
+    button.classList.contains(
+      'active'
+    );
+
+  document
+    .querySelectorAll(
+      '#reportChips .feedback-chip'
+    )
+    .forEach(
+      chip =>
+        chip.classList.remove(
+          'active'
+        )
+    );
+
+  if(alreadyActive){
+
+    reportReason = null;
+    return;
+
+  }
+
+  button.classList.add(
+    'active'
+  );
+
+  reportReason = reason;
+
+}
+
+
+async function submitReportWord(){
+
+  if(!reportReason){
+
+    showReportMessage(
+      'Skohe un motibu promé.',
+      'err'
+    );
+
+    return;
+
+  }
+
+  $('reportSubmit').disabled = true;
+
+  try{
+
+    const response =
+      await fetch(
+
+        '/api/report-word',
+
+        {
+          method:'POST',
+
+          headers:{
+            'content-type':
+              'application/json'
+          },
+
+          body:JSON.stringify({
+
+            word:reportTargetWord,
+
+            reason:reportReason,
+
+            message:
+              $('reportMessage').value.trim(),
+
+            playerId:
+              activePlayerId(),
+
+            date:GAME_DATE
+
+          })
+        }
+
+      );
+
+    const data =
+      await response.json();
+
+    if(!response.ok || data.error){
+
+      throw new Error(
+        data.error ||
+        'No a logra manda e rapòrt.'
+      );
+
+    }
+
+    showReportMessage(
+      'Danki! Nos a risibí bo rapòrt.',
+      'ok'
+    );
+
+    setTimeout(
+      closeReportWord,
+      1200
+    );
+
+  }catch(err){
+
+    showReportMessage(
+      err.message,
+      'err'
+    );
+
+  }finally{
+
+    $('reportSubmit').disabled = false;
+
+  }
+
+}
+
+
+/* =========================================================
+   18a-3. SUGGEST WORD / DEFINITION
+========================================================= */
+
+let suggestType = null;
+
+
+function openSuggestWord(word){
+
+  $('suggestWord').value =
+    word ? P.displayForm(word) : '';
+
+  $('suggestNote').value = '';
+
+  suggestType = null;
+
+  document
+    .querySelectorAll(
+      '#suggestTypeChips .feedback-chip'
+    )
+    .forEach(
+      chip =>
+        chip.classList.remove(
+          'active'
+        )
+    );
+
+  showSuggestMessage('');
+
+  $('suggestOverlay').classList.remove(
+    'is-hidden'
+  );
+
+}
+
+
+function closeSuggestWord(){
+
+  $('suggestOverlay').classList.add(
+    'is-hidden'
+  );
+
+}
+
+
+function showSuggestMessage(text,kind){
+
+  const box =
+    $('suggestMsg');
+
+  if(!text){
+
+    box.style.display = 'none';
+    box.textContent = '';
+    return;
+
+  }
+
+  box.className =
+    'auth-msg ' +
+    (kind || 'ok');
+
+  box.textContent = text;
+  box.style.display = '';
+
+}
+
+
+function toggleSuggestTypeChip(button){
+
+  showSuggestMessage('');
+
+  const type =
+    button.dataset.type;
+
+  const alreadyActive =
+    button.classList.contains(
+      'active'
+    );
+
+  document
+    .querySelectorAll(
+      '#suggestTypeChips .feedback-chip'
+    )
+    .forEach(
+      chip =>
+        chip.classList.remove(
+          'active'
+        )
+    );
+
+  if(alreadyActive){
+
+    suggestType = null;
+    return;
+
+  }
+
+  button.classList.add(
+    'active'
+  );
+
+  suggestType = type;
+
+}
+
+
+async function submitSuggestion(){
+
+  const word =
+    $('suggestWord').value.trim();
+
+  const note =
+    $('suggestNote').value.trim();
+
+  if(!suggestType){
+
+    showSuggestMessage(
+      'Skohe ku bo ke agregá, ahustá, òf kita promé.',
+      'err'
+    );
+
+    return;
+
+  }
+
+  if(!word){
+
+    showSuggestMessage(
+      'Skirbi e palabra promé.',
+      'err'
+    );
+
+    return;
+
+  }
+
+  if(!note){
+
+    showSuggestMessage(
+      'Skirbi un splikashon kortiku promé.',
+      'err'
+    );
+
+    return;
+
+  }
+
+  $('suggestSubmit').disabled = true;
+
+  try{
+
+    const response =
+      await fetch(
+
+        '/api/submit-word',
+
+        {
+          method:'POST',
+
+          headers:{
+            'content-type':
+              'application/json'
+          },
+
+          body:JSON.stringify({
+
+            type:suggestType,
+
+            word,
+
+            note,
+
+            playerId:
+              activePlayerId(),
+
+            date:GAME_DATE
+
+          })
+        }
+
+      );
+
+    const data =
+      await response.json();
+
+    if(!response.ok || data.error){
+
+      throw new Error(
+        data.error ||
+        'No a logra manda bo sugerensia.'
+      );
+
+    }
+
+    showSuggestMessage(
+      'Danki! Bo sugerensia a wordu mandá.',
+      'ok'
+    );
+
+    setTimeout(
+      closeSuggestWord,
+      1400
+    );
+
+  }catch(err){
+
+    showSuggestMessage(
+      err.message,
+      'err'
+    );
+
+  }finally{
+
+    $('suggestSubmit').disabled = false;
+
+  }
+
+}
+
+
+/* =========================================================
    18b. AMIGA (HINT BUDDY)
 ========================================================= */
 
@@ -29274,13 +30119,16 @@ async function submitFeedback(message){
   Graduated hint system: instead of a free-text lookup that
   can confirm any candidate word instantly, or a full grid
   revealing every remaining word's length/prefix at once,
-  The hint flow picks one not-yet-found word and lets the player
-  escalate through three small, deliberate steps — length,
-  then first letter, then definition — each one a separate
-  tap. Definitions only ever come from the curated local
-  DEFINITIONS data, never the remote lookup used elsewhere,
-  since that path was removed from the game for accuracy
-  reasons and shouldn't resurface here.
+  the hint flow picks one not-yet-found word and lets the
+  player escalate through three small, deliberate steps —
+  length, then first letter, then definition — each one a
+  separate tap.
+
+  Definitions prefer the curated local DEFINITIONS data. If
+  a word isn't covered yet, the player can request an
+  on-demand AI translation instead (clearly labeled as
+  automatic, since it isn't reviewed) or suggest their own
+  definition for later approval.
 */
 
 let hintWord = null;
@@ -29388,6 +30236,33 @@ function addHintReveal(label,value){
   $('hintReveals').appendChild(
     row
   );
+
+  return row;
+
+}
+
+
+function addHintRevealBlock(label,innerHtml){
+
+  const row =
+    document.createElement(
+      'div'
+    );
+
+  row.className =
+    'hint-reveal-row';
+
+  row.innerHTML =
+    '<span class="hint-reveal-label">' +
+    label +
+    '</span>' +
+    innerHtml;
+
+  $('hintReveals').appendChild(
+    row
+  );
+
+  return row;
 
 }
 
@@ -29730,6 +30605,73 @@ function revealHintLetter(){
     'done'
   );
 
+  $('hintBtnDefinition').disabled =
+    false;
+
+}
+
+
+function revealHintDefinition(){
+
+  if(
+    hintLevel !== 2 ||
+    !hintWord
+  ){
+
+    return;
+
+  }
+
+  hintLevel = 3;
+
+  const word = hintWord;
+  const local = localWordInfo(word);
+
+
+  if(local && local.definition){
+
+    const row =
+      addHintReveal(
+        'Definishon',
+        escapeHtml(local.definition)
+      );
+
+    row.appendChild(
+      buildReportButton(word)
+    );
+
+  }else{
+
+    const row =
+      addHintRevealBlock(
+        'Definishon',
+
+        '<div class="def-fallback-msg">' +
+        'Nos dikshonario ainda no tin definishon pa e palabra aki.' +
+        '</div>' +
+        '<div class="def-fallback-actions">' +
+        '<button class="def-fallback-btn" id="suggestDefBtn" type="button">' +
+        '✍️ Sugerí definishon' +
+        '</button>' +
+        '</div>'
+      );
+
+    $('suggestDefBtn').onclick =
+      () =>
+        openSuggestWord(
+          word
+        );
+
+  }
+
+
+  $('hintBtnDefinition').disabled =
+    true;
+
+  $('hintBtnDefinition').classList.add(
+    'done'
+  );
+
 }
 
 
@@ -29846,7 +30788,7 @@ async function fetchWordInfo(word,display){
   const response =
     await fetch(
 
-      '/api/define' +
+      '/api/translate' +
       '?word=' +
       encodeURIComponent(word) +
       '&display=' +
@@ -29863,7 +30805,7 @@ async function fetchWordInfo(word,display){
 
     throw new Error(
       data.error ||
-      'No a logra haña definishon'
+      'No a logra haña tradukshon'
     );
 
   }
@@ -29871,13 +30813,9 @@ async function fetchWordInfo(word,display){
 
   const info = {
 
-    tags:data.tags || '',
-
     definition:data.definition || '',
 
-    example:data.example || '',
-
-    english:data.english || ''
+    isAi:true
 
   };
 
@@ -29928,54 +30866,16 @@ function isPromise(value){
 
 function openGlossary(word,display){
 
-  $('glossaryWord').textContent =
-    display;
-
-
   glossaryCurrentWord =
     word;
 
+  $('glossaryWord').textContent =
+    display;
 
-  const info =
-    getWordInfo(word,display);
-
-
-  if(isPromise(info)){
-
-    renderGlossaryInfo(
-      word,
-      null,
-      true
-    );
-
-    info
-      .then(
-        result =>
-          renderGlossaryInfo(
-            word,
-            result,
-            false
-          )
-      )
-      .catch(
-        () =>
-          renderGlossaryInfo(
-            word,
-            null,
-            false
-          )
-      );
-
-  }else{
-
-    renderGlossaryInfo(
-      word,
-      info,
-      false
-    );
-
-  }
-
+  renderGlossaryInfo(
+    word,
+    localWordInfo(word)
+  );
 
   $('glossaryOverlay').classList.remove(
     'is-hidden'
@@ -29990,14 +30890,8 @@ let glossaryCurrentWord =
 
 function renderGlossaryInfo(
   word,
-  info,
-  loading
+  info
 ){
-
-  /*
-    The overlay may have moved on to a different word (or
-    closed) by the time a network answer comes back.
-  */
 
   if(word !== glossaryCurrentWord){
 
@@ -30037,16 +30931,17 @@ function renderGlossaryInfo(
   const defEl =
     $('glossaryDef');
 
-  if(loading){
+  const exampleEl =
+    $('glossaryExample');
 
-    defEl.textContent =
-      'Ta karga definishon...';
+  const enEl =
+    $('glossaryEn');
 
-    defEl.classList.add(
-      'is-missing'
-    );
+  const actionsEl =
+    $('glossaryActions');
 
-  }else if(info && info.definition){
+
+  if(info && info.definition){
 
     defEl.textContent =
       info.definition;
@@ -30055,59 +30950,80 @@ function renderGlossaryInfo(
       'is-missing'
     );
 
+
+    if(info.example){
+
+      exampleEl.innerHTML =
+        '<b>Uzo:</b> ' +
+        escapeHtml(info.example);
+
+      exampleEl.classList.remove(
+        'is-hidden'
+      );
+
+    }else{
+
+      exampleEl.classList.add(
+        'is-hidden'
+      );
+
+    }
+
+
+    if(info.english){
+
+      enEl.innerHTML =
+        'English: <b>' +
+        escapeHtml(info.english) +
+        '</b>';
+
+      enEl.classList.remove(
+        'is-hidden'
+      );
+
+    }else{
+
+      enEl.classList.add(
+        'is-hidden'
+      );
+
+    }
+
+
+    actionsEl.innerHTML = '';
+
+    actionsEl.appendChild(
+      buildReportButton(word)
+    );
+
   }else{
 
     defEl.textContent =
-      'Nos no tin definishon pa e palabra aki ainda.';
+      'Nos dikshonario ainda no tin definishon pa e palabra aki.';
 
     defEl.classList.add(
       'is-missing'
     );
 
-  }
-
-
-  const exampleEl =
-    $('glossaryExample');
-
-  if(!loading && info && info.example){
-
-    exampleEl.innerHTML =
-      '<b>Uzo:</b> ' +
-      escapeHtml(info.example);
-
-    exampleEl.classList.remove(
-      'is-hidden'
-    );
-
-  }else{
-
     exampleEl.classList.add(
       'is-hidden'
     );
 
-  }
-
-
-  const enEl =
-    $('glossaryEn');
-
-  if(!loading && info && info.english){
-
-    enEl.innerHTML =
-      'English: <b>' +
-      escapeHtml(info.english) +
-      '</b>';
-
-    enEl.classList.remove(
-      'is-hidden'
-    );
-
-  }else{
-
     enEl.classList.add(
       'is-hidden'
     );
+
+
+    actionsEl.innerHTML =
+      '<button class="def-fallback-btn" id="glossarySuggestBtn" type="button">' +
+      '✍️ Sugerí definishon' +
+      '</button>';
+
+    $('glossarySuggestBtn').onclick =
+      () =>
+        openSuggestWord(
+          word
+        );
 
   }
 
@@ -30294,6 +31210,14 @@ function addWord(result){
 
   element.dataset.word =
     result.word;
+
+
+  element.onclick =
+    () =>
+      openGlossary(
+        result.word,
+        result.display
+      );
 
 
   const words =
@@ -32295,6 +33219,12 @@ $('hintBtnLetter').onclick =
 $('hintNextWord').onclick =
   nextHintWord;
 
+$('suggestHintLink').onclick =
+  () =>
+    openSuggestWord(
+      hintWord
+    );
+
 $('hintTableToggle').onclick =
   toggleHintTable;
 
@@ -32307,6 +33237,13 @@ $('feedbackClose').onclick =
 
 $('feedbackBackdrop').onclick =
   closeFeedback;
+
+
+$('glossaryClose').onclick =
+  closeGlossary;
+
+$('glossaryBackdrop').onclick =
+  closeGlossary;
 
 
 $('privacyLinkBtn').onclick =
@@ -32346,10 +33283,16 @@ $('aboutBackdrop').onclick =
       'is-hidden'
     );
 
+$('suggestLinkBtn').onclick =
+  () =>
+    openSuggestWord(
+      null
+    );
+
 
 document
   .querySelectorAll(
-    '.feedback-chip'
+    '#feedbackChips .feedback-chip'
   )
   .forEach(
     button => {
@@ -32357,6 +33300,23 @@ document
       button.onclick =
         () =>
           toggleFeedbackChip(
+            button
+          );
+
+    }
+  );
+
+
+document
+  .querySelectorAll(
+    '#reportChips .feedback-chip'
+  )
+  .forEach(
+    button => {
+
+      button.onclick =
+        () =>
+          toggleReportChip(
             button
           );
 
@@ -32414,7 +33374,7 @@ $('feedbackForm').onsubmit =
 
       document
         .querySelectorAll(
-          '.feedback-chip'
+          '#feedbackChips .feedback-chip'
         )
         .forEach(
           chip =>
@@ -32443,6 +33403,54 @@ $('feedbackForm').onsubmit =
         false;
 
     }
+
+  };
+
+
+$('reportClose').onclick =
+  closeReportWord;
+
+$('reportBackdrop').onclick =
+  closeReportWord;
+
+$('reportForm').onsubmit =
+  event => {
+
+    event.preventDefault();
+
+    submitReportWord();
+
+  };
+
+
+$('suggestClose').onclick =
+  closeSuggestWord;
+
+$('suggestBackdrop').onclick =
+  closeSuggestWord;
+
+document
+  .querySelectorAll(
+    '#suggestTypeChips .feedback-chip'
+  )
+  .forEach(
+    button => {
+
+      button.onclick =
+        () =>
+          toggleSuggestTypeChip(
+            button
+          );
+
+    }
+  );
+
+$('suggestForm').onsubmit =
+  event => {
+
+    event.preventDefault();
+
+    submitSuggestion();
 
   };
 
@@ -32632,6 +33640,10 @@ function renderFoundWords(){
 
       element.dataset.word =
         word;
+
+      element.onclick =
+        () =>
+          openGlossary(word,display);
 
       words.appendChild(element);
 
