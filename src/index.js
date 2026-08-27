@@ -1188,7 +1188,8 @@ export default class extends WorkerEntrypoint {
           verification_status TEXT DEFAULT 'unverified',
           source_reference TEXT,
           previous_definition TEXT,
-          needs_review INTEGER NOT NULL DEFAULT 0
+          needs_review INTEGER NOT NULL DEFAULT 0,
+          pipeline_version INTEGER NOT NULL DEFAULT 0
         )`
       )
       .run();
@@ -1206,6 +1207,7 @@ export default class extends WorkerEntrypoint {
       ["source_reference", "TEXT"],
       ["previous_definition", "TEXT"],
       ["needs_review", "INTEGER NOT NULL DEFAULT 0"],
+      ["pipeline_version", "INTEGER NOT NULL DEFAULT 0"],
     ]) {
       try {
         await this.env.GAME_HISTORY
@@ -1268,7 +1270,8 @@ export default class extends WorkerEntrypoint {
              target_language,
              verification_status,
              source_reference,
-             needs_review
+             needs_review,
+             pipeline_version
            FROM word_glossary
            WHERE word = ?`
         )
@@ -1287,12 +1290,17 @@ export default class extends WorkerEntrypoint {
       }
 
       if (cached && cached.definition_source === "anthropic" &&
-          ["google", "anthropic"].includes(cached.translation_source)) {
+          ["google", "anthropic"].includes(cached.translation_source) &&
+          cached.pipeline_version === 2) {
         return json({ word, ...cached, definitionNl: cached.definition, cached: true }, 200);
       }
 
       if (url.searchParams.get("override") === "1") {
         return json({ error: "No moderated override" }, 404);
+      }
+
+      if (!this.env.ANTHROPIC_API_KEY) {
+        return json({ error: "ANTHROPIC_API_KEY is not configured" }, 503);
       }
 
       let generated = null;
@@ -1370,10 +1378,25 @@ export default class extends WorkerEntrypoint {
                source_language,
                target_language,
                  verification_status,
-                 needs_review
+                 needs_review,
+                 pipeline_version
              )
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-           ON CONFLICT(word) DO NOTHING`
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(word) DO UPDATE SET
+             display = excluded.display,
+             tags = excluded.tags,
+             definition = excluded.definition,
+             example = excluded.example,
+             english = excluded.english,
+             source = excluded.source,
+             definition_source = excluded.definition_source,
+             translation_source = excluded.translation_source,
+             source_language = excluded.source_language,
+             target_language = excluded.target_language,
+             verification_status = excluded.verification_status,
+             needs_review = excluded.needs_review,
+             pipeline_version = excluded.pipeline_version
+           WHERE word_glossary.verification_status NOT IN ('approved', 'verified')`
         )
         .bind(
           word,
@@ -1388,7 +1411,8 @@ export default class extends WorkerEntrypoint {
           generated.source_language || "pap",
           generated.target_language || "en",
           generated.verification_status || "unverified",
-          generated.needs_review ? 1 : 0
+          generated.needs_review ? 1 : 0,
+          2
         )
         .run();
 
