@@ -994,6 +994,16 @@ export default class extends WorkerEntrypoint {
         )`
       )
       .run();
+
+    // Idempotent: adding a column that already exists throws,
+    // which is swallowed — same pattern as users.salt below.
+    try {
+      await this.env.GAME_HISTORY
+        .prepare("ALTER TABLE word_glossary ADD COLUMN source TEXT DEFAULT 'claude'")
+        .run();
+    } catch {
+      // column already exists
+    }
   }
 
   /*
@@ -1019,7 +1029,7 @@ export default class extends WorkerEntrypoint {
 
       const cached = await this.env.GAME_HISTORY
         .prepare(
-          `SELECT display, tags, definition, example, english
+          `SELECT display, tags, definition, example, english, source
            FROM word_glossary WHERE word = ?`
         )
         .bind(word)
@@ -1029,17 +1039,46 @@ export default class extends WorkerEntrypoint {
         return json({ word, ...cached, cached: true }, 200);
       }
 
-      if (!this.env.ANTHROPIC_API_KEY) {
+      let generated = null;
+
+      if (this.env.ANTHROPIC_API_KEY) {
+        generated = await this.generateDefinition(word, display);
+      }
+
+      // Claude either isn't configured, or didn't recognize the
+      // word (empty definition) — try a raw Google Translate
+      // gloss as a last resort before giving up. This is weaker
+      // than Claude's result (a bare word, not a real definition,
+      // and Papiamentu is a lower-accuracy "zero-shot" language
+      // for Google), so it's tagged with its own source so the
+      // frontend can show a more cautious label for it.
+      if ((!generated || !generated.definition) && this.env.GOOGLE_TRANSLATE_API_KEY) {
+
+        const googleGloss = await this.googleTranslateWord(word);
+
+        if (googleGloss) {
+          generated = {
+            display,
+            tags: "",
+            definition: googleGloss,
+            example: "",
+            english: googleGloss,
+            source: "google",
+          };
+        }
+      }
+
+      if (!generated || !generated.definition) {
         return json({ error: "Definishon no ta disponibel awor aki" }, 503);
       }
 
-      const generated = await this.generateDefinition(word, display);
+      generated.source = generated.source || "claude";
 
       await this.env.GAME_HISTORY
         .prepare(
           `INSERT INTO word_glossary
-             (word, display, tags, definition, example, english)
-           VALUES (?, ?, ?, ?, ?, ?)
+             (word, display, tags, definition, example, english, source)
+           VALUES (?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(word) DO NOTHING`
         )
         .bind(
@@ -1048,7 +1087,8 @@ export default class extends WorkerEntrypoint {
           generated.tags || null,
           generated.definition || null,
           generated.example || null,
-          generated.english || null
+          generated.english || null,
+          generated.source
         )
         .run();
 
@@ -1059,6 +1099,49 @@ export default class extends WorkerEntrypoint {
         return this.handleDefine(request);
       }
       return json({ error: "Server error" }, 500);
+    }
+  }
+
+  /*
+    Bare word-level gloss via the official Google Cloud
+    Translation API (v2). Requires GOOGLE_TRANSLATE_API_KEY as
+    a Worker secret and billing enabled on that Google Cloud
+    project — the free tier (500,000 characters/month as of
+    this writing) comfortably covers single-word lookups at
+    this game's scale, but this is real external billing, not
+    a free unlimited service, so keep an eye on usage if it
+    gets heavy traffic.
+  */
+  async googleTranslateWord(word) {
+    try {
+      const response = await fetch(
+        `https://translation.googleapis.com/language/translate/v2?key=${this.env.GOOGLE_TRANSLATE_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            q: word,
+            source: "pap",
+            target: "en",
+            format: "text",
+          }),
+        }
+      );
+
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      const translated = data?.data?.translations?.[0]?.translatedText;
+
+      // If Google just echoes the word back unchanged, it almost
+      // certainly didn't actually translate anything useful.
+      if (!translated || translated.toLowerCase() === word.toLowerCase()) {
+        return null;
+      }
+
+      return translated.slice(0, 100);
+    } catch {
+      return null;
     }
   }
 
