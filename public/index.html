@@ -2085,7 +2085,8 @@ button:focus-visible{
   color:var(--flag-ink);
 }
 
-.feedback-textarea{
+.feedback-textarea,
+.feedback-input{
   width:100%;
 
   resize:vertical;
@@ -2109,11 +2110,13 @@ button:focus-visible{
   margin-bottom:12px;
 }
 
-.feedback-textarea::placeholder{
+.feedback-textarea::placeholder,
+.feedback-input::placeholder{
   color:var(--dim2);
 }
 
-.feedback-textarea:focus{
+.feedback-textarea:focus,
+.feedback-input:focus{
   outline:none;
 
   border-color:rgba(249,227,0,.5);
@@ -3537,6 +3540,12 @@ button:focus-visible{
         maxlength="500"
         placeholder="Splika (opshonal)...">
       </textarea>
+
+      <input
+        class="feedback-input"
+        id="reportSuggestion"
+        maxlength="500"
+        placeholder="Sugerensia di definishon (opshonal)...">
 
       <button
         class="auth-submit"
@@ -29432,9 +29441,10 @@ async function submitFeedback(message){
 
 let reportReason = null;
 let reportTargetWord = null;
+let reportCurrentDefinition = '';
 
 
-function buildReportButton(word){
+function buildReportButton(word,info){
 
   const btn =
     document.createElement(
@@ -29451,17 +29461,21 @@ function buildReportButton(word){
 
   btn.onclick =
     () =>
-      openReportWord(word);
+      openReportWord(word,info);
 
   return btn;
 
 }
 
 
-function openReportWord(word){
+function openReportWord(word,info){
 
   reportTargetWord = word;
   reportReason = null;
+  reportCurrentDefinition =
+    info && info.definition
+      ? info.definition
+      : '';
 
   $('reportWordLabel').textContent =
     'Bo ta rapòrtá e palabra "' +
@@ -29480,6 +29494,7 @@ function openReportWord(word){
     );
 
   $('reportMessage').value = '';
+  $('reportSuggestion').value = '';
 
   showReportMessage('');
 
@@ -29594,6 +29609,11 @@ async function submitReportWord(){
           body:JSON.stringify({
 
             word:reportTargetWord,
+
+            currentDefinition:reportCurrentDefinition,
+
+            suggestedDefinition:
+              $('reportSuggestion').value.trim(),
 
             reason:reportReason,
 
@@ -30152,7 +30172,7 @@ function localWordInfo(word){
 }
 
 
-async function fetchWordInfo(word,display){
+async function fetchWordInfo(word,display,overrideOnly){
 
   if(REMOTE_GLOSSARY[word]){
 
@@ -30168,7 +30188,8 @@ async function fetchWordInfo(word,display){
       '?word=' +
       encodeURIComponent(word) +
       '&display=' +
-      encodeURIComponent(display)
+        encodeURIComponent(display) +
+        (overrideOnly ? '&override=1' : '')
 
     );
 
@@ -30265,6 +30286,23 @@ function openGlossary(word,display){
       word,
       local
     );
+
+    fetchWordInfo(word,display,true)
+      .then(
+        override =>
+          renderGlossaryInfo(
+            word,
+            {
+              definition:override.definition || '',
+              example:override.example || local.example,
+              english:override.english || local.english,
+              source:'moderated'
+            }
+          )
+      )
+      .catch(
+        () => {}
+      );
 
   }else{
 
@@ -30427,7 +30465,7 @@ function renderGlossaryInfo(
     }
 
     actionsEl.appendChild(
-      buildReportButton(word)
+      buildReportButton(word,info)
     );
 
   }else{

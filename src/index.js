@@ -34,6 +34,9 @@ export default class extends WorkerEntrypoint {
     if (url.pathname === "/api/report-word" && request.method === "POST") {
       return this.handleReportWord(request);
     }
+    if (url.pathname === "/moderate/approve" && (request.method === "GET" || request.method === "POST")) {
+      return this.handleModeration(request);
+    }
     if (url.pathname === "/api/submit-word" && request.method === "POST") {
       return this.handleSubmitWord(request);
     }
@@ -744,49 +747,197 @@ export default class extends WorkerEntrypoint {
         `CREATE TABLE IF NOT EXISTS word_reports (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           word TEXT NOT NULL,
+          current_definition TEXT,
+          suggested_definition TEXT,
           reason TEXT NOT NULL,
           message TEXT,
           player_id TEXT,
           game_date TEXT,
           status TEXT DEFAULT 'pending',
+          approved_definition TEXT,
+          source TEXT,
+          reviewed_at TEXT,
+          approval_token_hash TEXT,
+          reported_at TEXT,
           created_at TEXT DEFAULT (datetime('now'))
         )`
       )
       .run();
+
+    const columns = [
+      ["current_definition", "TEXT"],
+      ["suggested_definition", "TEXT"],
+      ["approved_definition", "TEXT"],
+      ["source", "TEXT"],
+      ["reviewed_at", "TEXT"],
+      ["approval_token_hash", "TEXT"],
+      ["reported_at", "TEXT"],
+    ];
+    for (const [name, type] of columns) {
+      try {
+        await this.env.GAME_HISTORY
+          .prepare(`ALTER TABLE word_reports ADD COLUMN ${name} ${type}`)
+          .run();
+      } catch {
+        // Column already exists on an upgraded database.
+      }
+    }
   }
 
   async handleReportWord(request) {
     try {
       await this.ensureReportsTable();
-      const { word, reason, message, playerId, date } = await request.json();
+      const {
+        word,
+        currentDefinition,
+        suggestedDefinition,
+        reason,
+        message,
+        playerId,
+        date,
+      } = await request.json();
 
       const validReasons = ["wrong", "offensive", "nonsense", "other"];
-      if (!word || !validReasons.includes(reason)) {
+      const cleanWord = String(word || "").trim().toLowerCase().slice(0, 40);
+      const cleanCurrentDefinition = String(currentDefinition || "").trim().slice(0, 500);
+      const cleanSuggestedDefinition = String(suggestedDefinition || "").trim().slice(0, 500);
+      const cleanMessage = String(message || "").trim().slice(0, 500);
+      if (!cleanWord || !validReasons.includes(reason)) {
         return json({ error: "Data inkompletu òf inválido" }, 400);
       }
 
-      await this.env.GAME_HISTORY
+      const token = this.randomHex(32);
+      const tokenHash = await this.hashToken(token);
+      const reportedAt = new Date().toISOString();
+
+      const result = await this.env.GAME_HISTORY
         .prepare(
           `INSERT INTO word_reports
-             (word, reason, message, player_id, game_date)
-           VALUES (?, ?, ?, ?, ?)`
+             (word, current_definition, suggested_definition, reason, message,
+                player_id, game_date, approval_token_hash, reported_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
         .bind(
-          String(word).slice(0, 40),
+          cleanWord,
+          cleanCurrentDefinition,
+          cleanSuggestedDefinition,
           reason,
-          String(message || "").slice(0, 500),
+          cleanMessage,
           playerId || null,
-          date || null
+          date || null,
+          tokenHash,
+          reportedAt
         )
         .run();
 
-      return json({ ok: true }, 200);
+      const reportId = String(result.meta.last_row_id);
+      const report = {
+        id: reportId,
+        word: cleanWord,
+        currentDefinition: cleanCurrentDefinition || "(no definition shown)",
+        suggestedDefinition: cleanSuggestedDefinition || "(none provided)",
+        reason,
+        message: cleanMessage,
+        status: "pending",
+        reportedAt,
+      };
+      await this.sendReportEmail(report, token, new URL(request.url).origin);
+
+      return json({ ok: true, id: reportId }, 200);
     } catch (e) {
       if (e.message && e.message.includes("no such table")) {
         await this.ensureReportsTable();
         return this.handleReportWord(request);
       }
       return json({ error: "Server error" }, 500);
+    }
+  }
+
+  async hashToken(token) {
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(token)
+    );
+    return Array.from(new Uint8Array(digest))
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  async findPendingReport(token) {
+    if (!token || !/^[a-f0-9]{64}$/i.test(token)) return null;
+    const hash = await this.hashToken(token);
+    return this.env.GAME_HISTORY
+      .prepare("SELECT * FROM word_reports WHERE approval_token_hash = ? AND status = 'pending'")
+      .bind(hash)
+      .first();
+  }
+
+  async publishReport(report, definition, source) {
+    const finalDefinition = String(definition || "").trim().slice(0, 500);
+    if (!finalDefinition) return false;
+    const reviewedAt = new Date().toISOString();
+    await this.ensureGlossaryTable();
+    const result = await this.env.GAME_HISTORY.batch([
+      this.env.GAME_HISTORY
+        .prepare(
+          `INSERT INTO word_glossary (word, display, definition, example, english, source)
+           VALUES (?, ?, ?, '', '', 'moderated')
+           ON CONFLICT(word) DO UPDATE SET definition = excluded.definition, source = 'moderated'`
+        )
+        .bind(report.word, report.display || report.word, finalDefinition),
+      this.env.GAME_HISTORY
+        .prepare(
+          `UPDATE word_reports
+           SET status = 'approved', approved_definition = ?, source = ?,
+               reviewed_at = ?, approval_token_hash = NULL
+           WHERE id = ? AND status = 'pending'`
+        )
+        .bind(finalDefinition, String(source || "").trim().slice(0, 500) || null, reviewedAt, report.id),
+    ]);
+    return Boolean(result[1]?.meta?.changes);
+  }
+
+  async handleModeration(request) {
+    try {
+      await this.ensureReportsTable();
+      const url = new URL(request.url);
+      const token = url.searchParams.get("token") || "";
+      const report = await this.findPendingReport(token);
+      if (!report) return moderationPage("This moderation link is invalid or has already been used.", 410);
+
+      if (request.method === "GET" && url.searchParams.get("action") === "approve") {
+        const approved = await this.publishReport(report, report.suggested_definition, null);
+        return moderationPage(
+          approved ? "The definition was updated and published." : "This report has already been reviewed.",
+          approved ? 200 : 409
+        );
+      }
+
+      if (request.method === "GET") {
+        return moderationForm(report, token);
+      }
+
+      const form = await request.formData();
+      const action = form.get("action");
+      if (action === "reject") {
+        const result = await this.env.GAME_HISTORY
+          .prepare(
+            `UPDATE word_reports SET status = 'rejected', source = ?, reviewed_at = ?, approval_token_hash = NULL
+             WHERE id = ? AND status = 'pending'`
+          )
+          .bind(String(form.get("source") || "").trim().slice(0, 500) || null, new Date().toISOString(), report.id)
+          .run();
+        return moderationPage(result.meta.changes ? "The report was rejected." : "This report has already been reviewed.", result.meta.changes ? 200 : 409);
+      }
+
+      const approved = await this.publishReport(report, form.get("definition"), form.get("source"));
+      return moderationPage(
+        approved ? "The definition was updated and published." : "The final definition is required, or this report has already been reviewed.",
+        approved ? 200 : 400
+      );
+    } catch (error) {
+      console.error("Moderation failed:", error);
+      return moderationPage("Moderation could not be completed.", 500);
     }
   }
 
@@ -858,10 +1009,10 @@ export default class extends WorkerEntrypoint {
 
     Setup required (one-time, in the Cloudflare dashboard):
     1. Email > Email Routing on your domain — enable it and
-       verify juliettesjakshie248@gmail.com as a destination.
+      verify juliettesjakshie@gmail.com as a destination.
     2. In wrangler.jsonc, add:
          "send_email": [
-           { "name": "NOTIFY", "destination_address": "juliettesjakshie248@gmail.com" }
+           { "name": "NOTIFY", "destination_address": "juliettesjakshie@gmail.com" }
          ]
     3. The FROM address below must be a mailbox on a domain
        YOU control through Email Routing (not gmail.com) —
@@ -878,23 +1029,53 @@ export default class extends WorkerEntrypoint {
     should never block the actual D1 write, which already
     succeeded by the time this runs.
   */
-  async sendNotificationEmail(subject, text) {
+  async sendNotificationEmail(subject, text, html) {
     try {
       const { EmailMessage } = await import("cloudflare:email");
-      const raw =
-        `From: Palabra di Kòrsou <notify@palabradikorsou.com>\r\n` +
-        `To: juliettesjakshie248@gmail.com\r\n` +
-        `Subject: ${subject}\r\n` +
-        `Content-Type: text/plain; charset=utf-8\r\n\r\n${text}`;
+      const messageId = `<${crypto.randomUUID()}@palabradikorsou.com>`;
+      const raw = html
+        ? `From: Palabra di Korsou <notify@palabradikorsou.com>\r\nTo: juliettesjakshie@gmail.com\r\nSubject: ${subject.replace(/[^ -]/g, "-")}\r\nMessage-ID: ${messageId}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary="palabra-boundary"\r\n\r\n--palabra-boundary\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${text}\r\n--palabra-boundary\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${html}\r\n--palabra-boundary--`
+        : `From: Palabra di Korsou <notify@palabradikorsou.com>\r\n` +
+          `To: juliettesjakshie@gmail.com\r\n` +
+          `Subject: ${subject}\r\n` +
+          `Message-ID: ${messageId}\r\n` +
+          `Content-Type: text/plain; charset=utf-8\r\n\r\n${text}`;
       const message = new EmailMessage(
         "notify@palabradikorsou.com",
-        "juliettesjakshie248@gmail.com",
+        "juliettesjakshie@gmail.com",
         raw
       );
       await this.env.NOTIFY.send(message);
     } catch (e) {
       console.error("Email send failed:", e);
     }
+  }
+
+  async sendReportEmail(report, token, origin) {
+    const approveUrl = `${origin}/moderate/approve?action=approve&token=${encodeURIComponent(token)}`;
+    const editUrl = `${origin}/moderate/approve?token=${encodeURIComponent(token)}`;
+    const reason = report.reason || "Not provided";
+    const reportedAt = report.reportedAt || new Date().toISOString();
+    const text = [
+      `Word: ${report.word}`,
+      `Current definition: ${report.currentDefinition}`,
+      `Suggested correction: ${report.suggestedDefinition}`,
+      `Report reason: ${reason}`,
+      `Player note: ${report.message || "Not provided"}`,
+      `Status: ${report.status}`,
+      `Report ID: ${report.id}`,
+      `Reported at: ${reportedAt}`,
+      `Approve suggestion: ${approveUrl}`,
+      `Edit & approve: ${editUrl}`,
+    ].join("\n");
+    const field = (label, value) =>
+      `<tr><th style="padding:8px 12px;text-align:left;vertical-align:top;color:#52606d">${escapeHtmlServer(label)}</th><td style="padding:8px 12px;vertical-align:top">${escapeHtmlServer(value)}</td></tr>`;
+    const html = `<!doctype html><html><body style="margin:0;background:#f4f1ea;font-family:Arial,sans-serif;color:#081f36"><main style="max-width:600px;margin:24px auto;padding:24px;background:#fff;border:1px solid #ddd6c9"><h1 style="font-size:22px;margin:0 0 18px">Palabra di Kòrsou report</h1><table style="width:100%;border-collapse:collapse">${field("Word", report.word)}${field("Current definition", report.currentDefinition)}${field("Suggested correction", report.suggestedDefinition)}${field("Report reason", reason)}${field("Player note", report.message || "Not provided")}${field("Status", report.status)}${field("Report ID", report.id)}${field("Reported at", reportedAt)}</table><p style="margin:24px 0 10px"><a href="${escapeHtmlServer(approveUrl)}" style="display:inline-block;background:#2e7864;color:#fff;padding:12px 16px;text-decoration:none;margin:0 8px 8px 0">&#10003; Approve suggestion</a><a href="${escapeHtmlServer(editUrl)}" style="display:inline-block;background:#0f9fe0;color:#fff;padding:12px 16px;text-decoration:none;margin:0 8px 8px 0">&#9999; Edit &amp; approve</a></p></main></body></html>`;
+    await this.sendNotificationEmail(
+      `[Palabra di Kòrsou] Report: ${report.word} — ${reason}`,
+      text,
+      html
+    );
   }
 
   /*
@@ -906,26 +1087,14 @@ export default class extends WorkerEntrypoint {
     cron string for a different day/time — cron field order is
     minute hour day-of-month month day-of-week.)
 
-    Pulls every still-pending report/submission, sends ONE
-    email listing all of them, then marks those rows
-    'digested' so they don't get re-listed next week. They
-    stay in D1 either way — 'digested' just means "already
-    surfaced to Julia," not "resolved." Actually applying a
-    suggestion still means writing the definition into
-    index.html and merging it, same as every other batch.
+    Pulls still-pending word submissions for the legacy digest.
+    Word reports are sent immediately and remain pending until
+    their one-time moderation link is used.
   */
   async scheduled(controller) {
     try {
       await this.ensureReportsTable();
       await this.ensureSubmissionsTable();
-
-      const reports = await this.env.GAME_HISTORY
-        .prepare(
-          `SELECT word, reason, message, game_date, created_at
-           FROM word_reports WHERE status = 'pending'
-           ORDER BY created_at ASC`
-        )
-        .all();
 
       const submissions = await this.env.GAME_HISTORY
         .prepare(
@@ -935,10 +1104,9 @@ export default class extends WorkerEntrypoint {
         )
         .all();
 
-      const reportRows = reports.results || [];
       const submissionRows = submissions.results || [];
 
-      if (reportRows.length === 0 && submissionRows.length === 0) {
+      if (submissionRows.length === 0) {
         return;
       }
 
@@ -954,22 +1122,10 @@ export default class extends WorkerEntrypoint {
         text += `\n`;
       }
 
-      if (reportRows.length) {
-        text += `RAPÒRT (${reportRows.length}):\n`;
-        reportRows.forEach((row, i) => {
-          const detail = row.message ? `: ${row.message}` : "";
-          text += `${i + 1}. "${row.word}" — ${row.reason}${detail}\n`;
-        });
-      }
-
       await this.sendNotificationEmail(
-        `[Palabra di Kòrsou] Resúmen simanal (${submissionRows.length + reportRows.length} pendiente)`,
+        `[Palabra di Kòrsou] Resúmen simanal (${submissionRows.length} pendiente)`,
         text
       );
-
-      await this.env.GAME_HISTORY
-        .prepare(`UPDATE word_reports SET status = 'digested' WHERE status = 'pending'`)
-        .run();
 
       await this.env.GAME_HISTORY
         .prepare(`UPDATE word_submissions SET status = 'digested' WHERE status = 'pending'`)
@@ -1057,6 +1213,10 @@ export default class extends WorkerEntrypoint {
 
       if (cached) {
         return json({ word, ...cached, cached: true }, 200);
+      }
+
+      if (url.searchParams.get("override") === "1") {
+        return json({ error: "No moderated override" }, 404);
       }
 
       let generated = null;
@@ -1471,6 +1631,31 @@ export default class extends WorkerEntrypoint {
       return json({ error: "Server error" }, 500);
     }
   }
+}
+
+function escapeHtmlServer(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function moderationPage(message, status = 200) {
+  return new Response(
+    `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Palabra di Kòrsou moderation</title><style>body{margin:0;padding:24px;background:#f4f1ea;color:#081f36;font:16px/1.5 Arial,sans-serif}main{max-width:560px;margin:8vh auto;padding:28px;background:#fff;border:1px solid #ddd6c9}h1{font-size:22px;margin:0 0 12px}</style></head><body><main><h1>Palabra di Kòrsou</h1><p>${escapeHtmlServer(message)}</p></main></body></html>`,
+    { status, headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
+}
+
+function moderationForm(report, token) {
+  const field = (label, value) =>
+    `<p><strong>${escapeHtmlServer(label)}</strong><br>${escapeHtmlServer(value || "Not provided")}</p>`;
+  return new Response(
+          `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Edit report</title><style>body{margin:0;padding:16px;background:#f4f1ea;color:#081f36;font:16px/1.5 Arial,sans-serif}main{max-width:560px;margin:0 auto;padding:24px;background:#fff;border:1px solid #ddd6c9}h1{font-size:22px;margin:0 0 20px}label{display:block;font-weight:700;margin:18px 0 6px}textarea,input{width:100%;padding:11px;border:1px solid #c8c0b4;border-radius:4px;font:inherit;box-sizing:border-box}button{border:0;border-radius:4px;padding:12px 16px;margin:18px 8px 0 0;color:#fff;background:#2e7864;font:inherit;font-weight:700}button[name=action]{background:#c1503f}</style></head><body><main><h1>Edit &amp; approve report</h1>${field("Word", report.word)}${field("Current definition", report.current_definition)}${field("Player suggestion", report.suggested_definition)}<form method="post" action="/moderate/approve?token=${encodeURIComponent(token)}"><label for="definition">Final definition</label><textarea id="definition" name="definition" rows="4" required>${escapeHtmlServer(report.suggested_definition)}</textarea><label for="source">Reliable source (optional)</label><input id="source" name="source" maxlength="500"><button type="submit" name="action" value="approve">Approve &amp; publish</button><button type="submit" name="action" value="reject" formnovalidate>Reject report</button></form></main></body></html>`,
+    { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
 }
 
 function json(data, status) {
