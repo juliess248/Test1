@@ -1189,6 +1189,7 @@ export default class extends WorkerEntrypoint {
           source_reference TEXT,
           previous_definition TEXT,
           needs_review INTEGER NOT NULL DEFAULT 0,
+          translation_ambiguous INTEGER NOT NULL DEFAULT 0,
           pipeline_version INTEGER NOT NULL DEFAULT 0
         )`
       )
@@ -1207,6 +1208,7 @@ export default class extends WorkerEntrypoint {
       ["source_reference", "TEXT"],
       ["previous_definition", "TEXT"],
       ["needs_review", "INTEGER NOT NULL DEFAULT 0"],
+      ["translation_ambiguous", "INTEGER NOT NULL DEFAULT 0"],
       ["pipeline_version", "INTEGER NOT NULL DEFAULT 0"],
     ]) {
       try {
@@ -1271,6 +1273,7 @@ export default class extends WorkerEntrypoint {
              verification_status,
              source_reference,
              needs_review,
+             translation_ambiguous,
              pipeline_version
            FROM word_glossary
            WHERE word = ?`
@@ -1343,6 +1346,7 @@ export default class extends WorkerEntrypoint {
         generated.verification_status = "automatic";
         generated.english = googleMeaning.meaning;
         generated.needs_review = 1;
+        generated.translation_ambiguous = googleMeaning.needsReview ? 1 : 0;
       }
 
       /*
@@ -1387,9 +1391,10 @@ export default class extends WorkerEntrypoint {
                target_language,
                  verification_status,
                  needs_review,
+                 translation_ambiguous,
                  pipeline_version
              )
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(word) DO UPDATE SET
              display = excluded.display,
              tags = excluded.tags,
@@ -1403,6 +1408,7 @@ export default class extends WorkerEntrypoint {
              target_language = excluded.target_language,
              verification_status = excluded.verification_status,
              needs_review = excluded.needs_review,
+             translation_ambiguous = excluded.translation_ambiguous,
              pipeline_version = excluded.pipeline_version
            WHERE word_glossary.verification_status NOT IN ('approved', 'verified')`
         )
@@ -1420,6 +1426,7 @@ export default class extends WorkerEntrypoint {
           generated.target_language || "en",
           generated.verification_status || "unverified",
           generated.needs_review ? 1 : 0,
+          generated.translation_ambiguous ? 1 : 0,
           2
         )
         .run();
@@ -1534,7 +1541,7 @@ export default class extends WorkerEntrypoint {
       const meaning = translated.trim().slice(0, 100);
       const normalisedWord = word.toLowerCase();
       const needsReview = meaning.toLowerCase() === normalisedWord ||
-        meaning.length > 60 || /[,;/]|or|and/i.test(meaning);
+        meaning.length > 60 || /[,;/]|\bor\b|\band\b/i.test(meaning);
       return { meaning, needsReview };
     } catch (e) {
       console.error(
