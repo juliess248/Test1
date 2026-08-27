@@ -23,6 +23,12 @@
       "database_id": "77d85bfc-7dc2-4249-9738-10193c65f58c"
     }
   ],
+  "kv_namespaces": [
+    {
+      "binding": "PA_DICTIONARY",
+      "id": "81a0a532d83b491692d7cf5823366b7f"
+    }
+  ],
   "send_email": [
     { "name": "NOTIFY", "destination_address": "juliettesjakshie@gmail.com" }
   ],
