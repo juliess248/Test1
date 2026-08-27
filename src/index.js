@@ -1302,39 +1302,47 @@ export default class extends WorkerEntrypoint {
       let generated = null;
       let googleMeaning = null;
 
-      if (this.env.GOOGLE_TRANSLATE_API_KEY) {
-        googleMeaning = await this.googleTranslateWord(display || word);
+      if (!this.env.GOOGLE_TRANSLATE_API_KEY) {
+        return json(
+          { error: "GOOGLE_TRANSLATE_API_KEY is not configured", word },
+          503
+        );
       }
 
-      if (googleMeaning?.meaning && this.env.ANTHROPIC_API_KEY) {
-        generated = await this.generateDefinition(word, display, tags, googleMeaning.meaning);
-        if (generated?.definition) {
-          generated.source = "google+anthropic";
-          generated.definition_source = "anthropic";
-          generated.translation_source = "google";
-          generated.source_language = "pap";
-          generated.target_language = "en";
-          generated.verification_status = "automatic";
-          generated.english = googleMeaning.meaning;
-          generated.needs_review = 1;
-        }
-      }
-
-      if (!generated && this.env.ANTHROPIC_API_KEY) {
-        generated = await this.generateDefinition(word, display, tags, googleMeaning?.meaning || "");
-        if (generated?.definition) {
-          generated.source = "google_attempted+anthropic";
-          generated.definition_source = "anthropic";
-          generated.translation_source = "anthropic";
-          generated.source_language = "pap";
-          generated.target_language = "en";
-          generated.verification_status = "automatic";
-          generated.needs_review = 1;
-        }
+      googleMeaning = await this.googleTranslateWord(display || word);
+      if (!googleMeaning?.meaning) {
+        return json(
+          { error: "Google returned no usable translation", word },
+          502
+        );
       }
 
       if (!this.env.ANTHROPIC_API_KEY) {
-        return json({ error: "ANTHROPIC_API_KEY is not configured" }, 503);
+        return json(
+          {
+            error: "ANTHROPIC_API_KEY is not configured",
+            word,
+            googleMeaning: googleMeaning.meaning,
+          },
+          503
+        );
+      }
+
+      generated = await this.generateDefinition(
+        word,
+        display,
+        tags,
+        googleMeaning.meaning
+      );
+      if (generated?.definition) {
+        generated.source = "google+anthropic";
+        generated.definition_source = "anthropic";
+        generated.translation_source = "google";
+        generated.source_language = "pap";
+        generated.target_language = "en";
+        generated.verification_status = "automatic";
+        generated.english = googleMeaning.meaning;
+        generated.needs_review = 1;
       }
 
       /*
