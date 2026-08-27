@@ -1299,10 +1299,6 @@ export default class extends WorkerEntrypoint {
         return json({ error: "No moderated override" }, 404);
       }
 
-      if (!this.env.ANTHROPIC_API_KEY) {
-        return json({ error: "ANTHROPIC_API_KEY is not configured" }, 503);
-      }
-
       let generated = null;
       let googleMeaning = null;
 
@@ -1335,6 +1331,10 @@ export default class extends WorkerEntrypoint {
           generated.verification_status = "automatic";
           generated.needs_review = 1;
         }
+      }
+
+      if (!this.env.ANTHROPIC_API_KEY) {
+        return json({ error: "ANTHROPIC_API_KEY is not configured" }, 503);
       }
 
       /*
