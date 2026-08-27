@@ -1069,4 +1069,994 @@ export default class extends WorkerEntrypoint {
       const { EmailMessage } = await import("cloudflare:email");
       const messageId = `<${crypto.randomUUID()}@palabradikorsou.com>`;
       const raw = html
-        ? `From: Palabra di Korsou <notify@palabradikorsou.com>\r\nTo: juliettesjakshie@gmail.com\r\nSubject: ${subject.replace(/[^
+        ? `From: Palabra di Korsou <notify@palabradikorsou.com>\r\nTo: juliettesjakshie@gmail.com\r\nSubject: ${subject.replace(/[^\x00-\x7F]/g, "-")}\r\nMessage-ID: ${messageId}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary="palabra-boundary"\r\n\r\n--palabra-boundary\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${text}\r\n--palabra-boundary\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${html}\r\n--palabra-boundary--`
+        : `From: Palabra di Korsou <notify@palabradikorsou.com>\r\n` +
+          `To: juliettesjakshie@gmail.com\r\n` +
+          `Subject: ${subject}\r\n` +
+          `Message-ID: ${messageId}\r\n` +
+          `Content-Type: text/plain; charset=utf-8\r\n\r\n${text}`;
+      const message = new EmailMessage(
+        "notify@palabradikorsou.com",
+        "juliettesjakshie@gmail.com",
+        raw
+      );
+      await this.env.NOTIFY.send(message);
+    } catch (e) {
+      console.error("Email send failed:", e);
+    }
+  }
+
+  async sendReportEmail(report, token, origin) {
+    const approveUrl = `${origin}/moderate/approve?action=approve&token=${encodeURIComponent(token)}`;
+    const editUrl = `${origin}/moderate/approve?token=${encodeURIComponent(token)}`;
+    const reason = report.reason || "Not provided";
+    const reportedAt = report.reportedAt || new Date().toISOString();
+    const text = [
+      `Word: ${report.word}`,
+      `Current definition: ${report.currentDefinition}`,
+      `Current source: ${report.currentSource || "Not provided"}`,
+      `Player suggestion: ${report.suggestedDefinition}`,
+      `Report reason: ${reason}`,
+      `Player note: ${report.message || "Not provided"}`,
+      `Status: ${report.status}`,
+      `Report ID: ${report.id}`,
+      `Reported at: ${reportedAt}`,
+      `Approve suggestion: ${approveUrl}`,
+      `Edit & approve: ${editUrl}`,
+    ].join("\n");
+    const field = (label, value) =>
+      `<tr><th style="padding:8px 12px;text-align:left;vertical-align:top;color:#52606d">${escapeHtmlServer(label)}</th><td style="padding:8px 12px;vertical-align:top">${escapeHtmlServer(value)}</td></tr>`;
+    const html = `<!doctype html><html><body style="margin:0;background:#f4f1ea;font-family:Arial,sans-serif;color:#081f36"><main style="max-width:600px;margin:24px auto;padding:24px;background:#fff;border:1px solid #ddd6c9"><h1 style="font-size:22px;margin:0 0 18px">Palabra di Kòrsou report</h1><table style="width:100%;border-collapse:collapse">${field("Word", report.word)}${field("Current definition", report.currentDefinition)}${field("Current source", report.currentSource || "Not provided")}${field("Player suggestion", report.suggestedDefinition)}${field("Report reason", reason)}${field("Player note", report.message || "Not provided")}${field("Status", report.status)}${field("Report ID", report.id)}${field("Reported at", reportedAt)}</table><p style="margin:24px 0 10px"><a href="${escapeHtmlServer(approveUrl)}" style="display:inline-block;background:#2e7864;color:#fff;padding:12px 16px;text-decoration:none;margin:0 8px 8px 0">&#10003; Approve suggestion</a><a href="${escapeHtmlServer(editUrl)}" style="display:inline-block;background:#0f9fe0;color:#fff;padding:12px 16px;text-decoration:none;margin:0 8px 8px 0">&#9999; Edit &amp; approve</a></p></main></body></html>`;
+    await this.sendNotificationEmail(
+      `[Palabra di Kòrsou] Report: ${report.word} — ${reason}`,
+      text,
+      html
+    );
+  }
+
+  /*
+    WEEKLY DIGEST — Cron Trigger, not called by any request.
+
+    Setup required in wrangler.jsonc:
+      "triggers": { "crons": ["0 13 * * 1"] }
+    (13:00 UTC every Monday = 9am AST/Curaçao time. Adjust the
+    cron string for a different day/time — cron field order is
+    minute hour day-of-month month day-of-week.)
+
+    Pulls still-pending word submissions for the legacy digest.
+    Word reports are sent immediately and remain pending until
+    their one-time moderation link is used.
+  */
+  async scheduled(controller) {
+    try {
+      await this.ensureReportsTable();
+      await this.ensureSubmissionsTable();
+
+      const submissions = await this.env.GAME_HISTORY
+        .prepare(
+          `SELECT type, word, note, game_date, created_at
+           FROM word_submissions WHERE status = 'pending'
+           ORDER BY created_at ASC`
+        )
+        .all();
+
+      const submissionRows = submissions.results || [];
+
+      if (submissionRows.length === 0) {
+        return;
+      }
+
+      const typeLabels = { add: "AGREGÁ", adjust: "AHUSTÁ", remove: "KITA" };
+      let text = `Resúmen simanal — Palabra di Kòrsou\n\n`;
+
+      if (submissionRows.length) {
+        text += `SUGERENSIA (${submissionRows.length}):\n`;
+        submissionRows.forEach((row, i) => {
+          const label = typeLabels[row.type] || row.type;
+          text += `${i + 1}. [${label}] "${row.word}" — ${row.note}\n`;
+        });
+        text += `\n`;
+      }
+
+      await this.sendNotificationEmail(
+        `[Palabra di Kòrsou] Resúmen simanal (${submissionRows.length} pendiente)`,
+        text
+      );
+
+      await this.env.GAME_HISTORY
+        .prepare(`UPDATE word_submissions SET status = 'digested' WHERE status = 'pending'`)
+        .run();
+
+    } catch (e) {
+      console.error("Weekly digest failed:", e);
+    }
+  }
+
+  async ensureGlossaryTable() {
+    await this.env.GAME_HISTORY
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS word_glossary (
+          word TEXT PRIMARY KEY,
+          display TEXT,
+          tags TEXT,
+          definition TEXT,
+          example TEXT,
+          english TEXT,
+          source TEXT DEFAULT 'legacy',
+          translation_source TEXT,
+          created_at TEXT DEFAULT (datetime('now')),
+          definition_source TEXT DEFAULT 'legacy',
+          source_language TEXT,
+          target_language TEXT,
+          verification_status TEXT DEFAULT 'unverified',
+          source_reference TEXT,
+          previous_definition TEXT,
+          needs_review INTEGER NOT NULL DEFAULT 0,
+          translation_ambiguous INTEGER NOT NULL DEFAULT 0,
+          pipeline_version INTEGER NOT NULL DEFAULT 0
+        )`
+      )
+      .run();
+
+    // Idempotent: only add columns that are actually missing,
+    // checked via PRAGMA rather than firing ALTER TABLE and
+    // hoping to catch a "duplicate column" failure.
+    const existingColumns = await this.env.GAME_HISTORY
+      .prepare(`PRAGMA table_info(word_glossary)`)
+      .all();
+    const existingNames = new Set(
+      (existingColumns.results || []).map((col) => col.name)
+    );
+
+    for (const [name, type] of [
+      ["tags", "TEXT"],
+      ["source", "TEXT DEFAULT 'legacy'"],
+      ["translation_source", "TEXT"],
+      ["definition_source", "TEXT DEFAULT 'legacy'"],
+      ["source_language", "TEXT"],
+      ["target_language", "TEXT"],
+      ["verification_status", "TEXT DEFAULT 'unverified'"],
+      ["source_reference", "TEXT"],
+      ["previous_definition", "TEXT"],
+      ["needs_review", "INTEGER NOT NULL DEFAULT 0"],
+      ["translation_ambiguous", "INTEGER NOT NULL DEFAULT 0"],
+      ["pipeline_version", "INTEGER NOT NULL DEFAULT 0"],
+    ]) {
+      if (existingNames.has(name)) continue;
+      await this.env.GAME_HISTORY
+        .prepare(`ALTER TABLE word_glossary ADD COLUMN ${name} ${type}`)
+        .run();
+    }
+  }
+
+  /*
+    Auto-writes the glossary as new words show up in puzzles.
+    On the first request for a word, Claude drafts:
+    - a short Papiamentu definition
+    - one natural example
+    - a concise English translation
+
+    Grammatical labels such as "Sustantivo" are intentionally
+    no longer generated because they are not necessary for the
+    quick word-lookup experience.
+
+    The result is cached in D1, so later requests use the
+    stored result instead of calling the model again.
+  */
+  async handleDefine(request) {
+    try {
+      await this.ensureGlossaryTable();
+
+      const url = new URL(request.url);
+      const word = (url.searchParams.get("word") || "")
+        .trim()
+        .toLowerCase();
+      const display = url.searchParams.get("display") || word;
+      const tags = (url.searchParams.get("tags") || "").slice(0, 40);
+
+      if (!word || !/^[a-zñ]+$/.test(word)) {
+        return json({ error: "Palabra inválido" }, 400);
+      }
+
+      /*
+        Notice that "tags" is no longer selected.
+
+        Existing rows can still contain the old tags column,
+        so there is no risky database migration required.
+        The frontend simply stops receiving/using it.
+      */
+      const cached = await this.env.GAME_HISTORY
+        .prepare(
+          `SELECT
+             display,
+             definition,
+             example,
+             english,
+             tags,
+             source,
+             definition_source,
+             translation_source,
+             source_language,
+             target_language,
+             verification_status,
+             source_reference,
+             needs_review,
+             translation_ambiguous,
+             pipeline_version
+           FROM word_glossary
+           WHERE word = ?`
+        )
+        .bind(word)
+        .first();
+
+      if (cached && (
+        cached.verification_status === "verified" ||
+        cached.verification_status === "approved" ||
+        cached.source === "verified_dictionary" ||
+        cached.source === "owner_approved" ||
+        cached.definition_source === "verified_dictionary" ||
+        cached.definition_source === "owner_approved"
+      )) {
+        return json({ word, ...cached, definitionNl: cached.definition, cached: true }, 200);
+      }
+
+      if (cached && cached.definition_source === "anthropic" &&
+          ["google", "anthropic"].includes(cached.translation_source) &&
+          cached.pipeline_version === 2) {
+        return json({ word, ...cached, definitionNl: cached.definition, cached: true }, 200);
+      }
+
+      if (url.searchParams.get("override") === "1") {
+        return json({ error: "No moderated override" }, 404);
+      }
+
+      let generated = null;
+      let googleMeaning = null;
+
+      if (!this.env.GOOGLE_TRANSLATE_API_KEY) {
+        return json(
+          { error: "GOOGLE_TRANSLATE_API_KEY is not configured", word },
+          503
+        );
+      }
+
+      googleMeaning = await this.googleTranslateWord(display || word);
+      if (!googleMeaning?.meaning) {
+        return json(
+          { error: "Google returned no usable translation", word },
+          502
+        );
+      }
+
+      if (!this.env.ANTHROPIC_API_KEY) {
+        return json(
+          {
+            error: "ANTHROPIC_API_KEY is not configured",
+            word,
+            googleMeaning: googleMeaning.meaning,
+          },
+          503
+        );
+      }
+
+      generated = await this.generateDefinition(
+        word,
+        display,
+        tags,
+        googleMeaning.meaning
+      );
+      if (generated?.definition) {
+        generated.source = "google+anthropic";
+        generated.definition_source = "anthropic";
+        generated.translation_source = "google";
+        generated.source_language = "pap";
+        generated.target_language = "en";
+        generated.verification_status = "automatic";
+        generated.english = googleMeaning.meaning;
+        generated.needs_review = 1;
+        generated.translation_ambiguous = googleMeaning.needsReview ? 1 : 0;
+      }
+
+      /*
+        Neither source produced something useful.
+      */
+      if (
+        !generated ||
+        !generated.definition
+      ) {
+        return json(
+          {
+            error:
+              "Definishon no ta disponibel awor aki",
+          },
+          503
+        );
+      }
+
+      generated.source = generated.source || "ai_fallback";
+
+      /*
+        Save only the information actually needed by
+        the current UX.
+
+        The old tags column can stay in D1 for backward
+        compatibility, but we no longer write to it.
+      */
+      await this.env.GAME_HISTORY
+        .prepare(
+          `INSERT INTO word_glossary
+             (
+               word,
+               display,
+               tags,
+               definition,
+               example,
+               english,
+               source,
+               definition_source,
+               translation_source,
+               source_language,
+               target_language,
+                 verification_status,
+                 needs_review,
+                 translation_ambiguous,
+                 pipeline_version
+             )
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(word) DO UPDATE SET
+             display = excluded.display,
+             tags = excluded.tags,
+             definition = excluded.definition,
+             example = excluded.example,
+             english = excluded.english,
+             source = excluded.source,
+             definition_source = excluded.definition_source,
+             translation_source = excluded.translation_source,
+             source_language = excluded.source_language,
+             target_language = excluded.target_language,
+             verification_status = excluded.verification_status,
+             needs_review = excluded.needs_review,
+             translation_ambiguous = excluded.translation_ambiguous,
+             pipeline_version = excluded.pipeline_version
+           WHERE word_glossary.verification_status NOT IN ('approved', 'verified')`
+        )
+        .bind(
+          word,
+          generated.display || display,
+          tags,
+          generated.definition || null,
+          generated.example || null,
+          generated.english || null,
+          generated.source,
+          generated.definition_source || "anthropic",
+          generated.translation_source || "anthropic",
+          generated.source_language || "pap",
+          generated.target_language || "en",
+          generated.verification_status || "unverified",
+          generated.needs_review ? 1 : 0,
+          generated.translation_ambiguous ? 1 : 0,
+          2
+        )
+        .run();
+
+      return json({ word, tags, ...generated, definitionNl: generated.definition, cached: false }, 200);
+    } catch (e) {
+      if (e.message && e.message.includes("no such table")) {
+        await this.ensureGlossaryTable();
+        return this.handleDefine(request);
+      }
+
+      console.error(
+        "Glossary error:",
+        e
+      );
+      if (e.message && e.message.startsWith("Google Translate failed")) {
+        return json({ error: e.message }, 502);
+      }
+      return json({ error: "Server error" }, 500);
+    }
+  }
+
+  async handleTranslateUndefined(request) {
+    if (!this.env.TRANSLATION_ADMIN_TOKEN ||
+        request.headers.get("authorization") !== `Bearer ${this.env.TRANSLATION_ADMIN_TOKEN}`) {
+      return json({ error: "Unauthorized" }, 401);
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return json({ error: "JSON body required" }, 400);
+    }
+
+    const words = Array.isArray(body.words)
+      ? [...new Set(body.words.map((word) => String(word).trim().toLowerCase()))]
+          .filter((word) => /^[a-zñ]+$/.test(word))
+          .slice(0, 500)
+      : [];
+    const results = [];
+    for (const word of words) {
+      const response = await this.handleDefine(
+        new Request(`${new URL(request.url).origin}/api/define?word=${encodeURIComponent(word)}`)
+      );
+      const data = await response.json();
+      results.push({ word, status: response.status, cached: data.cached === true, source: data.source });
+    }
+    return json({ translated: results.filter((result) => result.status === 200 && !result.cached).length, results }, 200);
+  }
+
+  /*
+    Preliminary English translation using
+    Google Cloud Translation API.
+
+    This is the primary automatic source and is cached in D1.
+  */
+  async googleTranslateWord(word) {
+    try {
+      const googleResponse = await fetch(
+        "https://translation.googleapis.com/language/translate/v2",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-goog-api-key": this.env.GOOGLE_TRANSLATE_API_KEY,
+          },
+          body: JSON.stringify({
+            q: word,
+            source: "pap",
+            target: "en",
+            format: "text",
+          }),
+        }
+      );
+
+      const googleText = await googleResponse.text();
+      console.log("Google status:", googleResponse.status);
+      console.log("Google response:", googleText);
+
+      if (!googleResponse.ok) {
+        throw new Error(
+          `Google Translate failed (${googleResponse.status}): ${googleText}`
+        );
+      }
+
+      let data;
+      try {
+        data = JSON.parse(googleText);
+      } catch {
+        throw new Error(
+          `Google Translate failed (invalid JSON): ${googleText}`
+        );
+      }
+      const translated =
+        data?.data
+          ?.translations?.[0]
+          ?.translatedText;
+
+      /*
+        If Google simply sends the original word back,
+        it hasn't given us a useful translation.
+      */
+      if (
+        !translated ||
+        translated.toLowerCase() ===
+          word.toLowerCase()
+      ) {
+        return null;
+      }
+
+      const meaning = translated.trim().slice(0, 100);
+      const normalisedWord = word.toLowerCase();
+      const needsReview = meaning.toLowerCase() === normalisedWord ||
+        meaning.length > 60 || /[,;/]|\bor\b|\band\b/i.test(meaning);
+      return { meaning, needsReview };
+    } catch (e) {
+      console.error(
+        "Google translation failed:",
+        e
+      );
+      return null;
+    }
+  }
+
+  /*
+    Generate a concise, game-friendly definition.
+
+    IMPORTANT UX decision:
+    We intentionally ask for exactly three fields:
+
+    1. definition
+    2. example
+    3. english
+
+    No grammatical classification is generated because
+    labels such as "Sustantivo" added visual noise without
+    helping the primary quick-lookup interaction.
+  */
+  async generateDefinition(word, display, tags, englishMeaning) {
+    const prompt =
+      `Papiamentu word: "${display}" ` +
+      `(normalisá: "${word}").\n\n` +
+      `Google Cloud Translation translated this Papiamentu word ` +
+      `to English as: "${englishMeaning || "none; Google returned no usable result"}".\n` +
+      `Treat this English translation as FIXED grounding. ` +
+      `Do NOT replace it with another English meaning.\n` +
+      `Grammatical code: ${tags || "none"}.\n` +
+      `The grammatical code and translation are separate pieces ` +
+      `of information. Do not use the grammatical code to change ` +
+      `the meaning supplied by Google.\n\n` +
+      `Duna SOLAMENTE un opheto JSON válido, ` +
+      `sin markdown ni teksto adishonal, ` +
+      `ku exactamente e tres kamponan aki:\n` +
+      `- "definition": un splikashon kla i natural na Papiamentu ` +
+      `ku ta deskribí e palabra, preferiblemente un frase. ` +
+      `Uza e English meaning solamente pa komprondé e sentido; ` +
+      `no inkluí Ingles den e splikashon.\n` +
+      `- "example": 1 frase natural na Papiamentu ku usa ` +
+      `e palabra den un konteksto realistiko. ` +
+      `No ripití e definishon.\n` +
+      `- "english": the fixed Google English meaning, or your best ` +
+      `English fallback only when Google returned no usable result.\n\n` +
+      `If unsure, leave "definition" and "example" empty ("").`;
+
+    const response = await fetch(
+      "https://api.anthropic.com/v1/messages",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": this.env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 400,
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error(
+        "Claude definition request failed:",
+        response.status
+      );
+      throw new Error("Model request failed");
+    }
+
+    const data = await response.json();
+    /*
+      Claude normally responds with one text content block,
+      but joining all text blocks makes this more robust.
+    */
+    const text = (
+      data.content || []
+    )
+      .filter((block) => block.type === "text")
+      .map(
+        (block) =>
+          block.text
+      )
+      .join("")
+      .trim()
+      /*
+        Be tolerant if the model still wraps its JSON
+        in a markdown code fence.
+      */
+      .replace(/^```(json)?/i, "")
+      .replace(/```$/, "")
+      .trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (e) {
+      console.error(
+        "Could not parse definition JSON:",
+        text
+      );
+      parsed = {};
+    }
+
+    /*
+      Return ONLY what the mobile definition view needs.
+    */
+    return {
+      display:
+        (display || word)
+          .slice(0, 60),
+      definition:
+        (parsed.definition || "")
+          .trim()
+          .slice(0, 500),
+      example:
+        (parsed.example || "")
+          .trim()
+          .slice(0, 300),
+      english:
+        (parsed.english || "")
+          .trim()
+          .slice(0, 120),
+    };
+  }
+
+  async ensureUsersTable() {
+    await this.env.GAME_HISTORY
+      .prepare(
+        "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')))"
+      )
+      .run();
+
+    /*
+      Idempotent: adding a column that already exists throws,
+      which we just swallow. This lets existing deployments
+      (with plaintext-only rows) pick up the new salt column
+      without a manual migration step.
+    */
+    try {
+      await this.env.GAME_HISTORY
+        .prepare("ALTER TABLE users ADD COLUMN salt TEXT")
+        .run();
+    } catch {
+      // column already exists
+    }
+  }
+
+  randomHex(byteLength) {
+    const bytes = new Uint8Array(byteLength);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  async hashPassword(password, salt) {
+    const data = new TextEncoder().encode(salt + password);
+    const digest = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  async handleSignup(request) {
+    try {
+      await this.ensureUsersTable();
+
+      const { username, password } = await request.json();
+      if (!username || !password) {
+        return json({ error: "Username and password required" }, 400);
+      }
+      if (password.length < 4) {
+        return json({ error: "Password must be at least 4 characters" }, 400);
+      }
+      const existing = await this.env.GAME_HISTORY
+        .prepare("SELECT username FROM users WHERE username = ?")
+        .bind(username)
+        .first();
+      if (existing) {
+        return json({ error: "Username already taken" }, 409);
+      }
+
+      const salt = this.randomHex(16);
+      const hashed = await this.hashPassword(password, salt);
+
+      await this.env.GAME_HISTORY
+        .prepare("INSERT INTO users (username, password, salt) VALUES (?, ?, ?)")
+        .bind(username, hashed, salt)
+        .run();
+
+      return json({ username }, 200);
+    } catch (e) {
+      return json({ error: "Server error" }, 500);
+    }
+  }
+
+  async handleSignin(request) {
+    try {
+      await this.ensureUsersTable();
+
+      const { username, password } = await request.json();
+      if (!username || !password) {
+        return json({ error: "Username and password required" }, 400);
+      }
+
+      const row = await this.env.GAME_HISTORY
+        .prepare("SELECT username, password, salt FROM users WHERE username = ?")
+        .bind(username)
+        .first();
+
+      if (!row) {
+        return json({ error: "Invalid username or password" }, 401);
+      }
+
+      let valid = false;
+
+      if (row.salt) {
+        const hashed = await this.hashPassword(password, row.salt);
+        valid = hashed === row.password;
+      } else {
+        /*
+          Legacy row from before hashing was added — this
+          account's "password" column is still plaintext.
+          If it matches, migrate it to a salted hash right
+          now so the plaintext value never gets written or
+          read again after this one comparison.
+        */
+        valid = password === row.password;
+
+        if (valid) {
+          const salt = this.randomHex(16);
+          const hashed = await this.hashPassword(password, salt);
+
+          await this.env.GAME_HISTORY
+            .prepare("UPDATE users SET password = ?, salt = ? WHERE username = ?")
+            .bind(hashed, salt, username)
+            .run();
+        }
+      }
+
+      if (!valid) {
+        return json({ error: "Invalid username or password" }, 401);
+      }
+
+      return json({ username: row.username }, 200);
+    } catch (e) {
+      return json({ error: "Server error" }, 500);
+    }
+  }
+}
+
+function escapeHtmlServer(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function moderationPage(message, status = 200) {
+  return new Response(
+    `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Palabra di Kòrsou moderation</title><style>body{margin:0;padding:24px;background:#f4f1ea;color:#081f36;font:16px/1.5 Arial,sans-serif}main{max-width:560px;margin:8vh auto;padding:28px;background:#fff;border:1px solid #ddd6c9}h1{font-size:22px;margin:0 0 12px}</style></head><body><main><h1>Palabra di Kòrsou</h1><p>${escapeHtmlServer(message)}</p></main></body></html>`,
+    { status, headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
+}
+
+function moderationForm(report, token) {
+  const field = (label, value) =>
+    `<p><strong>${escapeHtmlServer(label)}</strong><br>${escapeHtmlServer(value || "Not provided")}</p>`;
+  return new Response(
+          `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Edit report</title><style>body{margin:0;padding:16px;background:#f4f1ea;color:#081f36;font:16px/1.5 Arial,sans-serif}main{max-width:560px;margin:0 auto;padding:24px;background:#fff;border:1px solid #ddd6c9}h1{font-size:22px;margin:0 0 20px}label{display:block;font-weight:700;margin:18px 0 6px}textarea,input{width:100%;padding:11px;border:1px solid #c8c0b4;border-radius:4px;font:inherit;box-sizing:border-box}button{border:0;border-radius:4px;padding:12px 16px;margin:18px 8px 0 0;color:#fff;background:#2e7864;font:inherit;font-weight:700}button[name=action]{background:#c1503f}</style></head><body><main><h1>Edit &amp; approve report</h1>${field("Word", report.word)}${field("Current definition", report.current_definition)}${field("Current source", report.current_source)}${field("Player suggestion", report.suggested_definition)}<form method="post" action="/moderate/approve?token=${encodeURIComponent(token)}"><label for="definition">Final definition</label><textarea id="definition" name="definition" rows="4" required>${escapeHtmlServer(report.suggested_definition)}</textarea><label for="source">Reliable source (optional)</label><input id="source" name="source" maxlength="500"><button type="submit" name="action" value="approve">Approve &amp; publish</button><button type="submit" name="action" value="reject" formnovalidate>Reject report</button></form></main></body></html>`,
+    { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
+}
+
+function json(data, status) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+const AUTH_CSS = `<style>
+#cf-account-wrap{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+#cf-account-btn svg{width:18px;height:18px;display:block;}
+#cf-account-btn.signed-in{
+  background:var(--flag);
+  border-color:var(--flag);
+  color:var(--ink-fixed);
+}
+#cf-account-popover{
+  display:none;
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  min-width:150px;
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+  box-shadow:0 12px 30px rgba(0,0,0,.25);
+  z-index:10000;
+}
+#cf-account-popover.open{display:block;}
+.cf-popover-name{
+  font-family:'Karla',sans-serif;
+  font-size:13px;
+  font-weight:700;
+  color:var(--ink);
+  margin-bottom:10px;
+  white-space:nowrap;
+}
+.cf-logout-btn{
+  border:1px solid var(--line);
+  background:transparent;
+  border-radius:11px;
+  color:var(--dim);
+  cursor:pointer;
+  font-family:'Karla',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  padding:8px 12px;
+  width:100%;
+}
+#cf-auth-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:rgba(8,31,54,.55);
+  backdrop-filter:blur(4px);
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+#cf-auth-overlay.open{display:flex;}
+.cf-auth-dialog{
+  position:relative;
+  width:100%;
+  max-width:360px;
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+.cf-auth-close{
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--ink);
+  font-size:16px;
+  line-height:1;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.cf-auth-error{
+  color:var(--no);
+  font-size:12px;
+  margin-bottom:10px;
+  display:none;
+}
+.cf-auth-fields{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-bottom:12px;
+}
+</style>`;
+
+const AUTH_ICON_HTML = `
+<span id="cf-account-wrap">
+  <button id="cf-account-btn" class="header-btn" aria-label="Kuenta">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+  </button>
+  <div id="cf-account-popover">
+    <div class="cf-popover-name" id="cf-popover-name"></div>
+    <button class="cf-logout-btn" id="cf-logout-btn" type="button">Sali</button>
+  </div>
+</span>`;
+
+const AUTH_MODAL_HTML = `
+<div id="cf-auth-overlay">
+  <div class="cf-auth-dialog">
+    <button class="cf-auth-close" id="cf-auth-close" aria-label="Sera">&times;</button>
+    <div class="auth-title" id="cf-auth-title">Drenta</div>
+    <div class="auth-intro">Ku un kuenta bo progreso ta keda wardá i bo por sigui hunga ku e mesun score riba tur bo aparatonan.</div>
+    <div class="cf-auth-error" id="cf-auth-error"></div>
+    <form id="cf-auth-form" class="cf-auth-fields">
+      <input class="name-input" id="cf-auth-username" type="text" autocomplete="username" placeholder="Bo nòmber di uzuario" required>
+      <input class="name-input" id="cf-auth-password" type="password" autocomplete="current-password" placeholder="Kontraseña" required>
+      <button class="auth-submit" type="submit">Sigui</button>
+    </form>
+    <div class="auth-links">
+      <button class="auth-link" id="cf-auth-toggle" type="button">No tin kuenta? Krea un</button>
+    </div>
+  </div>
+</div>
+<script>(function(){
+  var openBtn=document.getElementById('cf-account-btn'),
+      popover=document.getElementById('cf-account-popover'),
+      popoverName=document.getElementById('cf-popover-name'),
+      logoutBtn=document.getElementById('cf-logout-btn'),
+      overlay=document.getElementById('cf-auth-overlay'),
+      closeBtn=document.getElementById('cf-auth-close'),
+      title=document.getElementById('cf-auth-title'),
+      form=document.getElementById('cf-auth-form'),
+      toggle=document.getElementById('cf-auth-toggle'),
+      errorEl=document.getElementById('cf-auth-error'),
+      mode='signin';
+
+  function setMode(m){
+    mode=m;
+    title.textContent = m==='signin' ? 'Drenta' : 'Krea kuenta';
+    toggle.textContent = m==='signin' ? 'No tin kuenta? Krea un' : 'Bo tin kuenta kaba? Drenta';
+    errorEl.style.display='none';
+  }
+
+  function openModal(){ setMode('signin'); overlay.classList.add('open'); }
+  function closeModal(){ overlay.classList.remove('open'); }
+  function closePopover(){ popover.classList.remove('open'); }
+
+  function setSignedIn(username){
+    openBtn.dataset.user = username;
+    openBtn.classList.add('signed-in');
+    openBtn.setAttribute('aria-label', username);
+    popoverName.textContent = username;
+  }
+
+  function setSignedOut(){
+    delete openBtn.dataset.user;
+    openBtn.classList.remove('signed-in');
+    openBtn.setAttribute('aria-label', 'Kuenta');
+    closePopover();
+    localStorage.removeItem('cf_user');
+  }
+
+  openBtn.addEventListener('click', function(e){
+    e.stopPropagation();
+    if(openBtn.dataset.user){
+      popover.classList.toggle('open');
+    }else{
+      openModal();
+    }
+  });
+  document.addEventListener('click', function(e){
+    if(!popover.contains(e.target) && e.target!==openBtn){
+      closePopover();
+    }
+  });
+  logoutBtn.addEventListener('click', setSignedOut);
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) closeModal(); });
+  toggle.addEventListener('click', function(){ setMode(mode==='signin' ? 'signup' : 'signin'); });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var u=document.getElementById('cf-auth-username').value,
+        p=document.getElementById('cf-auth-password').value;
+    errorEl.style.display='none';
+    fetch('/api/auth/'+mode,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:u,password:p})
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d.error){
+        errorEl.textContent=d.error;
+        errorEl.style.display='block';
+      }else{
+        localStorage.setItem('cf_user', d.username);
+        setSignedIn(d.username);
+        closeModal();
+      }
+    }).catch(function(){
+      errorEl.textContent='Error di konekshon';
+      errorEl.style.display='block';
+    });
+  });
+
+  var saved=localStorage.getItem('cf_user');
+  if(saved){
+    setSignedIn(saved);
+  }
+})();</script>`;
