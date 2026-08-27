@@ -900,16 +900,17 @@ export default class extends WorkerEntrypoint {
              (word, display, definition, example, english, source,
               definition_source, source_language, target_language,
               verification_status, source_reference, previous_definition)
-           VALUES (?, ?, ?, '', '', ?, ?, 'pap', 'nl', ?, ?, ?)
+           VALUES (?, ?, ?, '', '', ?, ?, 'pap', 'en', ?, ?, ?)
            ON CONFLICT(word) DO UPDATE SET
              definition = excluded.definition,
              source = excluded.source,
              definition_source = excluded.definition_source,
              source_language = 'pap',
-             target_language = 'nl',
+             target_language = 'en',
              verification_status = excluded.verification_status,
              source_reference = excluded.source_reference,
-             previous_definition = word_glossary.definition`
+             previous_definition = word_glossary.definition,
+             needs_review = 0`
         )
         .bind(
           report.word,
@@ -1189,7 +1190,8 @@ export default class extends WorkerEntrypoint {
           target_language TEXT,
           verification_status TEXT DEFAULT 'unverified',
           source_reference TEXT,
-          previous_definition TEXT
+          previous_definition TEXT,
+          needs_review INTEGER NOT NULL DEFAULT 0
         )`
       )
       .run();
@@ -1210,6 +1212,7 @@ export default class extends WorkerEntrypoint {
       ["verification_status", "TEXT DEFAULT 'unverified'"],
       ["source_reference", "TEXT"],
       ["previous_definition", "TEXT"],
+      ["needs_review", "INTEGER NOT NULL DEFAULT 0"],
     ]) {
       try {
         await this.env.GAME_HISTORY
@@ -1268,7 +1271,8 @@ export default class extends WorkerEntrypoint {
              source_language,
              target_language,
              verification_status,
-             source_reference
+             source_reference,
+             needs_review
            FROM word_glossary
            WHERE word = ?`
         )
@@ -1284,32 +1288,49 @@ export default class extends WorkerEntrypoint {
       }
 
       let generated = null;
+      let googleMeaning = null;
 
       if (this.env.GOOGLE_TRANSLATE_API_KEY) {
-        const googleGloss = await this.googleTranslateWord(word);
-        if (googleGloss) {
-          generated = {
-            display,
-            definition: googleGloss,
-            example: "",
-            english: "",
-            source: "google_translate",
-            definition_source: "google_translate",
-            source_language: "pap",
-            target_language: "nl",
-            verification_status: "unverified",
-          };
+        googleMeaning = await this.googleTranslateWord(word);
+      }
+
+      if (googleMeaning?.meaning && this.env.ANTHROPIC_API_KEY) {
+        generated = await this.generateDefinition(word, display, googleMeaning.meaning);
+        if (generated?.definition) {
+          generated.source = "google_translate";
+          generated.definition_source = "google_translate";
+          generated.source_language = "pap";
+          generated.target_language = "en";
+          generated.verification_status = "unverified";
+          generated.english = googleMeaning.meaning;
+          generated.needs_review = googleMeaning.needsReview ? 1 : 0;
         }
       }
 
+      if (!generated && googleMeaning?.meaning) {
+        generated = {
+          display,
+          definition: `English meaning: ${googleMeaning.meaning}`,
+          example: "",
+          english: googleMeaning.meaning,
+          source: "google_translate",
+          definition_source: "google_translate",
+          source_language: "pap",
+          target_language: "en",
+          verification_status: "unverified",
+          needs_review: googleMeaning.needsReview ? 1 : 0,
+        };
+      }
+
       if (!generated && this.env.ANTHROPIC_API_KEY) {
-        generated = await this.generateDefinition(word, display);
+        generated = await this.generateDefinition(word, display, "");
         if (generated?.definition) {
           generated.source = "ai_fallback";
           generated.definition_source = "ai_fallback";
           generated.source_language = "pap";
-          generated.target_language = "nl";
+          generated.target_language = "en";
           generated.verification_status = "unverified";
+          generated.needs_review = 1;
         }
       }
 
@@ -1351,9 +1372,10 @@ export default class extends WorkerEntrypoint {
                  definition_source,
                  source_language,
                  target_language,
-               verification_status
+                 verification_status,
+                 needs_review
              )
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(word) DO NOTHING`
         )
         .bind(
@@ -1365,8 +1387,9 @@ export default class extends WorkerEntrypoint {
           generated.source,
           generated.definition_source || generated.source,
           generated.source_language || "pap",
-          generated.target_language || "nl",
-          generated.verification_status || "unverified"
+          generated.target_language || "en",
+          generated.verification_status || "unverified",
+          generated.needs_review ? 1 : 0
         )
         .run();
 
@@ -1415,7 +1438,7 @@ export default class extends WorkerEntrypoint {
   }
 
   /*
-    Preliminary Dutch translation using
+    Preliminary English translation using
     Google Cloud Translation API.
 
     This is the primary automatic source and is cached in D1.
@@ -1430,7 +1453,7 @@ export default class extends WorkerEntrypoint {
           body: JSON.stringify({
             q: word,
             source: "pap",
-            target: "nl",
+            target: "en",
             format: "text",
           }),
         }
@@ -1459,9 +1482,11 @@ export default class extends WorkerEntrypoint {
         return null;
       }
 
-      return translated
-        .trim()
-        .slice(0, 100);
+      const meaning = translated.trim().slice(0, 100);
+      const normalisedWord = word.toLowerCase();
+      const needsReview = meaning.toLowerCase() === normalisedWord ||
+        meaning.length > 60 || /[,;/]|or|and/i.test(meaning);
+      return { meaning, needsReview };
     } catch (e) {
       console.error(
         "Google translation failed:",
@@ -1485,15 +1510,18 @@ export default class extends WorkerEntrypoint {
     labels such as "Sustantivo" added visual noise without
     helping the primary quick-lookup interaction.
   */
-  async generateDefinition(word, display) {
+  async generateDefinition(word, display, englishMeaning) {
     const prompt =
       `Papiamentu word: "${display}" ` +
       `(normalisá: "${word}").\n\n` +
+      `Google English meaning: "${englishMeaning || "unknown"}".\n\n` +
       `Duna SOLAMENTE un opheto JSON válido, ` +
       `sin markdown ni teksto adishonal, ` +
       `ku exactamente e tres kamponan aki:\n` +
-      `- "definition": a concise Dutch meaning, preferably 1-3 words. ` +
-      `Return only the Dutch translation, with no explanation.\n` +
+      `- "definition": un splikashon kla i natural na Papiamentu ` +
+      `ku ta deskribí e palabra, preferiblemente un frase. ` +
+      `Uza e English meaning solamente pa komprondé e sentido; ` +
+      `no inkluí Ingles den e splikashon.\n` +
       `- "example": 1 frase natural na Papiamentu ku usa ` +
       `e palabra den un konteksto realistiko. ` +
       `No ripití e definishon.\n` +
