@@ -27580,7 +27580,6 @@ const DEFINITIONS = {
   "daña":"Kousa dañ na un kos òf hasi mal na un hende.",
   "abou":"Bou; na parti bou di algu.",
   "abraso":"E aktu di teni un hende serka bo ku bo brasanan.",
-  "aros":"Un grano ku ta keda blanku despues di kushiná i ku hende ta kome komo acompañante òf den otro kuminda.",
   "abusa":"Trata un hende òf un kos di manera inhustu òf duru.",
   "abusador":"Persona ku ta abusá di otro hende.",
   "abuso":"Un trato inhustu òf duru ku un hende òf kos.",
@@ -27677,7 +27676,6 @@ const EN_TRANSLATIONS = {
   "daña":"to damage / to harm",
   "abou":"down / below",
   "abraso":"hug / embrace",
-  "aros":"rice",
   "abusa":"to abuse",
   "abusador":"abuser",
   "abuso":"abuse",
@@ -27774,7 +27772,6 @@ const EXAMPLES = {
   "daña":"E awaseru fuerte a daña e kunuku.",
   "abou":"E buki ta abou di mesa.",
   "abraso":"El a duna su mama un abraso kayente.",
-  "aros":"Nos a kome aros ku stobá pa merdia.",
   "abusa":"No mag abusa di e animalnan.",
   "abusador":"E abusador a wòrdu kastigá pa lei.",
   "abuso":"Abuso di poder no ta korekto.",
@@ -30159,25 +30156,7 @@ const REMOTE_GLOSSARY = {};
 
 
 function localWordInfo(word){
-
-  const definition =
-    DEFINITIONS[word];
-
-  if(!definition)
-    return null;
-
-
-  return {
-
-    definition,
-
-    example:
-      EXAMPLES[word] || '',
-
-    english:
-      EN_TRANSLATIONS[word] || ''
-
-  };
+  return null;
 
 }
 
