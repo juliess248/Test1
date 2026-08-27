@@ -1435,6 +1435,9 @@ export default class extends WorkerEntrypoint {
         "Glossary error:",
         e
       );
+      if (e.message && e.message.startsWith("Google Translate failed")) {
+        return json({ error: e.message }, 502);
+      }
       return json({ error: "Server error" }, 500);
     }
   }
@@ -1476,11 +1479,14 @@ export default class extends WorkerEntrypoint {
   */
   async googleTranslateWord(word) {
     try {
-      const response = await fetch(
-        `https://translation.googleapis.com/language/translate/v2?key=${this.env.GOOGLE_TRANSLATE_API_KEY}`,
+      const googleResponse = await fetch(
+        "https://translation.googleapis.com/language/translate/v2",
         {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-goog-api-key": this.env.GOOGLE_TRANSLATE_API_KEY,
+          },
           body: JSON.stringify({
             q: word,
             source: "pap",
@@ -1490,12 +1496,24 @@ export default class extends WorkerEntrypoint {
         }
       );
 
-      if (!response.ok) {
-        return null;
+      const googleText = await googleResponse.text();
+      console.log("Google status:", googleResponse.status);
+      console.log("Google response:", googleText);
+
+      if (!googleResponse.ok) {
+        throw new Error(
+          `Google Translate failed (${googleResponse.status}): ${googleText}`
+        );
       }
 
-      const data =
-        await response.json();
+      let data;
+      try {
+        data = JSON.parse(googleText);
+      } catch {
+        throw new Error(
+          `Google Translate failed (invalid JSON): ${googleText}`
+        );
+      }
       const translated =
         data?.data
           ?.translations?.[0]
