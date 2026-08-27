@@ -996,7 +996,7 @@ export default class extends WorkerEntrypoint {
       .run();
 
     // Idempotent: adding a column that already exists throws,
-    // which is swallowed — same pattern as users.salt below.
+    // which is swallowed.
     try {
       await this.env.GAME_HISTORY
         .prepare("ALTER TABLE word_glossary ADD COLUMN source TEXT DEFAULT 'claude'")
@@ -1008,10 +1008,17 @@ export default class extends WorkerEntrypoint {
 
   /*
     Auto-writes the glossary as new words show up in puzzles.
-    On first request for a word, this calls Claude to draft a
-    definition/example/gloss, then caches the result in D1 —
-    every request after that (any player, any day) is a plain
-    cache read and never calls the model again.
+    On the first request for a word, Claude drafts:
+    - a short Papiamentu definition
+    - one natural example
+    - a concise English translation
+
+    Grammatical labels such as "Sustantivo" are intentionally
+    no longer generated because they are not necessary for the
+    quick word-lookup experience.
+
+    The result is cached in D1, so later requests use the
+    stored result instead of calling the model again.
   */
   async handleDefine(request) {
     try {
@@ -1027,10 +1034,23 @@ export default class extends WorkerEntrypoint {
         return json({ error: "Palabra inválido" }, 400);
       }
 
+      /*
+        Notice that "tags" is no longer selected.
+
+        Existing rows can still contain the old tags column,
+        so there is no risky database migration required.
+        The frontend simply stops receiving/using it.
+      */
       const cached = await this.env.GAME_HISTORY
         .prepare(
-          `SELECT display, tags, definition, example, english, source
-           FROM word_glossary WHERE word = ?`
+          `SELECT
+             display,
+             definition,
+             example,
+             english,
+             source
+           FROM word_glossary
+           WHERE word = ?`
         )
         .bind(word)
         .first();
@@ -1041,25 +1061,38 @@ export default class extends WorkerEntrypoint {
 
       let generated = null;
 
+      /*
+        Preferred source:
+        Claude generates a natural Papiamentu definition.
+      */
       if (this.env.ANTHROPIC_API_KEY) {
-        generated = await this.generateDefinition(word, display);
+        generated =
+          await this.generateDefinition(
+            word,
+            display
+          );
       }
 
-      // Claude either isn't configured, or didn't recognize the
-      // word (empty definition) — try a raw Google Translate
-      // gloss as a last resort before giving up. This is weaker
-      // than Claude's result (a bare word, not a real definition,
-      // and Papiamentu is a lower-accuracy "zero-shot" language
-      // for Google), so it's tagged with its own source so the
-      // frontend can show a more cautious label for it.
-      if ((!generated || !generated.definition) && this.env.GOOGLE_TRANSLATE_API_KEY) {
+      /*
+        Fallback:
+        If Claude is unavailable or doesn't recognize the word,
+        try Google Translate.
 
-        const googleGloss = await this.googleTranslateWord(word);
+        This only gives us a basic English gloss, so it remains
+        tagged as source="google".
+      */
+      if (
+        (!generated ||
+          !generated.definition) &&
+        this.env.GOOGLE_TRANSLATE_API_KEY
+      ) {
+
+        const googleGloss =
+          await this.googleTranslateWord(word);
 
         if (googleGloss) {
           generated = {
             display,
-            tags: "",
             definition: googleGloss,
             example: "",
             english: googleGloss,
@@ -1068,23 +1101,49 @@ export default class extends WorkerEntrypoint {
         }
       }
 
-      if (!generated || !generated.definition) {
-        return json({ error: "Definishon no ta disponibel awor aki" }, 503);
+      /*
+        Neither source produced something useful.
+      */
+      if (
+        !generated ||
+        !generated.definition
+      ) {
+        return json(
+          {
+            error:
+              "Definishon no ta disponibel awor aki",
+          },
+          503
+        );
       }
 
-      generated.source = generated.source || "claude";
+      generated.source =
+        generated.source || "claude";
 
+      /*
+        Save only the information actually needed by
+        the current UX.
+
+        The old tags column can stay in D1 for backward
+        compatibility, but we no longer write to it.
+      */
       await this.env.GAME_HISTORY
         .prepare(
           `INSERT INTO word_glossary
-             (word, display, tags, definition, example, english, source)
-           VALUES (?, ?, ?, ?, ?, ?, ?)
+             (
+               word,
+               display,
+               definition,
+               example,
+               english,
+               source
+             )
+           VALUES (?, ?, ?, ?, ?, ?)
            ON CONFLICT(word) DO NOTHING`
         )
         .bind(
           word,
           generated.display || display,
-          generated.tags || null,
           generated.definition || null,
           generated.example || null,
           generated.english || null,
@@ -1098,19 +1157,21 @@ export default class extends WorkerEntrypoint {
         await this.ensureGlossaryTable();
         return this.handleDefine(request);
       }
+
+      console.error(
+        "Glossary error:",
+        e
+      );
       return json({ error: "Server error" }, 500);
     }
   }
 
   /*
-    Bare word-level gloss via the official Google Cloud
-    Translation API (v2). Requires GOOGLE_TRANSLATE_API_KEY as
-    a Worker secret and billing enabled on that Google Cloud
-    project — the free tier (500,000 characters/month as of
-    this writing) comfortably covers single-word lookups at
-    this game's scale, but this is real external billing, not
-    a free unlimited service, so keep an eye on usage if it
-    gets heavy traffic.
+    Basic English translation fallback using
+    Google Cloud Translation API.
+
+    This is deliberately treated as a fallback instead of
+    the primary definition source.
   */
   async googleTranslateWord(word) {
     try {
@@ -1128,64 +1189,127 @@ export default class extends WorkerEntrypoint {
         }
       );
 
-      if (!response.ok) return null;
-
-      const data = await response.json();
-      const translated = data?.data?.translations?.[0]?.translatedText;
-
-      // If Google just echoes the word back unchanged, it almost
-      // certainly didn't actually translate anything useful.
-      if (!translated || translated.toLowerCase() === word.toLowerCase()) {
+      if (!response.ok) {
         return null;
       }
 
-      return translated.slice(0, 100);
-    } catch {
+      const data =
+        await response.json();
+      const translated =
+        data?.data
+          ?.translations?.[0]
+          ?.translatedText;
+
+      /*
+        If Google simply sends the original word back,
+        it hasn't given us a useful translation.
+      */
+      if (
+        !translated ||
+        translated.toLowerCase() ===
+          word.toLowerCase()
+      ) {
+        return null;
+      }
+
+      return translated
+        .trim()
+        .slice(0, 100);
+    } catch (e) {
+      console.error(
+        "Google translation failed:",
+        e
+      );
       return null;
     }
   }
 
+  /*
+    Generate a concise, game-friendly definition.
+
+    IMPORTANT UX decision:
+    We intentionally ask for exactly three fields:
+
+    1. definition
+    2. example
+    3. english
+
+    No grammatical classification is generated because
+    labels such as "Sustantivo" added visual noise without
+    helping the primary quick-lookup interaction.
+  */
   async generateDefinition(word, display) {
     const prompt =
-      `Palabra na Papiamentu: "${display}" (normalisá: "${word}").\n\n` +
-      `Duna SOLAMENTE un ophèto JSON, sin markdown, sin fensu di código, ` +
-      `ku e siguiente kamponan:\n` +
-      `- "tags": kódigo(nan) gramatikal separá pa koma, usando SOLAMENTE ` +
-      `e letternan: s (sustantivo), v (verbo), a (athetivo), r (atverbio), ` +
-      `i (interhekshon). Por ehèmpel "s" òf "v,a".\n` +
-      `- "definition": un splikashon kòrtiku, informal, na Papiamentu ` +
-      `(1-2 frase), manera un hende lokal lo splika e palabra na un ` +
-      `otro hende, no komo un dikshonario ofisial.\n` +
-      `- "example": un frase natural na Papiamentu ku usa e palabra.\n` +
-      `- "english": un tradukshon òf deskripshon kòrtiku na Ingles ` +
-      `(un par di palabra).\n\n` +
-      `Si bo no ta rekonosé e palabra komo un palabra real na ` +
-      `Papiamentu, laga "definition" bashí ("").`;
+      `Palabra na Papiamentu: "${display}" ` +
+      `(normalisá: "${word}").\n\n` +
+      `Duna SOLAMENTE un opheto JSON válido, ` +
+      `sin markdown ni teksto adishonal, ` +
+      `ku exactamente e tres kamponan aki:\n` +
+      `- "definition": un definishon kla, natural i ` +
+      `kortiku na Papiamentu, preferiblemente 1 frase. ` +
+      `Splik'é manera un hende lokal lo splika e palabra ` +
+      `na un otro hende. Evitá lengahe tékniko òf ` +
+      `repetitivo.\n` +
+      `- "example": 1 frase natural na Papiamentu ku usa ` +
+      `e palabra den un konteksto realistiko. ` +
+      `No ripití e definishon.\n` +
+      `- "english": e tradukshon mas natural i komun na ` +
+      `Ingles, preferiblemente 1-3 palabra. ` +
+      `No agregá palabra redundante; por ehèmpel, ` +
+      `si "rose" ta sufisiente, no skirbi ` +
+      `"rose flower".\n\n` +
+      `Si bo no ta sigur ku e palabra ta un palabra real ` +
+      `na Papiamentu, laga "definition" bashí ("").`;
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": this.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 400,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
+    const response = await fetch(
+      "https://api.anthropic.com/v1/messages",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": this.env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 400,
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+        }),
+      }
+    );
 
     if (!response.ok) {
+      console.error(
+        "Claude definition request failed:",
+        response.status
+      );
       throw new Error("Model request failed");
     }
 
     const data = await response.json();
-    const text = (data.content || [])
+    /*
+      Claude normally responds with one text content block,
+      but joining all text blocks makes this more robust.
+    */
+    const text = (
+      data.content || []
+    )
       .filter((block) => block.type === "text")
-      .map((block) => block.text)
+      .map(
+        (block) =>
+          block.text
+      )
       .join("")
       .trim()
+      /*
+        Be tolerant if the model still wraps its JSON
+        in a markdown code fence.
+      */
       .replace(/^```(json)?/i, "")
       .replace(/```$/, "")
       .trim();
@@ -1193,16 +1317,33 @@ export default class extends WorkerEntrypoint {
     let parsed;
     try {
       parsed = JSON.parse(text);
-    } catch {
+    } catch (e) {
+      console.error(
+        "Could not parse definition JSON:",
+        text
+      );
       parsed = {};
     }
 
+    /*
+      Return ONLY what the mobile definition view needs.
+    */
     return {
-      display: (parsed.display || display || word).slice(0, 60),
-      tags: (parsed.tags || "").slice(0, 20),
-      definition: (parsed.definition || "").slice(0, 500),
-      example: (parsed.example || "").slice(0, 300),
-      english: (parsed.english || "").slice(0, 200),
+      display:
+        (display || word)
+          .slice(0, 60),
+      definition:
+        (parsed.definition || "")
+          .trim()
+          .slice(0, 500),
+      example:
+        (parsed.example || "")
+          .trim()
+          .slice(0, 300),
+      english:
+        (parsed.english || "")
+          .trim()
+          .slice(0, 120),
     };
   }
 

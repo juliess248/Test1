@@ -8,7 +8,7 @@
 
 <title>Palabra di Kòrsou</title>
 
-<!-- BUILD: 2026-08-26T00:00Z -->
+<!-- BUILD: 2026-08-27T12:18Z — help overlay UX -->
 
 <!--
   GOOGLE ADSENSE (not active yet)
@@ -1114,6 +1114,60 @@ header{
 
 
 /* =========================================================
+   HOW-TO OVERLAY
+
+   The ? button opens a full-screen help layer. It is still
+   contextual help — not a fourth navigation destination —
+   so closing it returns the player directly to the game.
+========================================================= */
+
+.rules-overlay{
+  z-index:90;
+  align-items:flex-start;
+  justify-content:center;
+  padding:0;
+  background:var(--bg);
+}
+
+.rules-overlay .amiga-backdrop{
+  display:none;
+}
+
+.rules-sheet{
+  width:100%;
+  max-width:460px;
+  max-height:none;
+  min-height:100dvh;
+  border-radius:0;
+  box-shadow:none;
+  padding:
+    max(20px,env(safe-area-inset-top))
+    20px
+    max(24px,env(safe-area-inset-bottom));
+}
+
+.rules-sheet .amiga-head{
+  margin-bottom:4px;
+}
+
+.rules-sheet .amiga-title{
+  font-size:26px;
+}
+
+.rules-sheet .panel-subtitle{
+  margin-bottom:18px;
+}
+
+.rules-sheet .rule{
+  padding:18px 0;
+}
+
+.rules-sheet .rule:last-child{
+  border-bottom:0;
+}
+
+
+/* =========================================================
    PAGE NAVIGATION
 ========================================================= */
 
@@ -1356,41 +1410,26 @@ header{
 }
 
 .report-word-btn{
-  display:block;
-
-  margin-top:8px;
-
+  appearance:none;
   background:none;
-
   border:0;
-
   color:var(--dim);
-
-  font-size:11.5px;
-  font-weight:700;
-
-  text-decoration:underline;
-
   cursor:pointer;
-
-  padding:0;
+  font-family:'Karla',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  padding:4px 0;
+  text-decoration:underline;
+  text-underline-offset:3px;
 }
 
-.ai-warning{
-  margin-top:8px;
+.report-word-btn:hover{
+  color:var(--ink);
+}
 
-  padding:8px 10px;
-
-  background:rgba(217,106,91,.12);
-
-  border:1px solid rgba(217,106,91,.35);
-
-  border-radius:10px;
-
-  color:#B33A2E;
-
+.glossary-source{
+  color:var(--dim2);
   font-size:11.5px;
-
   line-height:1.4;
 }
 
@@ -1513,86 +1552,87 @@ header{
   background:rgba(var(--overlay),.04);
 }
 
-.glossary-tag{
-  display:inline-block;
-
-  font-size:11px;
-  font-weight:800;
-
-  letter-spacing:.06em;
-
-  text-transform:uppercase;
-
-  color:var(--flag-ink);
-
-  background:rgba(249,227,0,.12);
-
-  border:1px solid rgba(249,227,0,.3);
-
-  border-radius:999px;
-
-  padding:4px 10px;
-
-  margin-bottom:12px;
+.glossary-sheet{
+  max-height:min(74vh,620px);
+  padding-top:14px;
 }
 
-.glossary-tag.is-hidden{
-  display:none;
+.glossary-sheet .amiga-head{
+  margin-bottom:16px;
+}
+
+.glossary-sheet .amiga-title{
+  font-size:28px;
+  letter-spacing:-.025em;
 }
 
 .glossary-def{
-  font-size:14.5px;
-  line-height:1.55;
-
   color:var(--ink);
-
-  margin-bottom:16px;
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:18px;
+  font-weight:500;
+  line-height:1.5;
+  margin-bottom:24px;
 }
 
 .glossary-def.is-missing{
   color:var(--dim);
-  font-style:italic;
-}
-
-.glossary-en{
-  display:flex;
-  align-items:baseline;
-
-  gap:6px;
-
-  font-size:13px;
-
-  color:var(--dim);
-
-  margin-bottom:16px;
-
-  padding-bottom:16px;
-
-  border-bottom:1px solid var(--line);
-}
-
-.glossary-en b{
   font-family:'Karla',sans-serif;
-
-  font-weight:700;
-
-  color:var(--curacao);
-
-  text-transform:none;
+  font-size:14px;
+  font-style:normal;
+  font-weight:500;
 }
 
-.glossary-en.is-hidden{
+.glossary-section{
+  margin-bottom:18px;
+}
+
+.glossary-section.is-hidden{
   display:none;
 }
 
+.glossary-label{
+  color:var(--dim2);
+  font-size:10.5px;
+  font-weight:800;
+  letter-spacing:.09em;
+  margin-bottom:5px;
+  text-transform:uppercase;
+}
+
+.glossary-value{
+  color:var(--dim);
+  font-size:14px;
+  line-height:1.5;
+}
+
+.glossary-translation{
+  color:var(--curacao);
+  font-weight:700;
+}
+
+#glossaryActions{
+  align-items:center;
+  border-top:1px solid var(--line);
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 16px;
+  justify-content:space-between;
+  margin-top:22px;
+  padding-top:14px;
+}
+
+#glossaryActions:empty{
+  border-top:0;
+  margin-top:0;
+  padding-top:0;
+}
+
 .glossary-note{
+  border-top:1px solid var(--line);
+  color:var(--dim2);
   font-size:11px;
   line-height:1.4;
-
-  color:var(--dim2);
-
-  border-top:1px solid var(--line);
-
   padding-top:12px;
 }
 
@@ -2884,6 +2924,121 @@ button:focus-visible{
 </div>
 
 
+<!-- HOW TO PLAY — contextual help overlay -->
+
+<div
+  class="amiga-overlay rules-overlay is-hidden"
+  id="infoOverlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="infoOverlayTitle">
+
+  <div
+    class="amiga-backdrop"
+    id="infoBackdrop">
+  </div>
+
+  <div class="amiga-sheet rules-sheet">
+
+    <div class="amiga-head">
+
+      <div
+        class="amiga-title"
+        id="infoOverlayTitle">
+        Kon ta hunga?
+      </div>
+
+      <button
+        class="amiga-close"
+        id="infoClose"
+        type="button"
+        aria-label="Sera kon ta hunga">
+        ✕
+      </button>
+
+    </div>
+
+    <div class="panel-subtitle">
+      Un wega di palabra diario pa Kòrsou.
+    </div>
+
+
+    <!-- RULE 1 -->
+
+    <div class="rule">
+
+      <div class="rule-number">
+        1
+      </div>
+
+      <div class="rule-content">
+
+        <h3>
+          Haña palabra
+        </h3>
+
+        <p>
+          Forma palabra ku e 7 lèternan.
+          E lèter di sèntro mester ta den kada un.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- RULE 2 -->
+
+    <div class="rule">
+
+      <div class="rule-number">
+        2
+      </div>
+
+      <div class="rule-content">
+
+        <h3>
+          Kolektá punto
+        </h3>
+
+        <p>
+          4 lèter ta duna 1 punto.
+          Mas largu, mas punto.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- RULE 3 -->
+
+    <div class="rule">
+
+      <div class="rule-number">
+        3
+      </div>
+
+      <div class="rule-content">
+
+        <h3>
+          Buska pangrama
+        </h3>
+
+        <p>
+          Palabra ku usa tur e 7 lèternan ta un pangrama —
+          bonus di 7 punto.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
 <div class="app is-hidden" id="appRoot">
 
 
@@ -3098,7 +3253,7 @@ button:focus-visible{
     id="glossaryBackdrop">
   </div>
 
-  <div class="amiga-sheet">
+  <div class="amiga-sheet glossary-sheet">
 
     <div class="amiga-head">
 
@@ -3116,10 +3271,6 @@ button:focus-visible{
 
     </div>
 
-    <div
-      class="glossary-tag is-hidden"
-      id="glossaryTag">
-    </div>
 
     <div
       class="glossary-def"
@@ -3127,12 +3278,12 @@ button:focus-visible{
     </div>
 
     <div
-      class="amiga-example is-hidden"
+      class="glossary-section is-hidden"
       id="glossaryExample">
     </div>
 
     <div
-      class="glossary-en is-hidden"
+      class="glossary-section is-hidden"
       id="glossaryEn">
     </div>
 
@@ -3233,6 +3384,13 @@ button:focus-visible{
       </button>
 
     </form>
+
+    <button
+      class="suggest-page-btn"
+      id="suggestLinkBtn"
+      type="button">
+      ✍️ Sugerí agregá, ahustá, òf kita un palabra
+    </button>
 
     <div
       class="auth-msg"
@@ -3681,144 +3839,6 @@ button:focus-visible{
        game page itself, so it can't interrupt gameplay. -->
 
   <div class="ad-slot" id="scoreAdSlot"></div>
-
-</section>
-
-
-<!-- =======================================================
-     INFO / RULES
-======================================================= -->
-
-<section
-  class="page"
-  id="infoPage">
-
-  <div class="panel-title">
-    Kon ta hunga?
-  </div>
-
-  <div class="panel-subtitle">
-    Un wega di palabra diario pa Kòrsou.
-  </div>
-
-
-  <!-- RULE 1 -->
-
-  <div class="rule">
-
-    <div class="rule-number">
-      1
-    </div>
-
-    <div class="rule-content">
-
-      <h3>
-        Haña palabra
-      </h3>
-
-      <p>
-        Forma palabra ku e 7 lèternan.
-        E lèter di sèntro mester ta den kada un.
-      </p>
-
-    </div>
-
-  </div>
-
-
-  <!-- RULE 2 -->
-
-  <div class="rule">
-
-    <div class="rule-number">
-      2
-    </div>
-
-    <div class="rule-content">
-
-      <h3>
-        Kolektá punto
-      </h3>
-
-      <p>
-        4 lèter ta duna 1 punto.
-        Mas largu, mas punto.
-      </p>
-
-    </div>
-
-  </div>
-
-
-  <!-- RULE 3 -->
-
-  <div class="rule">
-
-    <div class="rule-number">
-      3
-    </div>
-
-    <div class="rule-content">
-
-      <h3>
-        Buska pangrama
-      </h3>
-
-      <p>
-        Palabra ku usa tur e 7 lèternan ta un pangrama —
-        bonus di 7 punto.
-      </p>
-
-    </div>
-
-  </div>
-
-
-  <div class="pangram-card">
-
-    <div class="pangram-top">
-
-      <div class="pangram-title">
-        Pangrama di awe
-      </div>
-
-      <div class="star-icon">
-        ★
-      </div>
-
-    </div>
-
-    <div class="pangram-number">
-
-      Tin
-
-      <strong id="infoPangramCount">
-        0
-      </strong>
-
-      pangrama pa haña awe.
-
-    </div>
-
-  </div>
-
-
-  <div class="reset-note">
-
-    <strong>Reset diario:</strong>
-
-    wega nobo kada dia na
-    <strong>meianochi, na bo ora lokal</strong>.
-    Bo palabra i puntu anterior ta warda.
-
-  </div>
-
-  <button
-    class="suggest-page-btn"
-    id="suggestLinkBtn"
-    type="button">
-    ✍️ Sugerí agregá, ahustá, òf kita un palabra
-  </button>
 
 </section>
 
@@ -29427,7 +29447,7 @@ function buildReportButton(word){
   btn.type = 'button';
 
   btn.textContent =
-    '🚩 Rapòrtá e palabra aki';
+    'Rapòrtá un fout';
 
   btn.onclick =
     () =>
@@ -30091,15 +30111,6 @@ function closeAmiga(){
    18c. GLOSSARIO
 ========================================================= */
 
-const TAG_LABELS = {
-
-  s:'Sustantivo',
-  v:'Verbo',
-  a:'Athetivo',
-  r:'Atverbio',
-  i:'Interhekshon'
-
-};
 
 
 /* ---------------------------------------------------------
@@ -30127,9 +30138,6 @@ function localWordInfo(word){
 
 
   return {
-
-    tags:
-      WORD_TAGS[word] || '',
 
     definition,
 
@@ -30180,8 +30188,6 @@ async function fetchWordInfo(word,display){
 
 
   const info = {
-
-    tags:data.tags || '',
 
     definition:data.definition || '',
 
@@ -30296,15 +30302,11 @@ let glossaryCurrentWord =
 
 function renderGlossaryLoading(){
 
-  $('glossaryTag').classList.add(
-    'is-hidden'
-  );
-
   const defEl =
     $('glossaryDef');
 
   defEl.textContent =
-    'Ta tradusí ku AI...';
+    'Ta buska e definishon...';
 
   defEl.classList.add(
     'is-missing'
@@ -30336,34 +30338,6 @@ function renderGlossaryInfo(
   }
 
 
-  const tagEl =
-    $('glossaryTag');
-
-  if(info && info.tags){
-
-    tagEl.textContent =
-      info.tags
-        .split(',')
-        .map(
-          code =>
-            TAG_LABELS[code.trim()] ||
-            code
-        )
-        .join(' · ');
-
-    tagEl.classList.remove(
-      'is-hidden'
-    );
-
-  }else{
-
-    tagEl.classList.add(
-      'is-hidden'
-    );
-
-  }
-
-
   const defEl =
     $('glossaryDef');
 
@@ -30390,8 +30364,10 @@ function renderGlossaryInfo(
     if(info.example){
 
       exampleEl.innerHTML =
-        '<b>Uzo:</b> ' +
-        escapeHtml(info.example);
+        '<div class="glossary-label">Ehèmpel</div>' +
+        '<div class="glossary-value">' +
+        escapeHtml(info.example) +
+        '</div>';
 
       exampleEl.classList.remove(
         'is-hidden'
@@ -30409,9 +30385,10 @@ function renderGlossaryInfo(
     if(info.english){
 
       enEl.innerHTML =
-        'English: <b>' +
+        '<div class="glossary-label">Na ingles</div>' +
+        '<div class="glossary-value glossary-translation">' +
         escapeHtml(info.english) +
-        '</b>';
+        '</div>';
 
       enEl.classList.remove(
         'is-hidden'
@@ -30436,12 +30413,12 @@ function renderGlossaryInfo(
         );
 
       warning.className =
-        'ai-warning';
+        'glossary-source';
 
       warning.textContent =
         info.source === 'google'
-          ? '⚠️ Esaki ta un tradukshon di palabra so, via Google Translate — no ta un definishon kompletu i por ta impresís.'
-          : '⚠️ Tradukshon outomátiko pa AI — por tin fout.';
+          ? 'Tradukshon outomátiko · por tin fout'
+          : 'Definishon generá ku AI · por tin fout';
 
       actionsEl.appendChild(
         warning
@@ -30456,7 +30433,7 @@ function renderGlossaryInfo(
   }else{
 
     defEl.textContent =
-      'Nos dikshonario ainda no tin definishon pa e palabra aki.';
+      'Ainda nos no tin un definishon pa e palabra aki.';
 
     defEl.classList.add(
       'is-missing'
@@ -30473,7 +30450,7 @@ function renderGlossaryInfo(
 
     actionsEl.innerHTML =
       '<button class="def-fallback-btn" id="glossarySuggestBtn" type="button">' +
-      '✍️ Sugerí definishon' +
+      'Sugerí un definishon' +
       '</button>';
 
     $('glossarySuggestBtn').onclick =
@@ -30856,10 +30833,6 @@ function updateGame(){
 
 
   $('todayPangramCount').textContent =
-    P.pangrams.size;
-
-
-  $('infoPangramCount').textContent =
     P.pangrams.size;
 
 }
@@ -32462,8 +32435,7 @@ const pages = [
 
   'gamePage',
   'scorePage',
-  'rankingPage',
-  'infoPage'
+  'rankingPage'
 
 ];
 
@@ -32553,11 +32525,120 @@ document
   );
 
 
+let infoReturnFocus = null;
+
+
+function infoOverlayIsOpen(){
+
+  return !$('infoOverlay')
+    .classList
+    .contains('is-hidden');
+
+}
+
+
+function openInfoOverlay(){
+
+  if(infoOverlayIsOpen())
+    return;
+
+  infoReturnFocus =
+    document.activeElement;
+
+  $('infoOverlay')
+    .classList
+    .remove('is-hidden');
+
+  /*
+    Add one same-page history entry so the browser/device
+    Back action closes help before leaving the game.
+  */
+  window.history.pushState(
+    {
+      ...(window.history.state || {}),
+      palabraHelpOpen:true
+    },
+    ''
+  );
+
+  requestAnimationFrame(
+    () => $('infoClose').focus()
+  );
+
+}
+
+
+function hideInfoOverlay(){
+
+  $('infoOverlay')
+    .classList
+    .add('is-hidden');
+
+  if(
+    infoReturnFocus &&
+    typeof infoReturnFocus.focus === 'function'
+  ){
+    infoReturnFocus.focus();
+  }
+
+  infoReturnFocus = null;
+
+}
+
+
+function closeInfoOverlay(){
+
+  if(!infoOverlayIsOpen())
+    return;
+
+  const ownsHistoryEntry =
+    window.history.state &&
+    window.history.state.palabraHelpOpen;
+
+  hideInfoOverlay();
+
+  if(ownsHistoryEntry){
+    window.history.back();
+  }
+
+}
+
+
 $('infoBtn').onclick =
-  () =>
-    showPage(
-      'infoPage'
-    );
+  openInfoOverlay;
+
+$('infoClose').onclick =
+  closeInfoOverlay;
+
+$('infoBackdrop').onclick =
+  closeInfoOverlay;
+
+
+window.addEventListener(
+  'popstate',
+  () => {
+
+    if(infoOverlayIsOpen()){
+      hideInfoOverlay();
+    }
+
+  }
+);
+
+
+document.addEventListener(
+  'keydown',
+  event => {
+
+    if(
+      event.key === 'Escape' &&
+      infoOverlayIsOpen()
+    ){
+      closeInfoOverlay();
+    }
+
+  }
+);
 
 
 $('acctNudgeCta').onclick =
@@ -32631,8 +32712,7 @@ $('playBtn').onclick =
 
 
 $('aboutBtn').onclick =
-  () =>
-    enterApp('infoPage');
+  openInfoOverlay;
 
 
 /* =========================================================
