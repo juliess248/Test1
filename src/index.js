@@ -231,13 +231,6 @@ export default class extends WorkerEntrypoint {
   }
 
   /*
-    Cross-device word progress is only stored for signed-in
-    accounts (playerId prefixed "acct:"). Anonymous device
-    play keeps working exactly as before, via localStorage
-    only — there is nothing meaningful to key a server row
-    on for an anonymous device id, so those requests are
-    accepted but treated as a no-op.
-  */
   async handleProgressGet(request) {
     try {
       await this.ensureProgressTable();
@@ -898,13 +891,14 @@ export default class extends WorkerEntrypoint {
         .prepare(
           `INSERT INTO word_glossary
              (word, display, definition, example, english, source,
-              definition_source, source_language, target_language,
+              definition_source, translation_source, source_language, target_language,
               verification_status, source_reference, previous_definition)
-           VALUES (?, ?, ?, '', '', ?, ?, 'pap', 'en', ?, ?, ?)
+            VALUES (?, ?, ?, '', '', ?, ?, ?, 'pap', 'en', ?, ?, ?)
            ON CONFLICT(word) DO UPDATE SET
              definition = excluded.definition,
              source = excluded.source,
              definition_source = excluded.definition_source,
+             translation_source = excluded.translation_source,
              source_language = 'pap',
              target_language = 'en',
              verification_status = excluded.verification_status,
@@ -916,6 +910,7 @@ export default class extends WorkerEntrypoint {
           report.word,
           report.display || report.word,
           finalDefinition,
+          definitionSource,
           definitionSource,
           definitionSource,
           verificationStatus,
@@ -1184,6 +1179,8 @@ export default class extends WorkerEntrypoint {
           definition TEXT,
           example TEXT,
           english TEXT,
+          source TEXT DEFAULT 'legacy',
+          translation_source TEXT,
           created_at TEXT DEFAULT (datetime('now')),
           definition_source TEXT DEFAULT 'legacy',
           source_language TEXT,
@@ -1198,14 +1195,10 @@ export default class extends WorkerEntrypoint {
 
     // Idempotent: adding a column that already exists throws,
     // which is swallowed.
-    try {
-      await this.env.GAME_HISTORY
-        .prepare("ALTER TABLE word_glossary ADD COLUMN source TEXT DEFAULT 'legacy'")
-        .run();
-    } catch {
-      // column already exists
-    }
     for (const [name, type] of [
+      ["tags", "TEXT"],
+      ["source", "TEXT DEFAULT 'legacy'"],
+      ["translation_source", "TEXT"],
       ["definition_source", "TEXT DEFAULT 'legacy'"],
       ["source_language", "TEXT"],
       ["target_language", "TEXT"],
@@ -1247,6 +1240,7 @@ export default class extends WorkerEntrypoint {
         .trim()
         .toLowerCase();
       const display = url.searchParams.get("display") || word;
+      const tags = (url.searchParams.get("tags") || "").slice(0, 40);
 
       if (!word || !/^[a-zñ]+$/.test(word)) {
         return json({ error: "Palabra inválido" }, 400);
@@ -1266,8 +1260,10 @@ export default class extends WorkerEntrypoint {
              definition,
              example,
              english,
+             tags,
              source,
              definition_source,
+             translation_source,
              source_language,
              target_language,
              verification_status,
@@ -1279,7 +1275,19 @@ export default class extends WorkerEntrypoint {
         .bind(word)
         .first();
 
-      if (cached) {
+      if (cached && (
+        cached.verification_status === "verified" ||
+        cached.verification_status === "approved" ||
+        cached.source === "verified_dictionary" ||
+        cached.source === "owner_approved" ||
+        cached.definition_source === "verified_dictionary" ||
+        cached.definition_source === "owner_approved"
+      )) {
+        return json({ word, ...cached, definitionNl: cached.definition, cached: true }, 200);
+      }
+
+      if (cached && cached.definition_source === "anthropic" &&
+          ["google", "anthropic"].includes(cached.translation_source)) {
         return json({ word, ...cached, definitionNl: cached.definition, cached: true }, 200);
       }
 
@@ -1291,45 +1299,32 @@ export default class extends WorkerEntrypoint {
       let googleMeaning = null;
 
       if (this.env.GOOGLE_TRANSLATE_API_KEY) {
-        googleMeaning = await this.googleTranslateWord(word);
+        googleMeaning = await this.googleTranslateWord(display || word);
       }
 
       if (googleMeaning?.meaning && this.env.ANTHROPIC_API_KEY) {
-        generated = await this.generateDefinition(word, display, googleMeaning.meaning);
+        generated = await this.generateDefinition(word, display, tags, googleMeaning.meaning);
         if (generated?.definition) {
-          generated.source = "google_translate";
-          generated.definition_source = "google_translate";
+          generated.source = "google+anthropic";
+          generated.definition_source = "anthropic";
+          generated.translation_source = "google";
           generated.source_language = "pap";
           generated.target_language = "en";
-          generated.verification_status = "unverified";
+          generated.verification_status = "automatic";
           generated.english = googleMeaning.meaning;
-          generated.needs_review = googleMeaning.needsReview ? 1 : 0;
+          generated.needs_review = 1;
         }
       }
 
-      if (!generated && googleMeaning?.meaning) {
-        generated = {
-          display,
-          definition: `English meaning: ${googleMeaning.meaning}`,
-          example: "",
-          english: googleMeaning.meaning,
-          source: "google_translate",
-          definition_source: "google_translate",
-          source_language: "pap",
-          target_language: "en",
-          verification_status: "unverified",
-          needs_review: googleMeaning.needsReview ? 1 : 0,
-        };
-      }
-
       if (!generated && this.env.ANTHROPIC_API_KEY) {
-        generated = await this.generateDefinition(word, display, "");
+        generated = await this.generateDefinition(word, display, tags, googleMeaning?.meaning || "");
         if (generated?.definition) {
-          generated.source = "ai_fallback";
-          generated.definition_source = "ai_fallback";
+          generated.source = "google_attempted+anthropic";
+          generated.definition_source = "anthropic";
+          generated.translation_source = "anthropic";
           generated.source_language = "pap";
           generated.target_language = "en";
-          generated.verification_status = "unverified";
+          generated.verification_status = "automatic";
           generated.needs_review = 1;
         }
       }
@@ -1365,27 +1360,31 @@ export default class extends WorkerEntrypoint {
              (
                word,
                display,
+               tags,
                definition,
                example,
                english,
-                 source,
-                 definition_source,
-                 source_language,
-                 target_language,
+               source,
+               definition_source,
+               translation_source,
+               source_language,
+               target_language,
                  verification_status,
                  needs_review
              )
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(word) DO NOTHING`
         )
         .bind(
           word,
           generated.display || display,
+          tags,
           generated.definition || null,
           generated.example || null,
           generated.english || null,
           generated.source,
-          generated.definition_source || generated.source,
+          generated.definition_source || "anthropic",
+          generated.translation_source || "anthropic",
           generated.source_language || "pap",
           generated.target_language || "en",
           generated.verification_status || "unverified",
@@ -1393,7 +1392,7 @@ export default class extends WorkerEntrypoint {
         )
         .run();
 
-      return json({ word, ...generated, definitionNl: generated.definition, cached: false }, 200);
+      return json({ word, tags, ...generated, definitionNl: generated.definition, cached: false }, 200);
     } catch (e) {
       if (e.message && e.message.includes("no such table")) {
         await this.ensureGlossaryTable();
@@ -1510,11 +1509,18 @@ export default class extends WorkerEntrypoint {
     labels such as "Sustantivo" added visual noise without
     helping the primary quick-lookup interaction.
   */
-  async generateDefinition(word, display, englishMeaning) {
+  async generateDefinition(word, display, tags, englishMeaning) {
     const prompt =
       `Papiamentu word: "${display}" ` +
       `(normalisá: "${word}").\n\n` +
-      `Google English meaning: "${englishMeaning || "unknown"}".\n\n` +
+      `Google Cloud Translation translated this Papiamentu word ` +
+      `to English as: "${englishMeaning || "none; Google returned no usable result"}".\n` +
+      `Treat this English translation as FIXED grounding. ` +
+      `Do NOT replace it with another English meaning.\n` +
+      `Grammatical code: ${tags || "none"}.\n` +
+      `The grammatical code and translation are separate pieces ` +
+      `of information. Do not use the grammatical code to change ` +
+      `the meaning supplied by Google.\n\n` +
       `Duna SOLAMENTE un opheto JSON válido, ` +
       `sin markdown ni teksto adishonal, ` +
       `ku exactamente e tres kamponan aki:\n` +
@@ -1525,8 +1531,9 @@ export default class extends WorkerEntrypoint {
       `- "example": 1 frase natural na Papiamentu ku usa ` +
       `e palabra den un konteksto realistiko. ` +
       `No ripití e definishon.\n` +
-      `- "english": an empty string.\n\n` +
-      `If unsure, leave "definition" empty ("").`;
+      `- "english": the fixed Google English meaning, or your best ` +
+      `English fallback only when Google returned no usable result.\n\n` +
+      `If unsure, leave "definition" and "example" empty ("").`;
 
     const response = await fetch(
       "https://api.anthropic.com/v1/messages",

@@ -8,7 +8,7 @@
 
 <title>Palabra di Kòrsou</title>
 
-<!-- BUILD: 2026-08-27T12:18Z — help overlay UX -->
+<!-- BUILD: 2026-08-27 — Google -> Anthropic glossary pipeline -->
 
 <!--
   GOOGLE ADSENSE (not active yet)
@@ -30143,13 +30143,14 @@ function closeAmiga(){
 /* ---------------------------------------------------------
    GLOSSARY ENGINE
 
-   Looks a word up in the bundled dictionaries first (no
-   network). If the word isn't there — which happens as soon
-   as the daily puzzle rotates onto words nobody has written
-   up yet — it asks the Worker's /api/define route, which
-   generates and permanently caches an entry the first time
-   any player needs it. Every call after that, from anyone,
-   on any day, is just a cache read.
+   Every automatic glossary lookup goes through the Worker.
+   The Worker always tries Google Cloud Translation first
+   (Papiamentu -> English), then gives that English meaning
+   plus the existing WORD_TAGS metadata to Anthropic for the
+   Papiamentu definition and example.
+
+   WORD_TAGS remains the grammatical source of truth. The
+   translation providers do not change those attributes.
 --------------------------------------------------------- */
 
 const REMOTE_GLOSSARY = {};
@@ -30178,6 +30179,8 @@ async function fetchWordInfo(word,display,overrideOnly){
       encodeURIComponent(word) +
       '&display=' +
         encodeURIComponent(display) +
+      '&tags=' +
+        encodeURIComponent(WORD_TAGS[word] || '') +
         (overrideOnly ? '&override=1' : '')
 
     );
@@ -30199,6 +30202,8 @@ async function fetchWordInfo(word,display,overrideOnly){
 
   const info = {
 
+    tags:WORD_TAGS[word] || data.tags || '',
+
     definition:data.definition || '',
 
     example:data.example || '',
@@ -30206,6 +30211,8 @@ async function fetchWordInfo(word,display,overrideOnly){
     english:data.english || '',
 
     source:data.definition_source || data.source || 'legacy',
+
+    translationSource:data.translation_source || '',
 
     needsReview:Boolean(data.needs_review),
 
@@ -30445,7 +30452,9 @@ function renderGlossaryInfo(
         'glossary-source';
 
       warning.textContent =
-        'Definishon asistí pa AI — por tin fout';
+        info.translationSource === 'google'
+          ? 'Tradukshon: Google → definishon asistí pa Anthropic'
+          : 'Definishon asistí pa AI — por tin fout';
 
       actionsEl.appendChild(
         warning
