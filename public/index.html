@@ -29442,6 +29442,7 @@ async function submitFeedback(message){
 let reportReason = null;
 let reportTargetWord = null;
 let reportCurrentDefinition = '';
+let reportCurrentSource = '';
 
 
 function buildReportButton(word,info){
@@ -29476,6 +29477,10 @@ function openReportWord(word,info){
     info && info.definition
       ? info.definition
       : '';
+  reportCurrentSource =
+    info && info.source
+      ? info.source
+      : 'handwritten';
 
   $('reportWordLabel').textContent =
     'Bo ta rapòrtá e palabra "' +
@@ -29611,6 +29616,8 @@ async function submitReportWord(){
             word:reportTargetWord,
 
             currentDefinition:reportCurrentDefinition,
+
+            currentSource:reportCurrentSource,
 
             suggestedDefinition:
               $('reportSuggestion').value.trim(),
@@ -30216,7 +30223,7 @@ async function fetchWordInfo(word,display,overrideOnly){
 
     english:data.english || '',
 
-    source:data.source || 'claude',
+    source:data.definition_source || data.source || 'legacy',
 
     isAi:true
 

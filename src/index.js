@@ -31,6 +31,9 @@ export default class extends WorkerEntrypoint {
     if (url.pathname === "/api/define" && request.method === "GET") {
       return this.handleDefine(request);
     }
+    if (url.pathname === "/api/translate-undefined" && request.method === "POST") {
+      return this.handleTranslateUndefined(request);
+    }
     if (url.pathname === "/api/report-word" && request.method === "POST") {
       return this.handleReportWord(request);
     }
@@ -748,6 +751,7 @@ export default class extends WorkerEntrypoint {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           word TEXT NOT NULL,
           current_definition TEXT,
+          current_source TEXT,
           suggested_definition TEXT,
           reason TEXT NOT NULL,
           message TEXT,
@@ -766,6 +770,7 @@ export default class extends WorkerEntrypoint {
 
     const columns = [
       ["current_definition", "TEXT"],
+      ["current_source", "TEXT"],
       ["suggested_definition", "TEXT"],
       ["approved_definition", "TEXT"],
       ["source", "TEXT"],
@@ -790,6 +795,7 @@ export default class extends WorkerEntrypoint {
       const {
         word,
         currentDefinition,
+        currentSource,
         suggestedDefinition,
         reason,
         message,
@@ -800,6 +806,7 @@ export default class extends WorkerEntrypoint {
       const validReasons = ["wrong", "offensive", "nonsense", "other"];
       const cleanWord = String(word || "").trim().toLowerCase().slice(0, 40);
       const cleanCurrentDefinition = String(currentDefinition || "").trim().slice(0, 500);
+      const cleanCurrentSource = String(currentSource || "").trim().slice(0, 80);
       const cleanSuggestedDefinition = String(suggestedDefinition || "").trim().slice(0, 500);
       const cleanMessage = String(message || "").trim().slice(0, 500);
       if (!cleanWord || !validReasons.includes(reason)) {
@@ -813,13 +820,14 @@ export default class extends WorkerEntrypoint {
       const result = await this.env.GAME_HISTORY
         .prepare(
           `INSERT INTO word_reports
-             (word, current_definition, suggested_definition, reason, message,
-                player_id, game_date, approval_token_hash, reported_at)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+             (word, current_definition, current_source, suggested_definition, reason, message,
+               player_id, game_date, approval_token_hash, reported_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
         .bind(
           cleanWord,
           cleanCurrentDefinition,
+          cleanCurrentSource || null,
           cleanSuggestedDefinition,
           reason,
           cleanMessage,
@@ -835,6 +843,7 @@ export default class extends WorkerEntrypoint {
         id: reportId,
         word: cleanWord,
         currentDefinition: cleanCurrentDefinition || "(no definition shown)",
+        currentSource: cleanCurrentSource || "Not provided",
         suggestedDefinition: cleanSuggestedDefinition || "(none provided)",
         reason,
         message: cleanMessage,
@@ -876,15 +885,42 @@ export default class extends WorkerEntrypoint {
     const finalDefinition = String(definition || "").trim().slice(0, 500);
     if (!finalDefinition) return false;
     const reviewedAt = new Date().toISOString();
+    const sourceReference = String(source || "").trim().slice(0, 500) || null;
+    const definitionSource = sourceReference ? "verified_dictionary" : "owner_approved";
+    const verificationStatus = sourceReference ? "verified" : "approved";
     await this.ensureGlossaryTable();
+    const previous = await this.env.GAME_HISTORY
+      .prepare("SELECT definition FROM word_glossary WHERE word = ?")
+      .bind(report.word)
+      .first();
     const result = await this.env.GAME_HISTORY.batch([
       this.env.GAME_HISTORY
         .prepare(
-          `INSERT INTO word_glossary (word, display, definition, example, english, source)
-           VALUES (?, ?, ?, '', '', 'moderated')
-           ON CONFLICT(word) DO UPDATE SET definition = excluded.definition, source = 'moderated'`
+          `INSERT INTO word_glossary
+             (word, display, definition, example, english, source,
+              definition_source, source_language, target_language,
+              verification_status, source_reference, previous_definition)
+           VALUES (?, ?, ?, '', '', ?, ?, 'pap', 'nl', ?, ?, ?)
+           ON CONFLICT(word) DO UPDATE SET
+             definition = excluded.definition,
+             source = excluded.source,
+             definition_source = excluded.definition_source,
+             source_language = 'pap',
+             target_language = 'nl',
+             verification_status = excluded.verification_status,
+             source_reference = excluded.source_reference,
+             previous_definition = word_glossary.definition`
         )
-        .bind(report.word, report.display || report.word, finalDefinition),
+        .bind(
+          report.word,
+          report.display || report.word,
+          finalDefinition,
+          definitionSource,
+          definitionSource,
+          verificationStatus,
+          sourceReference,
+          previous?.definition || null
+        ),
       this.env.GAME_HISTORY
         .prepare(
           `UPDATE word_reports
@@ -1059,7 +1095,8 @@ export default class extends WorkerEntrypoint {
     const text = [
       `Word: ${report.word}`,
       `Current definition: ${report.currentDefinition}`,
-      `Suggested correction: ${report.suggestedDefinition}`,
+      `Current source: ${report.currentSource || "Not provided"}`,
+      `Player suggestion: ${report.suggestedDefinition}`,
       `Report reason: ${reason}`,
       `Player note: ${report.message || "Not provided"}`,
       `Status: ${report.status}`,
@@ -1070,7 +1107,7 @@ export default class extends WorkerEntrypoint {
     ].join("\n");
     const field = (label, value) =>
       `<tr><th style="padding:8px 12px;text-align:left;vertical-align:top;color:#52606d">${escapeHtmlServer(label)}</th><td style="padding:8px 12px;vertical-align:top">${escapeHtmlServer(value)}</td></tr>`;
-    const html = `<!doctype html><html><body style="margin:0;background:#f4f1ea;font-family:Arial,sans-serif;color:#081f36"><main style="max-width:600px;margin:24px auto;padding:24px;background:#fff;border:1px solid #ddd6c9"><h1 style="font-size:22px;margin:0 0 18px">Palabra di Kòrsou report</h1><table style="width:100%;border-collapse:collapse">${field("Word", report.word)}${field("Current definition", report.currentDefinition)}${field("Suggested correction", report.suggestedDefinition)}${field("Report reason", reason)}${field("Player note", report.message || "Not provided")}${field("Status", report.status)}${field("Report ID", report.id)}${field("Reported at", reportedAt)}</table><p style="margin:24px 0 10px"><a href="${escapeHtmlServer(approveUrl)}" style="display:inline-block;background:#2e7864;color:#fff;padding:12px 16px;text-decoration:none;margin:0 8px 8px 0">&#10003; Approve suggestion</a><a href="${escapeHtmlServer(editUrl)}" style="display:inline-block;background:#0f9fe0;color:#fff;padding:12px 16px;text-decoration:none;margin:0 8px 8px 0">&#9999; Edit &amp; approve</a></p></main></body></html>`;
+    const html = `<!doctype html><html><body style="margin:0;background:#f4f1ea;font-family:Arial,sans-serif;color:#081f36"><main style="max-width:600px;margin:24px auto;padding:24px;background:#fff;border:1px solid #ddd6c9"><h1 style="font-size:22px;margin:0 0 18px">Palabra di Kòrsou report</h1><table style="width:100%;border-collapse:collapse">${field("Word", report.word)}${field("Current definition", report.currentDefinition)}${field("Current source", report.currentSource || "Not provided")}${field("Player suggestion", report.suggestedDefinition)}${field("Report reason", reason)}${field("Player note", report.message || "Not provided")}${field("Status", report.status)}${field("Report ID", report.id)}${field("Reported at", reportedAt)}</table><p style="margin:24px 0 10px"><a href="${escapeHtmlServer(approveUrl)}" style="display:inline-block;background:#2e7864;color:#fff;padding:12px 16px;text-decoration:none;margin:0 8px 8px 0">&#10003; Approve suggestion</a><a href="${escapeHtmlServer(editUrl)}" style="display:inline-block;background:#0f9fe0;color:#fff;padding:12px 16px;text-decoration:none;margin:0 8px 8px 0">&#9999; Edit &amp; approve</a></p></main></body></html>`;
     await this.sendNotificationEmail(
       `[Palabra di Kòrsou] Report: ${report.word} — ${reason}`,
       text,
@@ -1146,7 +1183,13 @@ export default class extends WorkerEntrypoint {
           definition TEXT,
           example TEXT,
           english TEXT,
-          created_at TEXT DEFAULT (datetime('now'))
+          created_at TEXT DEFAULT (datetime('now')),
+          definition_source TEXT DEFAULT 'legacy',
+          source_language TEXT,
+          target_language TEXT,
+          verification_status TEXT DEFAULT 'unverified',
+          source_reference TEXT,
+          previous_definition TEXT
         )`
       )
       .run();
@@ -1155,10 +1198,26 @@ export default class extends WorkerEntrypoint {
     // which is swallowed.
     try {
       await this.env.GAME_HISTORY
-        .prepare("ALTER TABLE word_glossary ADD COLUMN source TEXT DEFAULT 'claude'")
+        .prepare("ALTER TABLE word_glossary ADD COLUMN source TEXT DEFAULT 'legacy'")
         .run();
     } catch {
       // column already exists
+    }
+    for (const [name, type] of [
+      ["definition_source", "TEXT DEFAULT 'legacy'"],
+      ["source_language", "TEXT"],
+      ["target_language", "TEXT"],
+      ["verification_status", "TEXT DEFAULT 'unverified'"],
+      ["source_reference", "TEXT"],
+      ["previous_definition", "TEXT"],
+    ]) {
+      try {
+        await this.env.GAME_HISTORY
+          .prepare(`ALTER TABLE word_glossary ADD COLUMN ${name} ${type}`)
+          .run();
+      } catch {
+        // Column already exists on an upgraded database.
+      }
     }
   }
 
@@ -1204,7 +1263,12 @@ export default class extends WorkerEntrypoint {
              definition,
              example,
              english,
-             source
+             source,
+             definition_source,
+             source_language,
+             target_language,
+             verification_status,
+             source_reference
            FROM word_glossary
            WHERE word = ?`
         )
@@ -1212,7 +1276,7 @@ export default class extends WorkerEntrypoint {
         .first();
 
       if (cached) {
-        return json({ word, ...cached, cached: true }, 200);
+        return json({ word, ...cached, definitionNl: cached.definition, cached: true }, 200);
       }
 
       if (url.searchParams.get("override") === "1") {
@@ -1221,43 +1285,31 @@ export default class extends WorkerEntrypoint {
 
       let generated = null;
 
-      /*
-        Preferred source:
-        Claude generates a natural Papiamentu definition.
-      */
-      if (this.env.ANTHROPIC_API_KEY) {
-        generated =
-          await this.generateDefinition(
-            word,
-            display
-          );
-      }
-
-      /*
-        Fallback:
-        If Claude is unavailable or doesn't recognize the word,
-        try Google Translate.
-
-        This only gives us a basic English gloss, so it remains
-        tagged as source="google".
-      */
-      if (
-        (!generated ||
-          !generated.definition) &&
-        this.env.GOOGLE_TRANSLATE_API_KEY
-      ) {
-
-        const googleGloss =
-          await this.googleTranslateWord(word);
-
+      if (this.env.GOOGLE_TRANSLATE_API_KEY) {
+        const googleGloss = await this.googleTranslateWord(word);
         if (googleGloss) {
           generated = {
             display,
             definition: googleGloss,
             example: "",
-            english: googleGloss,
-            source: "google",
+            english: "",
+            source: "google_translate",
+            definition_source: "google_translate",
+            source_language: "pap",
+            target_language: "nl",
+            verification_status: "unverified",
           };
+        }
+      }
+
+      if (!generated && this.env.ANTHROPIC_API_KEY) {
+        generated = await this.generateDefinition(word, display);
+        if (generated?.definition) {
+          generated.source = "ai_fallback";
+          generated.definition_source = "ai_fallback";
+          generated.source_language = "pap";
+          generated.target_language = "nl";
+          generated.verification_status = "unverified";
         }
       }
 
@@ -1277,8 +1329,7 @@ export default class extends WorkerEntrypoint {
         );
       }
 
-      generated.source =
-        generated.source || "claude";
+      generated.source = generated.source || "ai_fallback";
 
       /*
         Save only the information actually needed by
@@ -1296,9 +1347,13 @@ export default class extends WorkerEntrypoint {
                definition,
                example,
                english,
-               source
+                 source,
+                 definition_source,
+                 source_language,
+                 target_language,
+               verification_status
              )
-           VALUES (?, ?, ?, ?, ?, ?)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(word) DO NOTHING`
         )
         .bind(
@@ -1307,11 +1362,15 @@ export default class extends WorkerEntrypoint {
           generated.definition || null,
           generated.example || null,
           generated.english || null,
-          generated.source
+          generated.source,
+          generated.definition_source || generated.source,
+          generated.source_language || "pap",
+          generated.target_language || "nl",
+          generated.verification_status || "unverified"
         )
         .run();
 
-      return json({ word, ...generated, cached: false }, 200);
+      return json({ word, ...generated, definitionNl: generated.definition, cached: false }, 200);
     } catch (e) {
       if (e.message && e.message.includes("no such table")) {
         await this.ensureGlossaryTable();
@@ -1326,12 +1385,40 @@ export default class extends WorkerEntrypoint {
     }
   }
 
+  async handleTranslateUndefined(request) {
+    if (!this.env.TRANSLATION_ADMIN_TOKEN ||
+        request.headers.get("authorization") !== `Bearer ${this.env.TRANSLATION_ADMIN_TOKEN}`) {
+      return json({ error: "Unauthorized" }, 401);
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return json({ error: "JSON body required" }, 400);
+    }
+
+    const words = Array.isArray(body.words)
+      ? [...new Set(body.words.map((word) => String(word).trim().toLowerCase()))]
+          .filter((word) => /^[a-zñ]+$/.test(word))
+          .slice(0, 500)
+      : [];
+    const results = [];
+    for (const word of words) {
+      const response = await this.handleDefine(
+        new Request(`${new URL(request.url).origin}/api/define?word=${encodeURIComponent(word)}`)
+      );
+      const data = await response.json();
+      results.push({ word, status: response.status, cached: data.cached === true, source: data.source });
+    }
+    return json({ translated: results.filter((result) => result.status === 200 && !result.cached).length, results }, 200);
+  }
+
   /*
-    Basic English translation fallback using
+    Preliminary Dutch translation using
     Google Cloud Translation API.
 
-    This is deliberately treated as a fallback instead of
-    the primary definition source.
+    This is the primary automatic source and is cached in D1.
   */
   async googleTranslateWord(word) {
     try {
@@ -1343,7 +1430,7 @@ export default class extends WorkerEntrypoint {
           body: JSON.stringify({
             q: word,
             source: "pap",
-            target: "en",
+            target: "nl",
             format: "text",
           }),
         }
@@ -1400,26 +1487,18 @@ export default class extends WorkerEntrypoint {
   */
   async generateDefinition(word, display) {
     const prompt =
-      `Palabra na Papiamentu: "${display}" ` +
+      `Papiamentu word: "${display}" ` +
       `(normalisá: "${word}").\n\n` +
       `Duna SOLAMENTE un opheto JSON válido, ` +
       `sin markdown ni teksto adishonal, ` +
       `ku exactamente e tres kamponan aki:\n` +
-      `- "definition": un definishon kla, natural i ` +
-      `kortiku na Papiamentu, preferiblemente 1 frase. ` +
-      `Splik'é manera un hende lokal lo splika e palabra ` +
-      `na un otro hende. Evitá lengahe tékniko òf ` +
-      `repetitivo.\n` +
+      `- "definition": a concise Dutch meaning, preferably 1-3 words. ` +
+      `Return only the Dutch translation, with no explanation.\n` +
       `- "example": 1 frase natural na Papiamentu ku usa ` +
       `e palabra den un konteksto realistiko. ` +
       `No ripití e definishon.\n` +
-      `- "english": e tradukshon mas natural i komun na ` +
-      `Ingles, preferiblemente 1-3 palabra. ` +
-      `No agregá palabra redundante; por ehèmpel, ` +
-      `si "rose" ta sufisiente, no skirbi ` +
-      `"rose flower".\n\n` +
-      `Si bo no ta sigur ku e palabra ta un palabra real ` +
-      `na Papiamentu, laga "definition" bashí ("").`;
+      `- "english": an empty string.\n\n` +
+      `If unsure, leave "definition" empty ("").`;
 
     const response = await fetch(
       "https://api.anthropic.com/v1/messages",
@@ -1653,7 +1732,7 @@ function moderationForm(report, token) {
   const field = (label, value) =>
     `<p><strong>${escapeHtmlServer(label)}</strong><br>${escapeHtmlServer(value || "Not provided")}</p>`;
   return new Response(
-          `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Edit report</title><style>body{margin:0;padding:16px;background:#f4f1ea;color:#081f36;font:16px/1.5 Arial,sans-serif}main{max-width:560px;margin:0 auto;padding:24px;background:#fff;border:1px solid #ddd6c9}h1{font-size:22px;margin:0 0 20px}label{display:block;font-weight:700;margin:18px 0 6px}textarea,input{width:100%;padding:11px;border:1px solid #c8c0b4;border-radius:4px;font:inherit;box-sizing:border-box}button{border:0;border-radius:4px;padding:12px 16px;margin:18px 8px 0 0;color:#fff;background:#2e7864;font:inherit;font-weight:700}button[name=action]{background:#c1503f}</style></head><body><main><h1>Edit &amp; approve report</h1>${field("Word", report.word)}${field("Current definition", report.current_definition)}${field("Player suggestion", report.suggested_definition)}<form method="post" action="/moderate/approve?token=${encodeURIComponent(token)}"><label for="definition">Final definition</label><textarea id="definition" name="definition" rows="4" required>${escapeHtmlServer(report.suggested_definition)}</textarea><label for="source">Reliable source (optional)</label><input id="source" name="source" maxlength="500"><button type="submit" name="action" value="approve">Approve &amp; publish</button><button type="submit" name="action" value="reject" formnovalidate>Reject report</button></form></main></body></html>`,
+          `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Edit report</title><style>body{margin:0;padding:16px;background:#f4f1ea;color:#081f36;font:16px/1.5 Arial,sans-serif}main{max-width:560px;margin:0 auto;padding:24px;background:#fff;border:1px solid #ddd6c9}h1{font-size:22px;margin:0 0 20px}label{display:block;font-weight:700;margin:18px 0 6px}textarea,input{width:100%;padding:11px;border:1px solid #c8c0b4;border-radius:4px;font:inherit;box-sizing:border-box}button{border:0;border-radius:4px;padding:12px 16px;margin:18px 8px 0 0;color:#fff;background:#2e7864;font:inherit;font-weight:700}button[name=action]{background:#c1503f}</style></head><body><main><h1>Edit &amp; approve report</h1>${field("Word", report.word)}${field("Current definition", report.current_definition)}${field("Current source", report.current_source)}${field("Player suggestion", report.suggested_definition)}<form method="post" action="/moderate/approve?token=${encodeURIComponent(token)}"><label for="definition">Final definition</label><textarea id="definition" name="definition" rows="4" required>${escapeHtmlServer(report.suggested_definition)}</textarea><label for="source">Reliable source (optional)</label><input id="source" name="source" maxlength="500"><button type="submit" name="action" value="approve">Approve &amp; publish</button><button type="submit" name="action" value="reject" formnovalidate>Reject report</button></form></main></body></html>`,
     { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
   );
 }
