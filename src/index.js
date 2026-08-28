@@ -1,5 +1,4 @@
 import { WorkerEntrypoint } from "cloudflare:workers";
-import { getExampleSentence } from "./definition-sentence-pipeline.js";
 
 export default class extends WorkerEntrypoint {
   async fetch(request) {
@@ -1320,19 +1319,6 @@ export default class extends WorkerEntrypoint {
         );
       }
 
-      if (generated?.definition) {
-        try {
-          const sentenceResult = await getExampleSentence(word, this.env);
-          if (sentenceResult?.sentence) {
-            generated.example = sentenceResult.sentence;
-            generated.example_source = sentenceResult.source; // e.g. "extra.cw", "gobiernu.cw", or "google-translate-generated"
-          }
-        } catch (e) {
-          console.error("Example sentence lookup failed, keeping Claude's example:", e);
-          // generated.example stays whatever Claude produced as a safe fallback
-        }
-      }
-
       generated.source = generated.source || "ai_fallback";
 
       /*
@@ -1542,6 +1528,38 @@ export default class extends WorkerEntrypoint {
     labels such as "Sustantivo" added visual noise without
     helping the primary quick-lookup interaction.
   */
+  /*
+    Generic text translation via Google Cloud Translation API — translates
+    a full sentence, as opposed to googleTranslateWord() above which
+    translates a single Papiamentu word and applies word-specific checks.
+    Used to turn Claude's English example sentences into Papiamentu.
+  */
+  async translateTextGoogle(text, sourceLang, targetLang) {
+    try {
+      const res = await fetch(
+        "https://translation.googleapis.com/language/translate/v2",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-goog-api-key": this.env.GOOGLE_TRANSLATE_API_KEY,
+          },
+          body: JSON.stringify({
+            q: text,
+            source: sourceLang,
+            target: targetLang,
+            format: "text",
+          }),
+        }
+      );
+      const data = await res.json();
+      return data?.data?.translations?.[0]?.translatedText ?? null;
+    } catch (e) {
+      console.error("Google text translation failed:", e);
+      return null;
+    }
+  }
+
   async generateDefinition(word, display, tags, englishMeaning) {
     const prompt =
       `Papiamentu word: "${display}" ` +
@@ -1561,12 +1579,13 @@ export default class extends WorkerEntrypoint {
       `ku ta deskribí e palabra, preferiblemente un frase. ` +
       `Uza e English meaning solamente pa komprondé e sentido; ` +
       `no inkluí Ingles den e splikashon.\n` +
-      `- "example": 1 frase natural na Papiamentu ku usa ` +
-      `e palabra den un konteksto realistiko. ` +
-      `No ripití e definishon.\n` +
+      `- "exampleEnglish": one natural English sentence that uses the ` +
+      `word's concept in a realistic context. Do not repeat the ` +
+      `definition. Write it in plain English — it will be translated ` +
+      `to Papiamentu separately.\n` +
       `- "english": the fixed Google English meaning, or your best ` +
       `English fallback only when Google returned no usable result.\n\n` +
-      `If unsure, leave "definition" and "example" empty ("").`;
+      `If unsure, leave "definition" and "exampleEnglish" empty ("").`;
 
     const response = await fetch(
       "https://api.anthropic.com/v1/messages",
@@ -1576,6 +1595,13 @@ export default class extends WorkerEntrypoint {
           "content-type": "application/json",
           "x-api-key": this.env.ANTHROPIC_API_KEY,
           "anthropic-version": "2023-06-01",
+          // Some Anthropic API keys are "identity-linked" and require this
+          // header to say which workspace the request acts in. Only added
+          // when the env var is actually set, so it's a no-op for keys that
+          // don't need it.
+          ...(this.env.ANTHROPIC_WORKSPACE_ID
+            ? { "anthropic-workspace-id": this.env.ANTHROPIC_WORKSPACE_ID }
+            : {}),
         },
         body: JSON.stringify({
           model: "claude-haiku-4-5-20251001",
@@ -1634,6 +1660,13 @@ export default class extends WorkerEntrypoint {
       parsed = {};
     }
 
+    const exampleEnglishFromModel = (parsed.exampleEnglish || "").trim().slice(0, 300);
+    let example = "";
+    if (exampleEnglishFromModel && this.env.GOOGLE_TRANSLATE_API_KEY) {
+      const translated = await this.translateTextGoogle(exampleEnglishFromModel, "en", "pap");
+      example = (translated || "").trim().slice(0, 300);
+    }
+
     /*
       Return ONLY what the mobile definition view needs.
     */
@@ -1645,10 +1678,7 @@ export default class extends WorkerEntrypoint {
         (parsed.definition || "")
           .trim()
           .slice(0, 500),
-      example:
-        (parsed.example || "")
-          .trim()
-          .slice(0, 300),
+      example,
       english:
         (parsed.english || "")
           .trim()
@@ -1674,11 +1704,15 @@ export default class extends WorkerEntrypoint {
       `Dutch word(s): ${dutchWords.join(", ")}.\n` +
       `Dictionary entries (Dutch context - Papiamentu usage): ${glosses}\n\n` +
       `Using ONLY this dictionary grounding, give ONLY a valid JSON object, ` +
-      `no markdown or extra text, with exactly these two fields:\n` +
+      `no markdown or extra text, with exactly these three fields:\n` +
       `- "definition": un splikashon kla i natural na Papiamentu ku ta ` +
       `deskribí e palabra "${word}", preferiblemente un frase kòrtiku.\n` +
+      `- "exampleEnglish": one natural English sentence that uses the ` +
+      `concept behind "${word}" in a realistic context. Do not repeat ` +
+      `the definition. Write it in plain English — it will be translated ` +
+      `to Papiamentu separately.\n` +
       `- "english": a short English translation (a word or short phrase).\n\n` +
-      `If unsure, leave both fields empty ("").`;
+      `If unsure, leave all fields empty ("").`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -1686,6 +1720,9 @@ export default class extends WorkerEntrypoint {
         "content-type": "application/json",
         "x-api-key": this.env.ANTHROPIC_API_KEY,
         "anthropic-version": "2023-06-01",
+        ...(this.env.ANTHROPIC_WORKSPACE_ID
+          ? { "anthropic-workspace-id": this.env.ANTHROPIC_WORKSPACE_ID }
+          : {}),
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
@@ -1722,10 +1759,17 @@ export default class extends WorkerEntrypoint {
       parsed = {};
     }
 
+    const exampleEnglish = (parsed.exampleEnglish || "").trim().slice(0, 300);
+    let example = "";
+    if (exampleEnglish && this.env.GOOGLE_TRANSLATE_API_KEY) {
+      const translated = await this.translateTextGoogle(exampleEnglish, "en", "pap");
+      example = (translated || "").trim().slice(0, 300);
+    }
+
     return {
       display: (display || word).slice(0, 60),
       definition: (parsed.definition || "").trim().slice(0, 500),
-      example: "", // filled in separately by getExampleSentence in handleDefine
+      example,
       english: (parsed.english || "").trim().slice(0, 120),
     };
   }

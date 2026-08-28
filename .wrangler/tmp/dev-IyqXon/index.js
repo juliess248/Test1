@@ -3,88 +3,6 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
 
 // src/index.js
 import { WorkerEntrypoint } from "cloudflare:workers";
-
-// src/definition-sentence-pipeline.js
-var NEWSPAPER_SOURCES = [
-  {
-    name: "extra.cw",
-    searchUrl: /* @__PURE__ */ __name((word) => `https://extra.cw/?s=${encodeURIComponent(word)}`, "searchUrl"),
-    linkPattern: /<a[^>]+href="(https:\/\/extra\.cw\/[^"]+)"[^>]*rel="bookmark"/i
-  },
-  {
-    name: "gobiernu.cw",
-    searchUrl: /* @__PURE__ */ __name((word) => `https://gobiernu.cw/?s=${encodeURIComponent(word)}`, "searchUrl"),
-    linkPattern: /<a[^>]+href="(https:\/\/gobiernu\.cw\/[^"]+)"[^>]*>/i
-  }
-  // Vigilante (vigilantekorsou.news) mostly paywalls content behind login —
-  // only its "Notisia Gratis" category is open. Worth adding here later if
-  // extra.cw + gobiernu.cw miss often enough to justify it:
-  // {
-  //   name: "vigilantekorsou.news",
-  //   searchUrl: (word) => `https://vigilantekorsou.news/?s=${encodeURIComponent(word)}`,
-  //   linkPattern: /<a[^>]+href="(https:\/\/vigilantekorsou\.news\/[^"]+)"[^>]*>/i,
-  // },
-];
-var PER_SOURCE_TIMEOUT_MS = 3500;
-async function getExampleSentence(word, env) {
-  for (const source of NEWSPAPER_SOURCES) {
-    const sentence = await findSentenceOnSource(word, source).catch(() => null);
-    if (sentence) {
-      return { word, source: source.name, sentence };
-    }
-  }
-  const generated = await googleTranslateGenerateSentence(word, env);
-  return { word, source: "google-translate-generated", sentence: generated };
-}
-__name(getExampleSentence, "getExampleSentence");
-async function fetchWithTimeout(url, options = {}, timeoutMs = PER_SOURCE_TIMEOUT_MS) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...options, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-__name(fetchWithTimeout, "fetchWithTimeout");
-async function findSentenceOnSource(word, source) {
-  const res = await fetchWithTimeout(source.searchUrl(word), {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; PalabraDiKorsouBot/1.0)" }
-  });
-  if (!res.ok) return null;
-  const html = await res.text();
-  const articleMatch = html.match(source.linkPattern);
-  if (!articleMatch) return null;
-  const articleRes = await fetchWithTimeout(articleMatch[1]);
-  if (!articleRes.ok) return null;
-  const articleHtml = await articleRes.text();
-  const text = articleHtml.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
-  const wordRe = new RegExp(`\\b${word}\\b`, "i");
-  const sentences = text.split(/(?<=[.!?])\s+/);
-  const match = sentences.find((s) => wordRe.test(s) && s.length < 300);
-  return match ? match.trim() : null;
-}
-__name(findSentenceOnSource, "findSentenceOnSource");
-async function googleTranslate(text, sourceLang, targetLang, env) {
-  const res = await fetch(
-    `https://translation.googleapis.com/language/translate/v2?key=${env.GOOGLE_TRANSLATE_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ q: text, source: sourceLang, target: targetLang, format: "text" })
-    }
-  );
-  const data = await res.json();
-  return data?.data?.translations?.[0]?.translatedText ?? null;
-}
-__name(googleTranslate, "googleTranslate");
-async function googleTranslateGenerateSentence(word, env) {
-  const template = `Here is an example: I used the word "${word}" in a sentence today.`;
-  return googleTranslate(template, "en", "pap", env);
-}
-__name(googleTranslateGenerateSentence, "googleTranslateGenerateSentence");
-
-// src/index.js
 var src_default = class extends WorkerEntrypoint {
   static {
     __name(this, "default");
@@ -1183,17 +1101,6 @@ ${text}`;
           503
         );
       }
-      if (generated?.definition) {
-        try {
-          const sentenceResult = await getExampleSentence(word, this.env);
-          if (sentenceResult?.sentence) {
-            generated.example = sentenceResult.sentence;
-            generated.example_source = sentenceResult.source;
-          }
-        } catch (e) {
-          console.error("Example sentence lookup failed, keeping Claude's example:", e);
-        }
-      }
       generated.source = generated.source || "ai_fallback";
       await this.env.GAME_HISTORY.prepare(
         `INSERT INTO word_glossary
@@ -1363,6 +1270,37 @@ ${text}`;
       labels such as "Sustantivo" added visual noise without
       helping the primary quick-lookup interaction.
     */
+  /*
+    Generic text translation via Google Cloud Translation API — translates
+    a full sentence, as opposed to googleTranslateWord() above which
+    translates a single Papiamentu word and applies word-specific checks.
+    Used to turn Claude's English example sentences into Papiamentu.
+  */
+  async translateTextGoogle(text, sourceLang, targetLang) {
+    try {
+      const res = await fetch(
+        "https://translation.googleapis.com/language/translate/v2",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-goog-api-key": this.env.GOOGLE_TRANSLATE_API_KEY
+          },
+          body: JSON.stringify({
+            q: text,
+            source: sourceLang,
+            target: targetLang,
+            format: "text"
+          })
+        }
+      );
+      const data = await res.json();
+      return data?.data?.translations?.[0]?.translatedText ?? null;
+    } catch (e) {
+      console.error("Google text translation failed:", e);
+      return null;
+    }
+  }
   async generateDefinition(word, display, tags, englishMeaning) {
     const prompt = `Papiamentu word: "${display}" (normalis\xE1: "${word}").
 
@@ -1373,10 +1311,10 @@ The grammatical code and translation are separate pieces of information. Do not 
 
 Duna SOLAMENTE un opheto JSON v\xE1lido, sin markdown ni teksto adishonal, ku exactamente e tres kamponan aki:
 - "definition": un splikashon kla i natural na Papiamentu ku ta deskrib\xED e palabra, preferiblemente un frase. Uza e English meaning solamente pa komprond\xE9 e sentido; no inklu\xED Ingles den e splikashon.
-- "example": 1 frase natural na Papiamentu ku usa e palabra den un konteksto realistiko. No ripit\xED e definishon.
+- "exampleEnglish": one natural English sentence that uses the word's concept in a realistic context. Do not repeat the definition. Write it in plain English \u2014 it will be translated to Papiamentu separately.
 - "english": the fixed Google English meaning, or your best English fallback only when Google returned no usable result.
 
-If unsure, leave "definition" and "example" empty ("").`;
+If unsure, leave "definition" and "exampleEnglish" empty ("").`;
     const response = await fetch(
       "https://api.anthropic.com/v1/messages",
       {
@@ -1384,7 +1322,12 @@ If unsure, leave "definition" and "example" empty ("").`;
         headers: {
           "content-type": "application/json",
           "x-api-key": this.env.ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01"
+          "anthropic-version": "2023-06-01",
+          // Some Anthropic API keys are "identity-linked" and require this
+          // header to say which workspace the request acts in. Only added
+          // when the env var is actually set, so it's a no-op for keys that
+          // don't need it.
+          ...this.env.ANTHROPIC_WORKSPACE_ID ? { "anthropic-workspace-id": this.env.ANTHROPIC_WORKSPACE_ID } : {}
         },
         body: JSON.stringify({
           model: "claude-haiku-4-5-20251001",
@@ -1421,10 +1364,16 @@ If unsure, leave "definition" and "example" empty ("").`;
       );
       parsed = {};
     }
+    const exampleEnglishFromModel = (parsed.exampleEnglish || "").trim().slice(0, 300);
+    let example = "";
+    if (exampleEnglishFromModel && this.env.GOOGLE_TRANSLATE_API_KEY) {
+      const translated = await this.translateTextGoogle(exampleEnglishFromModel, "en", "pap");
+      example = (translated || "").trim().slice(0, 300);
+    }
     return {
       display: (display || word).slice(0, 60),
       definition: (parsed.definition || "").trim().slice(0, 500),
-      example: (parsed.example || "").trim().slice(0, 300),
+      example,
       english: (parsed.english || "").trim().slice(0, 120)
     };
   }
@@ -1444,17 +1393,19 @@ If unsure, leave "definition" and "example" empty ("").`;
 A Dutch-Papiamentu dictionary shows this word corresponds to the Dutch word(s): ${dutchWords.join(", ")}.
 Dictionary entries (Dutch context - Papiamentu usage): ${glosses}
 
-Using ONLY this dictionary grounding, give ONLY a valid JSON object, no markdown or extra text, with exactly these two fields:
+Using ONLY this dictionary grounding, give ONLY a valid JSON object, no markdown or extra text, with exactly these three fields:
 - "definition": un splikashon kla i natural na Papiamentu ku ta deskrib\xED e palabra "${word}", preferiblemente un frase k\xF2rtiku.
+- "exampleEnglish": one natural English sentence that uses the concept behind "${word}" in a realistic context. Do not repeat the definition. Write it in plain English \u2014 it will be translated to Papiamentu separately.
 - "english": a short English translation (a word or short phrase).
 
-If unsure, leave both fields empty ("").`;
+If unsure, leave all fields empty ("").`;
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "content-type": "application/json",
         "x-api-key": this.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
+        "anthropic-version": "2023-06-01",
+        ...this.env.ANTHROPIC_WORKSPACE_ID ? { "anthropic-workspace-id": this.env.ANTHROPIC_WORKSPACE_ID } : {}
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
@@ -1480,11 +1431,16 @@ If unsure, leave both fields empty ("").`;
       console.error("Could not parse dictionary-grounded definition JSON:", text);
       parsed = {};
     }
+    const exampleEnglish = (parsed.exampleEnglish || "").trim().slice(0, 300);
+    let example = "";
+    if (exampleEnglish && this.env.GOOGLE_TRANSLATE_API_KEY) {
+      const translated = await this.translateTextGoogle(exampleEnglish, "en", "pap");
+      example = (translated || "").trim().slice(0, 300);
+    }
     return {
       display: (display || word).slice(0, 60),
       definition: (parsed.definition || "").trim().slice(0, 500),
-      example: "",
-      // filled in separately by getExampleSentence in handleDefine
+      example,
       english: (parsed.english || "").trim().slice(0, 120)
     };
   }
