@@ -2447,8 +2447,63 @@ button:focus-visible{
   background-size:24px 24px;
 }
 
+.landing{
+  opacity:1;
+  transform:translateY(0) scale(1);
+
+  transition:
+    opacity .16s ease,
+    transform .18s cubic-bezier(.2,.8,.2,1);
+
+  will-change:
+    opacity,
+    transform;
+}
+
+.landing.is-leaving{
+  opacity:0;
+
+  transform:
+    translateY(-5px)
+    scale(.995);
+
+  pointer-events:none;
+}
+
 .landing.is-hidden{
   display:none;
+}
+
+
+/*
+  Smooth entrance into the actual game.
+*/
+.app{
+  opacity:1;
+  transform:translateY(0);
+
+  transition:
+    opacity .20s ease,
+    transform .22s cubic-bezier(.2,.8,.2,1);
+}
+
+.app.app-entering{
+  opacity:0;
+  transform:translateY(8px);
+}
+
+
+/*
+  Respect accessibility settings.
+*/
+@media (prefers-reduced-motion:reduce){
+
+  .landing,
+  .app,
+  .landing-btn{
+    transition:none !important;
+  }
+
 }
 
 .landing-icon{
@@ -2571,13 +2626,20 @@ button:focus-visible{
   cursor:pointer;
 
   transition:
-    background .15s,
-    border-color .15s,
-    transform .1s;
+    background .15s ease,
+    border-color .15s ease,
+    transform .14s cubic-bezier(.2,.8,.2,1),
+    filter .14s ease;
 }
 
 .landing-btn:active{
-  transform:scale(.97);
+  transform:scale(.985);
+}
+
+.landing-btn.primary:active,
+.landing-btn.primary.is-launching{
+  filter:brightness(.97);
+  transform:scale(.985);
 }
 
 .landing-btn.primary{
@@ -2588,7 +2650,7 @@ button:focus-visible{
 }
 
 .landing-btn.primary:hover{
-  background:#0b2744;
+  filter:brightness(1.06);
 }
 
 .landing-btn.ghost{
@@ -33343,10 +33405,109 @@ $('landingDate').textContent =
 
 function enterApp(pageId){
 
-  $('landingPage').classList.add('is-hidden');
-  $('appRoot').classList.remove('is-hidden');
+  const landing =
+    $('landingPage');
 
-  showPage(pageId);
+  const app =
+    $('appRoot');
+
+  const playButton =
+    $('playBtn');
+
+  const reduceMotion =
+    window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+
+  /*
+    Don't allow double taps while transitioning.
+  */
+  if(
+    landing.classList.contains(
+      'is-leaving'
+    )
+  ){
+    return;
+  }
+
+
+  if(reduceMotion){
+
+    landing.classList.add(
+      'is-hidden'
+    );
+
+    app.classList.remove(
+      'is-hidden'
+    );
+
+    showPage(pageId);
+
+    return;
+
+  }
+
+
+  playButton.classList.add(
+    'is-launching'
+  );
+
+  landing.classList.add(
+    'is-leaving'
+  );
+
+
+  /*
+    Let the landing screen fade first.
+    140 ms keeps the interaction feeling immediate.
+  */
+  setTimeout(
+    () => {
+
+      showPage(pageId);
+
+      app.classList.add(
+        'app-entering'
+      );
+
+      app.classList.remove(
+        'is-hidden'
+      );
+
+      landing.classList.add(
+        'is-hidden'
+      );
+
+      landing.classList.remove(
+        'is-leaving'
+      );
+
+
+      /*
+        Two frames ensure the browser paints
+        the starting state before animating.
+      */
+      requestAnimationFrame(
+        () =>
+          requestAnimationFrame(
+            () => {
+
+              app.classList.remove(
+                'app-entering'
+              );
+
+              playButton.classList.remove(
+                'is-launching'
+              );
+
+            }
+          )
+      );
+
+    },
+    140
+  );
 
 }
 
