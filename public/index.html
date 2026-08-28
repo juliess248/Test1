@@ -1269,6 +1269,20 @@ header{
   display:none;
 }
 
+/*
+  Privacy and About are opened from the landing page.
+
+  The landing page uses z-index:80, while normal
+  amiga overlays use z-index:60.
+
+  These two overlays therefore need to sit above
+  the landing page.
+*/
+#privacyOverlay,
+#aboutOverlay{
+  z-index:120;
+}
+
 .amiga-backdrop{
   position:absolute;
   inset:0;
