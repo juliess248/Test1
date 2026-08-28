@@ -2839,6 +2839,56 @@ button:focus-visible{
   outline-offset:2px;
 }
 
+
+
+
+.missing-word-dismiss{
+  appearance:none;
+
+  width:22px;
+  height:22px;
+
+  padding:0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:0;
+  border-radius:50%;
+
+  background:transparent;
+  color:var(--dim2);
+
+  font-family:'Karla',system-ui,sans-serif;
+  font-size:16px;
+  font-weight:600;
+  line-height:1;
+
+  cursor:pointer;
+
+  opacity:.65;
+
+  transition:
+    opacity .15s,
+    background .15s;
+}
+
+.missing-word-dismiss:hover{
+  opacity:1;
+
+  background:
+    rgba(var(--overlay),.06);
+}
+
+.missing-word-dismiss:focus-visible{
+  outline:
+    2px solid var(--flag);
+
+  outline-offset:1px;
+}
+
+
 @media (hover:hover) and (pointer:fine){
 
   .missing-word-link:hover{
@@ -3370,13 +3420,23 @@ button:focus-visible{
     class="missing-word-cta is-hidden"
     id="missingWordCta">
 
-    <span>E palabra aki falta?</span>
+    <span>
+      E palabra aki falta?
+    </span>
 
     <button
       class="missing-word-link"
       id="missingWordSuggestBtn"
       type="button">
       Sugeri'é
+    </button>
+
+    <button
+      class="missing-word-dismiss"
+      id="missingWordDismissBtn"
+      type="button"
+      aria-label="No mustra esaki atrobe">
+      ×
     </button>
 
   </div>
@@ -3587,7 +3647,7 @@ button:focus-visible{
       class="suggest-page-btn"
       id="suggestLinkBtn"
       type="button">
-      ✍️ Sugerí agregá, ahustá, òf kita un palabra
+      ✍️ Sugeri palabra
     </button>
 
     <div
@@ -30741,10 +30801,71 @@ const MSG = {
 
 
 
+const QUICK_SUGGEST_SEEN_KEY =
+  'pdk_quick_suggest_seen';
+
+
+function quickSuggestionSeen(){
+
+  try{
+
+    return (
+      localStorage.getItem(
+        QUICK_SUGGEST_SEEN_KEY
+      ) === '1'
+    );
+
+  }catch{
+
+    return false;
+
+  }
+
+}
+
+
+function markQuickSuggestionSeen(){
+
+  try{
+
+    localStorage.setItem(
+      QUICK_SUGGEST_SEEN_KEY,
+      '1'
+    );
+
+  }catch{}
+
+}
+
+
 function showMissingWordCta(word){
 
   const cta =
     $('missingWordCta');
+
+
+  /*
+    E palabra aki falta? Sugeri'é
+    is onboarding only.
+
+    Once the player has used or dismissed
+    it, don't automatically show it again.
+  */
+
+  if(
+    quickSuggestionSeen()
+  ){
+
+    cta.classList.add(
+      'is-hidden'
+    );
+
+    delete cta.dataset.word;
+
+    return;
+
+  }
+
 
   cta.dataset.word =
     word;
@@ -31220,6 +31341,12 @@ function updateGame(){
 
 function saveCurrentGame(){
 
+  /*
+    Always keep the current result in memory
+    so guests can play normally during this
+    browser session.
+  */
+
   history[GAME_DATE] = {
 
     score:
@@ -31241,14 +31368,25 @@ function saveCurrentGame(){
   };
 
 
-  saveHistory(
-    history
-  );
+  /*
+    Only a registered, authenticated account
+    gets persistent game storage.
 
+    Guests keep their score only for the
+    current session.
+  */
 
-  queueScoreSync();
+  if(account){
 
-  queueProgressSync();
+    saveHistory(
+      history
+    );
+
+    queueScoreSync();
+
+    queueProgressSync();
+
+  }
 
 }
 
@@ -31842,8 +31980,8 @@ function renderName(){
     account
       ? 'Bo progreso ta sigur riba tur aparato.'
       : named
-        ? 'Bo score ta manda outomátiko.'
-        : 'Sin nòmber, bo no ta aparesé.';
+        ? 'Krea un kuenta pa warda bo score.'
+        : 'Bo por hunga sin kuenta; krea un pa warda bo score.';
 
 
   updateAcctNudge();
@@ -32894,25 +33032,12 @@ function showPage(
   pageId
 ){
 
-  if(
-    pageId === 'gamePage' &&
-    !account
-  ){
+  /*
+    Playing the game is public.
 
-    pageId =
-      'rankingPage';
-
-    authMode =
-      'signup';
-
-    renderAuth();
-
-    showAuthMessage(
-      'Krea un kuenta òf drenta pa por hunga i warda bo score.',
-      'ok'
-    );
-
-  }
+    Authentication is required only for
+    saving persistent scores/progress.
+  */
 
   pages.forEach(
     id => {
@@ -33177,44 +33302,12 @@ function enterApp(pageId){
 
 
 $('playBtn').onclick =
-  async () => {
+  () => {
 
-    let signedIn =
-      Boolean(account);
-
-    if(!signedIn){
-
-      signedIn =
-        await restoreSession();
-
-    }
-
-    if(!signedIn){
-
-      enterApp(
-        'rankingPage'
-      );
-
-      authMode =
-        'signup';
-
-      renderAuth();
-
-      showAuthMessage(
-        'Krea un kuenta òf drenta pa por hunga i warda bo score.',
-        'ok'
-      );
-
-      setTimeout(
-        () =>
-          $('authUsername')
-            .focus(),
-        50
-      );
-
-      return;
-
-    }
+    /*
+      Guests and signed-in players can
+      both enter the game immediately.
+    */
 
     enterApp(
       'gamePage'
@@ -33283,42 +33376,128 @@ $('glossaryBackdrop').onclick =
   closeGlossary;
 
 
-$('privacyLinkBtn').onclick =
-  () =>
-    $('privacyOverlay').classList.remove(
-      'is-hidden'
+function openLegalOverlay(
+  overlayId,
+  closeId
+){
+
+  const overlay =
+    $(overlayId);
+
+  if(!overlay)
+    return;
+
+
+  overlay.classList.remove(
+    'is-hidden'
+  );
+
+  overlay.setAttribute(
+    'aria-hidden',
+    'false'
+  );
+
+
+  const sheet =
+    overlay.querySelector(
+      '.amiga-sheet'
     );
+
+  if(sheet)
+    sheet.scrollTop = 0;
+
+
+  requestAnimationFrame(
+    () => {
+
+      const closeButton =
+        $(closeId);
+
+      if(closeButton)
+        closeButton.focus();
+
+    }
+  );
+
+}
+
+
+function closeLegalOverlay(
+  overlayId
+){
+
+  const overlay =
+    $(overlayId);
+
+  if(!overlay)
+    return;
+
+
+  overlay.classList.add(
+    'is-hidden'
+  );
+
+  overlay.setAttribute(
+    'aria-hidden',
+    'true'
+  );
+
+}
+
+
+$('privacyLinkBtn').onclick =
+  event => {
+
+    event.preventDefault();
+
+    openLegalOverlay(
+      'privacyOverlay',
+      'privacyClose'
+    );
+
+  };
+
 
 $('privacyClose').onclick =
   () =>
-    $('privacyOverlay').classList.add(
-      'is-hidden'
+    closeLegalOverlay(
+      'privacyOverlay'
     );
+
 
 $('privacyBackdrop').onclick =
   () =>
-    $('privacyOverlay').classList.add(
-      'is-hidden'
+    closeLegalOverlay(
+      'privacyOverlay'
     );
 
 
 $('aboutLinkBtn').onclick =
-  () =>
-    $('aboutOverlay').classList.remove(
-      'is-hidden'
+  event => {
+
+    event.preventDefault();
+
+    openLegalOverlay(
+      'aboutOverlay',
+      'aboutClose'
     );
+
+  };
+
 
 $('aboutClose').onclick =
   () =>
-    $('aboutOverlay').classList.add(
-      'is-hidden'
+    closeLegalOverlay(
+      'aboutOverlay'
     );
+
 
 $('aboutBackdrop').onclick =
   () =>
-    $('aboutOverlay').classList.add(
-      'is-hidden'
+    closeLegalOverlay(
+      'aboutOverlay'
     );
+
 
 $('suggestLinkBtn').onclick =
   () =>
@@ -33464,14 +33643,36 @@ $('missingWordSuggestBtn').onclick =
   () => {
 
     const word =
-      $('missingWordCta').dataset.word;
+      $('missingWordCta')
+        .dataset.word;
 
     if(!word)
       return;
 
+
+    /*
+      Tapping Sugeri'é counts as having
+      used the onboarding.
+    */
+
+    markQuickSuggestionSeen();
+
+    hideMissingWordCta();
+
+
     openMissingWordSuggestion(
       word
     );
+
+  };
+
+
+$('missingWordDismissBtn').onclick =
+  () => {
+
+    markQuickSuggestionSeen();
+
+    hideMissingWordCta();
 
   };
 
