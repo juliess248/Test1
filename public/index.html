@@ -33673,6 +33673,120 @@ function openMissingWordSuggestion(word){
 }
 
 
+
+/* =========================================================
+   CUSTOM ACTION / REWARD SOUNDS
+========================================================= */
+
+const ACTION_SOUND = (() => {
+
+  const sounds = {
+
+    correct:
+      new Audio(
+        '/sounds/word-correct.wav'
+      ),
+
+    special:
+      new Audio(
+        '/sounds/word-special.wav'
+      ),
+
+    invalid:
+      new Audio(
+        '/sounds/word-invalid.wav'
+      ),
+
+    complete:
+      new Audio(
+        '/sounds/puzzle-complete.wav'
+      )
+
+  };
+
+
+  /*
+    Ask the browser to prepare all four sounds
+    before the player needs them.
+  */
+  Object.values(sounds)
+    .forEach(audio => {
+
+      audio.preload = 'auto';
+
+    });
+
+
+  function play(name){
+
+    const audio =
+      sounds[name];
+
+    if(!audio){
+      return;
+    }
+
+    /*
+      Start from the beginning every time.
+      This also makes repeated submissions
+      feel immediate.
+    */
+    try{
+
+      audio.pause();
+      audio.currentTime = 0;
+
+      const promise =
+        audio.play();
+
+      if(
+        promise &&
+        typeof promise.catch === 'function'
+      ){
+
+        promise.catch(
+          () => {}
+        );
+
+      }
+
+    }catch(error){
+
+      console.warn(
+        'Could not play action sound:',
+        name,
+        error
+      );
+
+    }
+
+  }
+
+
+  return {
+
+    correct(){
+      play('correct');
+    },
+
+    special(){
+      play('special');
+    },
+
+    invalid(){
+      play('invalid');
+    },
+
+    complete(){
+      play('complete');
+    }
+
+  };
+
+})();
+
+
+
 /* =========================================================
    20. SUBMIT
 ========================================================= */
@@ -33687,6 +33801,20 @@ function submit(){
 
   const result =
     P.guess(typed);
+
+
+  /*
+    Any rejected submission gets the short,
+    subtle invalid-word feedback.
+  */
+  if(
+    result.result !==
+    RESULT.OK
+  ){
+
+    ACTION_SOUND.invalid();
+
+  }
 
 
   if(
@@ -33704,11 +33832,45 @@ function submit(){
         : '';
 
 
+    /*
+      Reward hierarchy:
+
+      1. Entire puzzle completed
+      2. Pangram / special word
+      3. Normal correct word
+
+      Only ONE reward sound plays.
+    */
+    const puzzleComplete =
+      P.found.size ===
+      P.answers.size;
+
+
     if(
+      puzzleComplete
+    ){
+
+      ACTION_SOUND.complete();
+
+    }else if(
       result.isPangram
     ){
 
-      SOUND.pangram();
+      ACTION_SOUND.special();
+
+    }else{
+
+      ACTION_SOUND.correct();
+
+    }
+
+
+    /*
+      Keep the existing visual feedback.
+    */
+    if(
+      result.isPangram
+    ){
 
       say(
         '★ PANGRAMA! +' +
@@ -33722,8 +33884,6 @@ function submit(){
       celebratePangram();
 
     }else{
-
-      SOUND.word();
 
       say(
 
