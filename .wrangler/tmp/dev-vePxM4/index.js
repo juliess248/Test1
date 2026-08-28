@@ -1176,75 +1176,12 @@ ${text}`;
       if (url.searchParams.get("override") === "1") {
         return json({ error: "No moderated override" }, 404);
       }
-      let generated = null;
-      let dictDefinitionUsed = false;
-      if (this.env.PA_DICTIONARY && this.env.ANTHROPIC_API_KEY && this.env.GOOGLE_TRANSLATE_API_KEY) {
-        try {
-          const rawDictEntry = await this.env.PA_DICTIONARY.get(word);
-          if (rawDictEntry) {
-            const dictEntry = JSON.parse(rawDictEntry);
-            if (Array.isArray(dictEntry) && dictEntry.length) {
-              const dictResult = await this.generateDefinitionFromDictionary(word, display, tags, dictEntry);
-              if (dictResult?.definition) {
-                generated = dictResult;
-                generated.source = "pdf_dictionary+anthropic+google";
-                generated.definition_source = "pdf_dictionary+anthropic";
-                generated.translation_source = "google";
-                generated.source_language = "pap";
-                generated.target_language = "en";
-                generated.verification_status = "automatic";
-                generated.needs_review = 1;
-                generated.translation_ambiguous = 0;
-                dictDefinitionUsed = true;
-              }
-            }
-          }
-        } catch (e) {
-          console.error("Dictionary-grounded definition failed, falling back to Google-first flow:", e);
-        }
-      }
-      let googleMeaning = null;
-      if (!dictDefinitionUsed) {
-        if (!this.env.GOOGLE_TRANSLATE_API_KEY) {
-          return json(
-            { error: "GOOGLE_TRANSLATE_API_KEY is not configured", word },
-            503
-          );
-        }
-        googleMeaning = await this.googleTranslateWord(display || word);
-        if (!googleMeaning?.meaning) {
-          return json(
-            { error: "Google returned no usable translation", word },
-            502
-          );
-        }
-        if (!this.env.ANTHROPIC_API_KEY) {
-          return json(
-            {
-              error: "ANTHROPIC_API_KEY is not configured",
-              word,
-              googleMeaning: googleMeaning.meaning
-            },
-            503
-          );
-        }
-        generated = await this.generateDefinition(
-          word,
-          display,
-          tags,
-          googleMeaning.meaning
+      const generated = await this.resolveDefinition(word, display, tags);
+      if (!generated) {
+        return json(
+          { error: "Definishon no ta disponibel awor aki", word },
+          503
         );
-        if (generated?.definition) {
-          generated.source = "google+anthropic";
-          generated.definition_source = "anthropic";
-          generated.translation_source = "google";
-          generated.source_language = "pap";
-          generated.target_language = "en";
-          generated.verification_status = "automatic";
-          generated.english = googleMeaning.meaning;
-          generated.needs_review = 1;
-          generated.translation_ambiguous = googleMeaning.needsReview ? 1 : 0;
-        }
       }
       if (generated?.definition) {
         try {
@@ -1256,14 +1193,6 @@ ${text}`;
         } catch (e) {
           console.error("Example sentence lookup failed, keeping Claude's example:", e);
         }
-      }
-      if (!generated || !generated.definition) {
-        return json(
-          {
-            error: "Definishon no ta disponibel awor aki"
-          },
-          503
-        );
       }
       generated.source = generated.source || "ai_fallback";
       await this.env.GAME_HISTORY.prepare(
@@ -1319,7 +1248,15 @@ ${text}`;
         generated.translation_ambiguous ? 1 : 0,
         2
       ).run();
-      return json({ word, tags, ...generated, definitionNl: generated.definition, cached: false }, 200);
+      return json({
+        word,
+        display: generated.display || display,
+        definition: generated.definition,
+        example: generated.example,
+        english: generated.english,
+        source: generated.source,
+        cached: false
+      }, 200);
     } catch (e) {
       if (e.message && e.message.includes("no such table")) {
         await this.ensureGlossaryTable();
@@ -1462,9 +1399,11 @@ If unsure, leave "definition" and "example" empty ("").`;
       }
     );
     if (!response.ok) {
+      const errorBody = await response.text();
       console.error(
         "Claude definition request failed:",
-        response.status
+        response.status,
+        errorBody
       );
       throw new Error("Model request failed");
     }
@@ -1490,15 +1429,12 @@ If unsure, leave "definition" and "example" empty ("").`;
     };
   }
   /*
-      Dictionary-grounded definition path.
+      Dictionary-grounded definition path — simplified.
   
       Given dictionary entries pulled from the PDF-derived Dutch-Papiamentu
       dictionary (KV lookup happens in handleDefine before this is called),
-      asks Claude to write a plain English definition grounded ONLY in that
-      dictionary context — not guessed, not from Google. That English text is
-      then translated to Papiamentu via translateTextGoogle() below, since
-      Google is reliable at plain sentence translation even when it fails at
-      single-word lookups for obscure Papiamentu vocabulary.
+      asks Claude to write the Papiamentu definition directly, grounded in
+      that dictionary context. One API call, no extra Google round-trip.
     */
   async generateDefinitionFromDictionary(word, display, tags, dictEntry) {
     const dutchWords = [...new Set(dictEntry.map((d) => d.nl))];
@@ -1509,8 +1445,8 @@ A Dutch-Papiamentu dictionary shows this word corresponds to the Dutch word(s): 
 Dictionary entries (Dutch context - Papiamentu usage): ${glosses}
 
 Using ONLY this dictionary grounding, give ONLY a valid JSON object, no markdown or extra text, with exactly these two fields:
-- "englishDefinition": a single clear, natural English definition of "${word}", written as a short phrase or sentence a word-game player would understand.
-- "english": a short English translation (a word or short phrase) capturing the core meaning.
+- "definition": un splikashon kla i natural na Papiamentu ku ta deskrib\xED e palabra "${word}", preferiblemente un frase k\xF2rtiku.
+- "english": a short English translation (a word or short phrase).
 
 If unsure, leave both fields empty ("").`;
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -1527,9 +1463,11 @@ If unsure, leave both fields empty ("").`;
       })
     });
     if (!response.ok) {
+      const errorBody = await response.text();
       console.error(
         "Claude dictionary-grounded definition request failed:",
-        response.status
+        response.status,
+        errorBody
       );
       throw new Error("Model request failed");
     }
@@ -1542,60 +1480,74 @@ If unsure, leave both fields empty ("").`;
       console.error("Could not parse dictionary-grounded definition JSON:", text);
       parsed = {};
     }
-    const englishDefinition = (parsed.englishDefinition || "").trim().slice(0, 500);
-    const english = (parsed.english || "").trim().slice(0, 120);
-    if (!englishDefinition) {
-      return {
-        display: (display || word).slice(0, 60),
-        definition: "",
-        example: "",
-        english
-      };
-    }
-    const papiamentuDefinition = await this.translateTextGoogle(
-      englishDefinition,
-      "en",
-      "pap"
-    );
     return {
       display: (display || word).slice(0, 60),
-      definition: (papiamentuDefinition || "").trim().slice(0, 500),
+      definition: (parsed.definition || "").trim().slice(0, 500),
       example: "",
       // filled in separately by getExampleSentence in handleDefine
-      english: english || englishDefinition.slice(0, 120)
+      english: (parsed.english || "").trim().slice(0, 120)
     };
   }
   /*
-    Generic text translation via Google Cloud Translation API — as opposed
-    to googleTranslateWord() above, which translates a single Papiamentu
-    word to English and applies word-specific "did it just echo back"
-    checks. This is used to translate a full English sentence/definition
-    into Papiamentu instead.
-  */
-  async translateTextGoogle(text, sourceLang, targetLang) {
-    try {
-      const res = await fetch(
-        "https://translation.googleapis.com/language/translate/v2",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-goog-api-key": this.env.GOOGLE_TRANSLATE_API_KEY
-          },
-          body: JSON.stringify({
-            q: text,
-            source: sourceLang,
-            target: targetLang,
-            format: "text"
-          })
+      THE TRANSLATION ENGINE.
+  
+      One job: given a word, return a definition — or null if nothing
+      worked. Everything about HOW that happens lives here, in order:
+  
+        1. Try the PDF dictionary (KV) + Claude.
+        2. If that didn't work, try Google + Claude (the original flow).
+        3. If neither worked, return null.
+  
+      handleDefine() doesn't know or care which path succeeded — it just
+      calls this once, checks for null, and moves on to caching/example
+      sentence/D1. All the branching complexity is contained right here.
+    */
+  async resolveDefinition(word, display, tags) {
+    if (this.env.PA_DICTIONARY && this.env.ANTHROPIC_API_KEY) {
+      try {
+        const rawDictEntry = await this.env.PA_DICTIONARY.get(word);
+        const dictEntry = rawDictEntry ? JSON.parse(rawDictEntry) : null;
+        if (Array.isArray(dictEntry) && dictEntry.length) {
+          const result = await this.generateDefinitionFromDictionary(word, display, tags, dictEntry);
+          if (result?.definition) {
+            return {
+              ...result,
+              source: "dictionary",
+              definition_source: "dictionary",
+              translation_source: "dictionary",
+              source_language: "pap",
+              target_language: "en",
+              verification_status: "automatic",
+              needs_review: 1,
+              translation_ambiguous: 0
+            };
+          }
         }
-      );
-      const data = await res.json();
-      return data?.data?.translations?.[0]?.translatedText ?? null;
-    } catch (e) {
-      console.error("Google text translation failed:", e);
-      return null;
+      } catch (e) {
+        console.error(`Dictionary lookup failed for "${word}", trying Google instead:`, e);
+      }
     }
+    if (this.env.GOOGLE_TRANSLATE_API_KEY && this.env.ANTHROPIC_API_KEY) {
+      const googleMeaning = await this.googleTranslateWord(display || word);
+      if (googleMeaning?.meaning) {
+        const result = await this.generateDefinition(word, display, tags, googleMeaning.meaning);
+        if (result?.definition) {
+          return {
+            ...result,
+            source: "google+anthropic",
+            definition_source: "anthropic",
+            translation_source: "google",
+            source_language: "pap",
+            target_language: "en",
+            verification_status: "automatic",
+            english: googleMeaning.meaning,
+            needs_review: 1,
+            translation_ambiguous: googleMeaning.needsReview ? 1 : 0
+          };
+        }
+      }
+    }
+    return null;
   }
   async ensureUsersTable() {
     await this.env.GAME_HISTORY.prepare(
@@ -1929,7 +1881,7 @@ var drainBody = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "drainBody");
 var middleware_ensure_req_body_drained_default = drainBody;
 
-// .wrangler/tmp/bundle-x0UVXF/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-KYTBk1/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default
 ];
@@ -1960,7 +1912,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-x0UVXF/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-KYTBk1/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
