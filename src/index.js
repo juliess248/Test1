@@ -10,6 +10,12 @@ export default class extends WorkerEntrypoint {
     if (url.pathname === "/api/auth/signin" && request.method === "POST") {
       return this.handleSignin(request);
     }
+    if (url.pathname === "/api/auth/me" && request.method === "GET") {
+      return this.handleAuthMe(request);
+    }
+    if (url.pathname === "/api/auth/signout" && request.method === "POST") {
+      return this.handleSignout(request);
+    }
     if (url.pathname === "/api/leaderboard" && request.method === "GET") {
       return this.handleLeaderboardGet(request);
     }
@@ -135,12 +141,44 @@ export default class extends WorkerEntrypoint {
   async handleLeaderboardPost(request) {
     try {
       await this.ensureLeaderboardTable();
-      const { playerId, name, date, score, words, pangrams, maxScore } =
-        await request.json();
 
-      if (!playerId || !name || !date) {
-        return json({ error: "playerId, name, and date required" }, 400);
+      const user =
+        await this.getAuthenticatedUser(
+          request
+        );
+
+      if (!user) {
+        return json(
+          {
+            error:
+              "Sign in required to save score"
+          },
+          401
+        );
       }
+
+      const {
+        date,
+        score,
+        words,
+        pangrams,
+        maxScore
+      } = await request.json();
+
+      if (!date) {
+        return json(
+          {
+            error: "date required"
+          },
+          400
+        );
+      }
+
+      const playerId =
+        "acct:" + user.id;
+
+      const name =
+        user.username;
 
       await this.env.GAME_HISTORY
         .prepare(
@@ -166,53 +204,78 @@ export default class extends WorkerEntrypoint {
         )
         .run();
 
-      const today = await this.env.GAME_HISTORY
-        .prepare(
-          `SELECT player_id AS playerId, name, score, words, pangrams
-           FROM leaderboard_scores
-           WHERE date = ?
-           ORDER BY score DESC
-           LIMIT 100`
-        )
-        .bind(date)
-        .all();
+      const today =
+        await this.env.GAME_HISTORY
+          .prepare(
+            `SELECT
+               player_id AS playerId,
+               name,
+               score,
+               words,
+               pangrams
+             FROM leaderboard_scores
+             WHERE date = ?
+             ORDER BY score DESC
+             LIMIT 100`
+          )
+          .bind(date)
+          .all();
 
-      const allTime = await this.env.GAME_HISTORY
-        .prepare(
-          `SELECT
-             l1.player_id AS playerId,
-             (SELECT name FROM leaderboard_scores l2
-                WHERE l2.player_id = l1.player_id
-                ORDER BY date DESC LIMIT 1) AS name,
-             SUM(l1.score) AS score,
-             COUNT(DISTINCT l1.date) AS days
-           FROM leaderboard_scores l1
-           GROUP BY l1.player_id
-           ORDER BY score DESC
-           LIMIT 100`
-        )
-        .all();
+      const allTime =
+        await this.env.GAME_HISTORY
+          .prepare(
+            `SELECT
+               l1.player_id AS playerId,
+               (
+                 SELECT name
+                 FROM leaderboard_scores l2
+                 WHERE l2.player_id =
+                       l1.player_id
+                 ORDER BY date DESC
+                 LIMIT 1
+               ) AS name,
+               SUM(l1.score) AS score,
+               COUNT(DISTINCT l1.date)
+                 AS days
+             FROM leaderboard_scores l1
+             GROUP BY l1.player_id
+             ORDER BY score DESC
+             LIMIT 100`
+          )
+          .all();
 
-      /*
-        Stats and badges only apply to signed-in accounts
-        (playerId prefixed "acct:") — same rule as progress
-        sync, since they need a stable identity across
-        devices. Anonymous device play is unaffected.
-      */
-      let statsResult = null;
+      const statsResult =
+        await this.recomputeStatsAndBadges(
+          playerId,
+          date
+        );
 
-      if (playerId.startsWith("acct:")) {
-        statsResult = await this.recomputeStatsAndBadges(playerId, date);
-      }
+      return json(
+        {
+          today:
+            today.results || [],
+          allTime:
+            allTime.results || [],
+          stats:
+            statsResult.stats,
+          newBadges:
+            statsResult.newBadges
+        },
+        200
+      );
 
-      return json({
-        today: today.results || [],
-        allTime: allTime.results || [],
-        stats: statsResult ? statsResult.stats : null,
-        newBadges: statsResult ? statsResult.newBadges : [],
-      }, 200);
     } catch (e) {
-      return json({ error: "Server error" }, 500);
+      console.error(
+        "Leaderboard POST error:",
+        e
+      );
+
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
     }
   }
 
@@ -230,84 +293,188 @@ export default class extends WorkerEntrypoint {
       .run();
   }
 
-  /*
   async handleProgressGet(request) {
     try {
       await this.ensureProgressTable();
-      const url = new URL(request.url);
-      const playerId = url.searchParams.get("playerId");
-      const date = url.searchParams.get("date");
 
-      if (!playerId || !date) {
-        return json({ error: "playerId and date query params required" }, 400);
-      }
-      if (!playerId.startsWith("acct:")) {
-        return json({ found: [] }, 200);
+      const user =
+        await this.getAuthenticatedUser(
+          request
+        );
+
+      if (!user) {
+        return json(
+          {
+            error:
+              "Sign in required"
+          },
+          401
+        );
       }
 
-      const row = await this.env.GAME_HISTORY
-        .prepare(
-          `SELECT found_words FROM game_progress
-           WHERE player_id = ? AND date = ?`
-        )
-        .bind(playerId, date)
-        .first();
+      const url =
+        new URL(request.url);
+
+      const date =
+        url.searchParams.get("date");
+
+      if (!date) {
+        return json(
+          {
+            error:
+              "date query param required"
+          },
+          400
+        );
+      }
+
+      const playerId =
+        "acct:" + user.id;
+
+      const row =
+        await this.env.GAME_HISTORY
+          .prepare(
+            `SELECT found_words
+             FROM game_progress
+             WHERE player_id = ?
+               AND date = ?`
+          )
+          .bind(
+            playerId,
+            date
+          )
+          .first();
 
       let found = [];
+
       if (row && row.found_words) {
         try {
-          const parsed = JSON.parse(row.found_words);
-          if (Array.isArray(parsed)) found = parsed;
+          const parsed =
+            JSON.parse(
+              row.found_words
+            );
+
+          if (Array.isArray(parsed)) {
+            found = parsed;
+          }
+
         } catch {
           found = [];
         }
       }
 
-      return json({ found }, 200);
+      return json(
+        {
+          found
+        },
+        200
+      );
+
     } catch (e) {
-      if (e.message && e.message.includes("no such table")) {
-        await this.ensureProgressTable();
-        return this.handleProgressGet(request);
-      }
-      return json({ error: "Server error" }, 500);
+      console.error(
+        "Progress GET error:",
+        e
+      );
+
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
     }
   }
 
   async handleProgressPost(request) {
     try {
       await this.ensureProgressTable();
-      const { playerId, date, found } = await request.json();
 
-      if (!playerId || !date || !Array.isArray(found)) {
-        return json({ error: "playerId, date, and found[] required" }, 400);
-      }
-      if (!playerId.startsWith("acct:")) {
-        return json({ ok: true, skipped: true }, 200);
+      const user =
+        await this.getAuthenticatedUser(
+          request
+        );
+
+      if (!user) {
+        return json(
+          {
+            error:
+              "Sign in required"
+          },
+          401
+        );
       }
 
-      const cleaned = found
-        .filter((word) => typeof word === "string")
-        .slice(0, 500)
-        .map((word) => word.slice(0, 40));
+      const {
+        date,
+        found
+      } = await request.json();
+
+      if (
+        !date ||
+        !Array.isArray(found)
+      ) {
+        return json(
+          {
+            error:
+              "date and found[] required"
+          },
+          400
+        );
+      }
+
+      const playerId =
+        "acct:" + user.id;
+
+      const cleaned =
+        found
+          .filter(
+            word =>
+              typeof word === "string"
+          )
+          .slice(0, 500)
+          .map(
+            word =>
+              word.slice(0, 40)
+          );
 
       await this.env.GAME_HISTORY
         .prepare(
-          `INSERT INTO game_progress (player_id, date, found_words)
+          `INSERT INTO game_progress
+             (player_id, date, found_words)
            VALUES (?, ?, ?)
-           ON CONFLICT(player_id, date) DO UPDATE SET
-             found_words = excluded.found_words,
-             updated_at = datetime('now')`
+           ON CONFLICT(player_id, date)
+           DO UPDATE SET
+             found_words =
+               excluded.found_words,
+             updated_at =
+               datetime('now')`
         )
-        .bind(playerId, date, JSON.stringify(cleaned))
+        .bind(
+          playerId,
+          date,
+          JSON.stringify(cleaned)
+        )
         .run();
 
-      return json({ ok: true }, 200);
+      return json(
+        {
+          ok: true
+        },
+        200
+      );
+
     } catch (e) {
-      if (e.message && e.message.includes("no such table")) {
-        await this.ensureProgressTable();
-        return this.handleProgressPost(request);
-      }
-      return json({ error: "Server error" }, 500);
+      console.error(
+        "Progress POST error:",
+        e
+      );
+
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
     }
   }
 
@@ -633,42 +800,73 @@ export default class extends WorkerEntrypoint {
     try {
       await this.ensureStatsTables();
 
-      const url = new URL(request.url);
-      const playerId = url.searchParams.get("playerId");
+      const user =
+        await this.getAuthenticatedUser(
+          request
+        );
 
-      if (!playerId) {
-        return json({ error: "playerId query param required" }, 400);
+      if (!user) {
+        return json(
+          {
+            error:
+              "Sign in required"
+          },
+          401
+        );
       }
-      if (!playerId.startsWith("acct:")) {
-        return json({ stats: null, badges: [] }, 200);
-      }
 
-      const stats = await this.env.GAME_HISTORY
-        .prepare(`SELECT * FROM player_stats WHERE player_id = ?`)
-        .bind(playerId)
-        .first();
+      const playerId =
+        "acct:" + user.id;
 
-      const badges = await this.env.GAME_HISTORY
-        .prepare(
-          `SELECT b.id, b.category, b.name, b.description, pb.earned_at
-           FROM player_badges pb
-           JOIN badge_definitions b ON b.id = pb.badge_id
-           WHERE pb.player_id = ?
-           ORDER BY b.sort_order ASC`
-        )
-        .bind(playerId)
-        .all();
+      const stats =
+        await this.env.GAME_HISTORY
+          .prepare(
+            `SELECT *
+             FROM player_stats
+             WHERE player_id = ?`
+          )
+          .bind(playerId)
+          .first();
 
-      return json({
-        stats: stats || null,
-        badges: badges.results || [],
-      }, 200);
+      const badges =
+        await this.env.GAME_HISTORY
+          .prepare(
+            `SELECT
+               b.id,
+               b.category,
+               b.name,
+               b.description,
+               pb.earned_at
+             FROM player_badges pb
+             JOIN badge_definitions b
+               ON b.id = pb.badge_id
+             WHERE pb.player_id = ?
+             ORDER BY b.sort_order ASC`
+          )
+          .bind(playerId)
+          .all();
+
+      return json(
+        {
+          stats: stats || null,
+          badges:
+            badges.results || []
+        },
+        200
+      );
+
     } catch (e) {
-      if (e.message && e.message.includes("no such table")) {
-        await this.ensureStatsTables();
-        return this.handleStatsGet(request);
-      }
-      return json({ error: "Server error" }, 500);
+      console.error(
+        "Stats error:",
+        e
+      );
+
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
     }
   }
 
@@ -1857,6 +2055,239 @@ export default class extends WorkerEntrypoint {
     return null;
   }
 
+
+  async ensureAuthSessionsTable() {
+    await this.env.GAME_HISTORY
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS auth_sessions (
+          token_hash TEXT PRIMARY KEY,
+          user_id INTEGER NOT NULL,
+          created_at TEXT DEFAULT (datetime('now')),
+          expires_at TEXT NOT NULL
+        )`
+      )
+      .run();
+
+    await this.env.GAME_HISTORY
+      .prepare(
+        `DELETE FROM auth_sessions
+         WHERE expires_at <= datetime('now')`
+      )
+      .run();
+  }
+
+  getCookie(request, name) {
+    const header =
+      request.headers.get("Cookie") || "";
+
+    for (const item of header.split(";")) {
+      const parts =
+        item.trim().split("=");
+
+      const key =
+        parts.shift();
+
+      if (key === name) {
+        return decodeURIComponent(
+          parts.join("=")
+        );
+      }
+    }
+
+    return null;
+  }
+
+  async hashSessionToken(token) {
+    const data =
+      new TextEncoder().encode(token);
+
+    const digest =
+      await crypto.subtle.digest(
+        "SHA-256",
+        data
+      );
+
+    return Array.from(
+      new Uint8Array(digest)
+    )
+      .map(
+        b =>
+          b.toString(16).padStart(2, "0")
+      )
+      .join("");
+  }
+
+  async getAuthenticatedUser(request) {
+    await this.ensureUsersTable();
+    await this.ensureAuthSessionsTable();
+
+    const token =
+      this.getCookie(
+        request,
+        "pdk_session"
+      );
+
+    if (!token) {
+      return null;
+    }
+
+    const tokenHash =
+      await this.hashSessionToken(token);
+
+    return await this.env.GAME_HISTORY
+      .prepare(
+        `SELECT
+           u.id,
+           u.username
+         FROM auth_sessions s
+         JOIN users u
+           ON u.id = s.user_id
+         WHERE s.token_hash = ?
+           AND s.expires_at > datetime('now')
+         LIMIT 1`
+      )
+      .bind(tokenHash)
+      .first();
+  }
+
+  async createSessionResponse(user) {
+    await this.ensureAuthSessionsTable();
+
+    const token =
+      this.randomHex(32);
+
+    const tokenHash =
+      await this.hashSessionToken(token);
+
+    await this.env.GAME_HISTORY
+      .prepare(
+        `INSERT INTO auth_sessions
+           (token_hash, user_id, expires_at)
+         VALUES (
+           ?,
+           ?,
+           datetime('now', '+30 days')
+         )`
+      )
+      .bind(
+        tokenHash,
+        user.id
+      )
+      .run();
+
+    return new Response(
+      JSON.stringify({
+        authenticated: true,
+        id: user.id,
+        username: user.username
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type":
+            "application/json; charset=utf-8",
+          "Set-Cookie":
+            `pdk_session=${encodeURIComponent(token)}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`
+        }
+      }
+    );
+  }
+
+  async handleAuthMe(request) {
+    try {
+      const user =
+        await this.getAuthenticatedUser(
+          request
+        );
+
+      if (!user) {
+        return json(
+          {
+            authenticated: false
+          },
+          401
+        );
+      }
+
+      return json(
+        {
+          authenticated: true,
+          id: user.id,
+          username: user.username
+        },
+        200
+      );
+
+    } catch (e) {
+      console.error(
+        "Auth me error:",
+        e
+      );
+
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
+    }
+  }
+
+  async handleSignout(request) {
+    try {
+      await this.ensureAuthSessionsTable();
+
+      const token =
+        this.getCookie(
+          request,
+          "pdk_session"
+        );
+
+      if (token) {
+        const tokenHash =
+          await this.hashSessionToken(
+            token
+          );
+
+        await this.env.GAME_HISTORY
+          .prepare(
+            `DELETE FROM auth_sessions
+             WHERE token_hash = ?`
+          )
+          .bind(tokenHash)
+          .run();
+      }
+
+      return new Response(
+        JSON.stringify({
+          ok: true
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type":
+              "application/json; charset=utf-8",
+            "Set-Cookie":
+              "pdk_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
+          }
+        }
+      );
+
+    } catch (e) {
+      console.error(
+        "Signout error:",
+        e
+      );
+
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
+    }
+  }
+
   async ensureUsersTable() {
     await this.env.GAME_HISTORY
       .prepare(
@@ -1888,10 +2319,37 @@ export default class extends WorkerEntrypoint {
   }
 
   async hashPassword(password, salt) {
-    const data = new TextEncoder().encode(salt + password);
-    const digest = await crypto.subtle.digest("SHA-256", data);
-    return Array.from(new Uint8Array(digest))
-      .map((b) => b.toString(16).padStart(2, "0"))
+    const encoder =
+      new TextEncoder();
+
+    const keyMaterial =
+      await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(password),
+        "PBKDF2",
+        false,
+        ["deriveBits"]
+      );
+
+    const bits =
+      await crypto.subtle.deriveBits(
+        {
+          name: "PBKDF2",
+          hash: "SHA-256",
+          salt: encoder.encode(salt),
+          iterations: 100000
+        },
+        keyMaterial,
+        256
+      );
+
+    return Array.from(
+      new Uint8Array(bits)
+    )
+      .map(
+        b =>
+          b.toString(16).padStart(2, "0")
+      )
       .join("");
   }
 
@@ -1899,32 +2357,130 @@ export default class extends WorkerEntrypoint {
     try {
       await this.ensureUsersTable();
 
-      const { username, password } = await request.json();
+      const body =
+        await request.json();
+
+      const username =
+        String(body.username || "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 20);
+
+      const password =
+        String(body.password || "");
+
       if (!username || !password) {
-        return json({ error: "Username and password required" }, 400);
+        return json(
+          {
+            error:
+              "Username and password required"
+          },
+          400
+        );
       }
-      if (password.length < 4) {
-        return json({ error: "Password must be at least 4 characters" }, 400);
+
+      if (password.length < 6) {
+        return json(
+          {
+            error:
+              "Password must be at least 6 characters"
+          },
+          400
+        );
       }
-      const existing = await this.env.GAME_HISTORY
-        .prepare("SELECT username FROM users WHERE username = ?")
-        .bind(username)
-        .first();
+
+      const existing =
+        await this.env.GAME_HISTORY
+          .prepare(
+            `SELECT id
+             FROM users
+             WHERE lower(trim(username))
+                   = lower(trim(?))
+             LIMIT 1`
+          )
+          .bind(username)
+          .first();
+
       if (existing) {
-        return json({ error: "Username already taken" }, 409);
+        return json(
+          {
+            error:
+              "Username already taken"
+          },
+          409
+        );
       }
 
-      const salt = this.randomHex(16);
-      const hashed = await this.hashPassword(password, salt);
+      const salt =
+        this.randomHex(16);
 
-      await this.env.GAME_HISTORY
-        .prepare("INSERT INTO users (username, password, salt) VALUES (?, ?, ?)")
-        .bind(username, hashed, salt)
-        .run();
+      const hashed =
+        await this.hashPassword(
+          password,
+          salt
+        );
 
-      return json({ username }, 200);
+      try {
+        await this.env.GAME_HISTORY
+          .prepare(
+            `INSERT INTO users
+               (username, password, salt)
+             VALUES (?, ?, ?)`
+          )
+          .bind(
+            username,
+            hashed,
+            salt
+          )
+          .run();
+
+      } catch (e) {
+
+        if (
+          String(e)
+            .toLowerCase()
+            .includes("unique")
+        ) {
+          return json(
+            {
+              error:
+                "Username already taken"
+            },
+            409
+          );
+        }
+
+        throw e;
+      }
+
+      const user =
+        await this.env.GAME_HISTORY
+          .prepare(
+            `SELECT id, username
+             FROM users
+             WHERE lower(trim(username))
+                   = lower(trim(?))
+             LIMIT 1`
+          )
+          .bind(username)
+          .first();
+
+      return this.createSessionResponse(
+        user
+      );
+
     } catch (e) {
-      return json({ error: "Server error" }, 500);
+      console.error(
+        "Signup error:",
+        e
+      );
+
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
     }
   }
 
@@ -1932,55 +2488,89 @@ export default class extends WorkerEntrypoint {
     try {
       await this.ensureUsersTable();
 
-      const { username, password } = await request.json();
+      const body =
+        await request.json();
+
+      const username =
+        String(body.username || "")
+          .replace(/\s+/g, " ")
+          .trim();
+
+      const password =
+        String(body.password || "");
+
       if (!username || !password) {
-        return json({ error: "Username and password required" }, 400);
+        return json(
+          {
+            error:
+              "Username and password required"
+          },
+          400
+        );
       }
 
-      const row = await this.env.GAME_HISTORY
-        .prepare("SELECT username, password, salt FROM users WHERE username = ?")
-        .bind(username)
-        .first();
+      const row =
+        await this.env.GAME_HISTORY
+          .prepare(
+            `SELECT
+               id,
+               username,
+               password,
+               salt
+             FROM users
+             WHERE lower(trim(username))
+                   = lower(trim(?))
+             LIMIT 1`
+          )
+          .bind(username)
+          .first();
 
       if (!row) {
-        return json({ error: "Invalid username or password" }, 401);
+        return json(
+          {
+            error:
+              "Invalid username or password"
+          },
+          401
+        );
       }
 
-      let valid = false;
+      const hashed =
+        await this.hashPassword(
+          password,
+          row.salt
+        );
 
-      if (row.salt) {
-        const hashed = await this.hashPassword(password, row.salt);
-        valid = hashed === row.password;
-      } else {
-        /*
-          Legacy row from before hashing was added — this
-          account's "password" column is still plaintext.
-          If it matches, migrate it to a salted hash right
-          now so the plaintext value never gets written or
-          read again after this one comparison.
-        */
-        valid = password === row.password;
-
-        if (valid) {
-          const salt = this.randomHex(16);
-          const hashed = await this.hashPassword(password, salt);
-
-          await this.env.GAME_HISTORY
-            .prepare("UPDATE users SET password = ?, salt = ? WHERE username = ?")
-            .bind(hashed, salt, username)
-            .run();
-        }
+      if (hashed !== row.password) {
+        return json(
+          {
+            error:
+              "Invalid username or password"
+          },
+          401
+        );
       }
 
-      if (!valid) {
-        return json({ error: "Invalid username or password" }, 401);
-      }
+      return this.createSessionResponse({
+        id: row.id,
+        username: row.username
+      });
 
-      return json({ username: row.username }, 200);
     } catch (e) {
-      return json({ error: "Server error" }, 500);
+      console.error(
+        "Signin error:",
+        e
+      );
+
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
     }
   }
+
 }
 
 function escapeHtmlServer(value) {
@@ -2197,7 +2787,14 @@ const AUTH_MODAL_HTML = `
       closePopover();
     }
   });
-  logoutBtn.addEventListener('click', setSignedOut);
+  logoutBtn.addEventListener('click', function(){
+    fetch('/api/auth/signout',{
+      method:'POST'
+    }).finally(function(){
+      setSignedOut();
+      location.reload();
+    });
+  });
   closeBtn.addEventListener('click', closeModal);
   overlay.addEventListener('click', function(e){ if(e.target===overlay) closeModal(); });
   toggle.addEventListener('click', function(){ setMode(mode==='signin' ? 'signup' : 'signin'); });
@@ -2216,9 +2813,7 @@ const AUTH_MODAL_HTML = `
         errorEl.textContent=d.error;
         errorEl.style.display='block';
       }else{
-        localStorage.setItem('cf_user', d.username);
-        setSignedIn(d.username);
-        closeModal();
+        location.reload();
       }
     }).catch(function(){
       errorEl.textContent='Error di konekshon';
@@ -2226,8 +2821,20 @@ const AUTH_MODAL_HTML = `
     });
   });
 
-  var saved=localStorage.getItem('cf_user');
-  if(saved){
-    setSignedIn(saved);
-  }
+  fetch('/api/auth/me',{
+    method:'GET',
+    cache:'no-store'
+  })
+  .then(function(r){
+    if(!r.ok){
+      throw new Error('signed out');
+    }
+    return r.json();
+  })
+  .then(function(d){
+    setSignedIn(d.username);
+  })
+  .catch(function(){
+    setSignedOut();
+  });
 })();</script>`;
