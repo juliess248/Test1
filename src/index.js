@@ -1447,6 +1447,7 @@ export default class extends WorkerEntrypoint {
 
       const url = new URL(request.url);
       const word = (url.searchParams.get("word") || "")
+        .normalize("NFC")
         .trim()
         .toLowerCase();
       const display = url.searchParams.get("display") || word;

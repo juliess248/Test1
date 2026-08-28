@@ -30423,9 +30423,30 @@ function localWordInfo(word){
 
 async function fetchWordInfo(word,display,overrideOnly){
 
-  if(REMOTE_GLOSSARY[word]){
+  /*
+    `word` is accent-folded for gameplay:
+      mèlè -> mele
 
-    return REMOTE_GLOSSARY[word];
+    Definitions must use the actual Papiamentu
+    spelling instead:
+      mèlè -> mèlè
+
+    Otherwise different accented spellings can
+    collide in the glossary/D1 cache.
+  */
+
+  const glossaryWord =
+    String(
+      display || word
+    )
+      .normalize('NFC')
+      .trim()
+      .toLowerCase();
+
+
+  if(REMOTE_GLOSSARY[glossaryWord]){
+
+    return REMOTE_GLOSSARY[glossaryWord];
 
   }
 
@@ -30435,9 +30456,9 @@ async function fetchWordInfo(word,display,overrideOnly){
 
       '/api/define' +
       '?word=' +
-      encodeURIComponent(word) +
+      encodeURIComponent(glossaryWord) +
       '&display=' +
-        encodeURIComponent(display) +
+        encodeURIComponent(display || glossaryWord) +
       '&tags=' +
         encodeURIComponent(WORD_TAGS[word] || '') +
         (overrideOnly ? '&override=1' : '')
@@ -30480,7 +30501,7 @@ async function fetchWordInfo(word,display,overrideOnly){
   };
 
 
-  REMOTE_GLOSSARY[word] =
+  REMOTE_GLOSSARY[glossaryWord] =
     info;
 
   return info;
