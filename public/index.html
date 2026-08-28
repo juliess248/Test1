@@ -955,96 +955,370 @@ header{
 ========================================================= */
 
 .history-section{
-  margin-top:7px;
+  margin-top:10px;
 }
+
 
 .history-title{
   font-family:'Bricolage Grotesque',sans-serif;
 
-  font-size:17px;
-
+  font-size:16px;
   font-weight:800;
 
   margin-bottom:9px;
 }
+
 
 .history-box{
   border:
     1px solid var(--line);
 
   background:
-    rgba(var(--overlay),.04);
+    rgba(var(--overlay),.035);
 
   border-radius:16px;
 
   overflow:hidden;
 
-  margin-bottom:10px;
+  margin-bottom:12px;
 }
+
 
 .history-head{
-  padding:13px 15px;
+  min-height:48px;
+
+  padding:
+    12px
+    15px;
 
   display:flex;
-
+  align-items:center;
   justify-content:space-between;
 
-  border-bottom:1px solid var(--line);
+  gap:12px;
+
+  border-bottom:
+    1px solid var(--line);
 }
 
+
 .history-date{
-  font-weight:700;
+  font-family:
+    'Bricolage Grotesque',
+    sans-serif;
+
+  font-size:14px;
+  font-weight:800;
 }
+
 
 .history-score{
   color:var(--flag-ink);
-  font-weight:700;
+
+  font-family:
+    'Bricolage Grotesque',
+    sans-serif;
+
+  font-size:14px;
+  font-weight:800;
 }
+
 
 .history-body{
-  padding:14px;
+  padding:
+    14px
+    15px
+    15px;
 }
 
+
+/*
+  Compact high-level summary.
+*/
 .history-statline{
   display:flex;
 
   justify-content:space-between;
+  align-items:center;
+
+  gap:12px;
 
   font-size:12px;
 
   color:var(--dim);
 
-  margin-bottom:11px;
+  margin-bottom:14px;
 }
+
+
+.history-statline strong{
+  color:var(--ink);
+  font-weight:700;
+}
+
+
+/*
+  Found words remain visually recognisable,
+  but secondary to the main scoreboard.
+*/
+.history-group{
+  margin-top:2px;
+}
+
+
+.history-group-label{
+  display:block;
+
+  margin-bottom:7px;
+
+  color:var(--dim);
+
+  font-size:11px;
+  font-weight:700;
+
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
 
 .history-words{
   display:flex;
 
   flex-wrap:wrap;
 
-  gap:5px;
+  gap:
+    5px
+    6px;
 }
+
 
 .history-word{
   font-size:12px;
+  font-weight:600;
 
-  padding:3px 7px;
+  line-height:1.25;
+
+  padding:
+    3px
+    7px;
 
   border-radius:999px;
 
-  background:rgba(var(--overlay),.08);
+  background:
+    rgba(var(--overlay),.08);
 }
 
+
+/*
+  Missed words are information, not buttons.
+  Don't make them look like clickable pills.
+*/
 .history-word.missed{
-  opacity:.62;
+  padding:
+    2px
+    0;
+
+  border-radius:0;
+
+  background:transparent;
+
+  color:var(--dim);
+
+  opacity:.82;
+
+  font-weight:600;
 }
+
+
+.history-missed-list
+.history-word.missed:not(:last-child)::after{
+  content:' ·';
+
+  margin-right:4px;
+
+  color:var(--dim2);
+}
+
 
 .history-word.pangram{
-  border:1px solid var(--flag);
+  padding:
+    3px
+    7px;
+
+  border:
+    1px solid var(--flag);
+
+  border-radius:999px;
 
   color:var(--flag-ink);
-  background:rgba(249,227,0,.08);
+
+  background:
+    rgba(249,227,0,.08);
+
+  opacity:1;
 }
+
+
+/*
+  "Falta" becomes a compact summary row instead
+  of displaying 20+ words immediately.
+*/
+.history-missed-summary{
+  min-height:48px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:space-between;
+
+  gap:12px;
+
+  margin-top:15px;
+
+  padding-top:12px;
+
+  border-top:
+    1px solid var(--line);
+}
+
+
+.history-missed-copy{
+  display:flex;
+
+  flex-direction:column;
+
+  gap:2px;
+}
+
+
+.history-missed-label{
+  color:var(--dim);
+
+  font-size:11px;
+  font-weight:700;
+
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
+
+.history-missed-count{
+  color:var(--ink);
+
+  font-size:13px;
+  font-weight:700;
+}
+
+
+/*
+  44px touch target for mobile.
+*/
+.history-missed-toggle{
+  appearance:none;
+
+  min-height:44px;
+
+  padding:
+    0
+    4px
+    0
+    12px;
+
+  border:0;
+
+  background:transparent;
+
+  color:var(--flag-ink);
+
+  font-family:
+    'Karla',
+    system-ui,
+    sans-serif;
+
+  font-size:12.5px;
+  font-weight:800;
+
+  cursor:pointer;
+}
+
+
+.history-missed-toggle:hover{
+  opacity:.78;
+}
+
+
+.history-missed-toggle:focus-visible{
+  outline:
+    2px solid var(--flag);
+
+  outline-offset:2px;
+
+  border-radius:8px;
+}
+
+
+/*
+  Smooth disclosure.
+*/
+.history-missed-list{
+  display:flex;
+
+  flex-wrap:wrap;
+
+  gap:
+    3px
+    0;
+
+  max-height:0;
+
+  overflow:hidden;
+
+  opacity:0;
+
+  margin-top:0;
+
+  transition:
+    max-height .22s ease,
+    opacity .18s ease,
+    margin-top .18s ease;
+}
+
+
+.history-missed-list.is-open{
+  max-height:700px;
+
+  opacity:1;
+
+  margin-top:8px;
+}
+
+
+/*
+  Missed pangrams stay visible even while
+  ordinary missed words are collapsed.
+*/
+.history-missed-pangram{
+  margin-top:15px;
+
+  padding-top:12px;
+
+  border-top:
+    1px solid var(--line);
+}
+
+
+.history-missed-pangram-label{
+  margin-bottom:7px;
+
+  color:var(--dim);
+
+  font-size:11px;
+  font-weight:700;
+
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
 
 .empty-history{
   color:var(--dim);
@@ -1053,7 +1327,18 @@ header{
 
   font-style:italic;
 
-  padding:12px 0;
+  padding:
+    5px
+    0;
+}
+
+
+@media (prefers-reduced-motion:reduce){
+
+  .history-missed-list{
+    transition:none;
+  }
+
 }
 
 
@@ -4165,7 +4450,7 @@ button:focus-visible{
   <div class="history-section">
 
     <div class="history-title">
-      Ayer
+      Ayera
     </div>
 
     <div
@@ -31589,44 +31874,42 @@ function renderHistoryEntry(
     getPuzzleData(date);
 
 
+  const found =
+    Array.isArray(data.found)
+      ? data.found
+      : [];
+
+
+  const answers =
+    Array.isArray(puzzle?.answers)
+      ? puzzle.answers
+      : [];
+
+
   const pangrams =
-    puzzle
+    Array.isArray(puzzle?.pangrams)
       ? puzzle.pangrams
       : [];
 
 
-  const found =
-    data.found || [];
-
-
   const missed =
-    puzzle
-
-      ? puzzle.answers.filter(
-          word =>
-            !found.includes(
-              word
-            )
-        )
-
-      : [];
+    answers.filter(
+      word =>
+        !found.includes(word)
+    );
 
 
   const foundPangrams =
-    pangrams.filter(
+    found.filter(
       word =>
-        found.includes(
-          word
-        )
+        pangrams.includes(word)
     );
 
 
   const missedPangrams =
     pangrams.filter(
       word =>
-        !found.includes(
-          word
-        )
+        !found.includes(word)
     );
 
 
@@ -31645,10 +31928,12 @@ function renderHistoryEntry(
             <span
               class="history-word
               ${isPan ? 'pangram' : ''}">
+
               ${
                 puzzle?.display?.[word]
                 || word
               }
+
             </span>
 
           `;
@@ -31663,21 +31948,16 @@ function renderHistoryEntry(
       .map(
         word => {
 
-          const isPan =
-            pangrams.includes(
-              word
-            );
-
           return `
 
             <span
-              class="history-word
-              missed
-              ${isPan ? 'pangram' : ''}">
+              class="history-word missed">
+
               ${
                 puzzle?.display?.[word]
                 || word
               }
+
             </span>
 
           `;
@@ -31685,6 +31965,15 @@ function renderHistoryEntry(
         }
       )
       .join('');
+
+
+  const missedId =
+    'historyMissed-' +
+    String(date)
+      .replace(
+        /[^a-zA-Z0-9_-]/g,
+        '-'
+      );
 
 
   container.innerHTML = `
@@ -31706,113 +31995,231 @@ function renderHistoryEntry(
 
       <div class="history-body">
 
+
+        <!-- QUICK SUMMARY -->
+
         <div class="history-statline">
 
           <span>
-            ${found.length} / ${puzzle?.answers.length || '?'}
+            <strong>
+              ${found.length}
+              / ${answers.length || '?'}
+            </strong>
             palabra
           </span>
 
           <span>
             ★
-            ${foundPangrams.length}
-            / ${pangrams.length}
+            <strong>
+              ${foundPangrams.length}
+              / ${pangrams.length}
+            </strong>
+            pangrama
           </span>
 
         </div>
 
 
-        <div class="history-statline">
+        <!-- FOUND -->
 
-          <span>
+        <div class="history-group">
+
+          <span class="history-group-label">
             Haña
           </span>
 
+          <div class="history-words">
+
+            ${
+              allFound ||
+              '<span class="empty-history">Nada ainda.</span>'
+            }
+
+          </div>
+
         </div>
 
 
-        <div class="history-words">
+        <!-- MISSED SUMMARY -->
+
+        <div class="history-missed-summary">
+
+          <div class="history-missed-copy">
+
+            <span class="history-missed-label">
+              Falta
+            </span>
+
+            <span class="history-missed-count">
+
+              ${
+                missed.length === 1
+                  ? '1 palabra'
+                  : `${missed.length} palabra`
+              }
+
+            </span>
+
+          </div>
+
 
           ${
-            allFound ||
-            '<span class="empty-history">Nada ainda.</span>'
+            missed.length
+
+              ? `
+
+                <button
+                  class="history-missed-toggle"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="${missedId}">
+
+                  Mira tur
+
+                </button>
+
+              `
+
+              : ''
           }
 
         </div>
 
 
-        <div
-          class="history-statline"
-          style="margin-top:16px">
+        <!-- COLLAPSED MISSED WORDS -->
 
-          <span>
-            Falta
-          </span>
+        ${
+          missed.length
 
-        </div>
+            ? `
+
+              <div
+                class="history-missed-list"
+                id="${missedId}">
+
+                ${allMissed}
+
+              </div>
+
+            `
+
+            : `
+
+              <div class="empty-history">
+                Bo a haña tur palabra! 🎉
+              </div>
+
+            `
+        }
 
 
-        <div class="history-words">
-
-          ${
-            allMissed ||
-            '<span class="empty-history">Bo a haña tur palabra! 🎉</span>'
-          }
-
-        </div>
-
+        <!-- MISSED PANGRAM STAYS VISIBLE -->
 
         ${
           missedPangrams.length
 
-          ? `
+            ? `
 
-            <div
-              class="history-statline"
-              style="margin-top:16px">
+              <div class="history-missed-pangram">
 
-              <span>
-                Pangrama ku bo a falta
-              </span>
+                <div
+                  class="history-missed-pangram-label">
 
-            </div>
+                  Pangrama ku bo a falta
 
-            <div class="history-words">
+                </div>
 
-              ${
+                <div class="history-words">
 
-                missedPangrams
-                  .map(
-                    word => `
+                  ${
+                    missedPangrams
+                      .map(
+                        word => `
 
-                      <span
-                        class="history-word pangram">
-                        ★
-                        ${
-                          puzzle?.display?.[word]
-                          || word
-                        }
-                      </span>
+                          <span
+                            class="history-word pangram">
 
-                    `
-                  )
-                  .join('')
+                            ★
+                            ${
+                              puzzle?.display?.[word]
+                              || word
+                            }
 
-              }
+                          </span>
 
-            </div>
+                        `
+                      )
+                      .join('')
+                  }
 
-          `
+                </div>
 
-          : ''
+              </div>
 
+            `
+
+            : ''
         }
+
 
       </div>
 
     </div>
 
   `;
+
+
+  /*
+    Progressive disclosure:
+    hide ordinary missed words until requested.
+  */
+
+  const toggle =
+    container.querySelector(
+      '.history-missed-toggle'
+    );
+
+
+  const missedList =
+    container.querySelector(
+      '.history-missed-list'
+    );
+
+
+  if(
+    toggle &&
+    missedList
+  ){
+
+    toggle.onclick =
+      () => {
+
+        const expanded =
+          toggle.getAttribute(
+            'aria-expanded'
+          ) === 'true';
+
+
+        toggle.setAttribute(
+          'aria-expanded',
+          String(!expanded)
+        );
+
+
+        missedList.classList.toggle(
+          'is-open',
+          !expanded
+        );
+
+
+        toggle.textContent =
+          expanded
+            ? 'Mira tur'
+            : 'Sera';
+
+      };
+
+  }
 
 }
 
