@@ -33253,34 +33253,30 @@ addEventListener(
     return ctx;
   }
 
-  function playDing() {
+  function playPop() {
     if (!soundEnabled) return;
     const c = getCtx();
     if (c.state === 'suspended') c.resume();
 
-    function tone(freq, dur, gain, delay) {
-      const t0 = c.currentTime + delay;
-      const o = c.createOscillator();
-      const g = c.createGain();
-      o.type = 'triangle';
-      o.frequency.setValueAtTime(freq, t0);
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(gain, t0 + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-      o.connect(g);
-      g.connect(c.destination);
-      o.start(t0);
-      o.stop(t0 + dur + 0.02);
-    }
-
-    tone(880, 0.15, 0.2, 0);
-    tone(1320, 0.15, 0.12, 0.03);
+    const t0 = c.currentTime;
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(500, t0);
+    o.frequency.exponentialRampToValueAtTime(900, t0 + 0.12);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
+    o.connect(g);
+    g.connect(c.destination);
+    o.start(t0);
+    o.stop(t0 + 0.14);
   }
 
-  // Wire the ding to your "Hunga" button
+  // Wire the pop to your "Hunga" button
   const playBtn = document.querySelector('#playBtn');
   if (playBtn) {
-    playBtn.addEventListener('click', playDing);
+    playBtn.addEventListener('click', playPop);
   }
 
   // Mute toggle
