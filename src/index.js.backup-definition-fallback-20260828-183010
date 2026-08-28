@@ -1760,25 +1760,13 @@ export default class extends WorkerEntrypoint {
   }
 
   async generateDefinition(word, display, tags, englishMeaning) {
-
-    const grounding =
-      englishMeaning
-        ? (
-            `Google Cloud Translation translated this Papiamentu word ` +
-            `to English as: "${englishMeaning}".\n` +
-            `Treat this English translation as FIXED grounding. ` +
-            `Do NOT replace it with another English meaning.\n`
-          )
-        : (
-            `Google Cloud Translation did not return a usable English meaning.\n` +
-            `Use your knowledge of Papiamentu cautiously to determine the meaning. ` +
-            `If you are not confident, leave the definition empty rather than inventing one.\n`
-          );
-
     const prompt =
       `Papiamentu word: "${display}" ` +
       `(normalisá: "${word}").\n\n` +
-      grounding +
+      `Google Cloud Translation translated this Papiamentu word ` +
+      `to English as: "${englishMeaning || "none; Google returned no usable result"}".\n` +
+      `Treat this English translation as FIXED grounding. ` +
+      `Do NOT replace it with another English meaning.\n` +
       `Grammatical code: ${tags || "none"}.\n` +
       `The grammatical code and translation are separate pieces ` +
       `of information. Do not use the grammatical code to change ` +
@@ -2000,343 +1988,72 @@ export default class extends WorkerEntrypoint {
     sentence/D1. All the branching complexity is contained right here.
   */
   async resolveDefinition(word, display, tags) {
-
-    const displayWord =
-      String(display || word)
-        .normalize("NFC")
-        .trim()
-        .toLowerCase();
-
-    const normalWord =
-      String(word || displayWord)
-        .normalize("NFC")
-        .trim()
-        .toLowerCase();
-
-    /*
-      Also try the spelling without accent marks.
-
-      Example:
-        mèlè -> mele
-
-      This is useful because different Papiamentu /
-      Papiamento dictionary sources may store either
-      orthography.
-    */
-    const unaccentedDisplay =
-      displayWord
-        .normalize("NFD")
-        .replace(
-          /[\u0300-\u036f]/g,
-          ""
-        )
-        .normalize("NFC");
-
-    const unaccentedWord =
-      normalWord
-        .normalize("NFD")
-        .replace(
-          /[\u0300-\u036f]/g,
-          ""
-        )
-        .normalize("NFC");
-
-
-    // ========================================================
-    // ATTEMPT 1
-    // Dictionary + Claude
-    // ========================================================
-
-    if (
-      this.env.PA_DICTIONARY &&
-      this.env.ANTHROPIC_API_KEY
-    ) {
-
+    // --- Attempt 1: dictionary-grounded (no Google needed for this path) ---
+    if (this.env.PA_DICTIONARY && this.env.ANTHROPIC_API_KEY) {
       try {
-
-        const candidateKeys =
-          [...new Set(
-            [
-              displayWord,
-              normalWord,
-              unaccentedDisplay,
-              unaccentedWord
-            ]
-              .filter(Boolean)
-          )];
-
-
-        console.log(
-          "Dictionary candidates:",
-          candidateKeys
-        );
-
+        // The frontend strips accents from `word` for its own hive-matching
+        // logic (í -> i, é -> e, etc.), but PA_DICTIONARY keys preserve the
+        // original accented spelling (e.g. "metí", not "meti"). Try the
+        // accent-stripped word first, then fall back to the accented
+        // `display` spelling, so accented words don't silently miss.
+        const candidateKeys = [...new Set(
+          [word, (display || "").toLowerCase()].filter(Boolean)
+        )];
 
         let dictEntry = null;
-        let matchedDictionaryKey = null;
-
-
-        for (
-          const candidateKey
-          of candidateKeys
-        ) {
-
-          const rawDictEntry =
-            await this.env.PA_DICTIONARY
-              .get(candidateKey);
-
-
+        for (const candidateKey of candidateKeys) {
+          const rawDictEntry = await this.env.PA_DICTIONARY.get(candidateKey);
           if (rawDictEntry) {
-
-            dictEntry =
-              JSON.parse(
-                rawDictEntry
-              );
-
-            matchedDictionaryKey =
-              candidateKey;
-
+            dictEntry = JSON.parse(rawDictEntry);
             break;
-
           }
-
         }
 
-
-        if (
-          Array.isArray(dictEntry) &&
-          dictEntry.length
-        ) {
-
-          console.log(
-            "Dictionary match:",
-            matchedDictionaryKey
-          );
-
-
-          const result =
-            await this.generateDefinitionFromDictionary(
-              normalWord,
-              displayWord,
-              tags,
-              dictEntry
-            );
-
-
-          if (
-            result?.definition
-          ) {
-
+        if (Array.isArray(dictEntry) && dictEntry.length) {
+          const result = await this.generateDefinitionFromDictionary(word, display, tags, dictEntry);
+          if (result?.definition) {
             return {
-
               ...result,
-
-              source:
-                "dictionary",
-
-              definition_source:
-                "dictionary",
-
-              translation_source:
-                "dictionary",
-
-              source_language:
-                "pap",
-
-              target_language:
-                "en",
-
-              verification_status:
-                "automatic",
-
-              needs_review:
-                1,
-
-              translation_ambiguous:
-                0
-
+              source: "dictionary",
+              definition_source: "dictionary",
+              translation_source: "dictionary",
+              source_language: "pap",
+              target_language: "en",
+              verification_status: "automatic",
+              needs_review: 1,
+              translation_ambiguous: 0,
             };
-
           }
-
         }
-
       } catch (e) {
-
-        console.error(
-          `Dictionary lookup failed for "${displayWord}", trying Google instead:`,
-          e
-        );
-
+        console.error(`Dictionary lookup failed for "${word}", trying Google instead:`, e);
       }
-
     }
 
-
-    // ========================================================
-    // ATTEMPT 2
-    // Google → Claude
-    // ========================================================
-
-    if (
-      this.env.GOOGLE_TRANSLATE_API_KEY &&
-      this.env.ANTHROPIC_API_KEY
-    ) {
-
-      const googleMeaning =
-        await this.googleTranslateWord(
-          displayWord
-        );
-
-
-      if (
-        googleMeaning?.meaning
-      ) {
-
-        const result =
-          await this.generateDefinition(
-            normalWord,
-            displayWord,
-            tags,
-            googleMeaning.meaning
-          );
-
-
-        if (
-          result?.definition
-        ) {
-
+    // --- Attempt 2: Google + Claude (the original fallback flow) ---
+    if (this.env.GOOGLE_TRANSLATE_API_KEY && this.env.ANTHROPIC_API_KEY) {
+      const googleMeaning = await this.googleTranslateWord(display || word);
+      if (googleMeaning?.meaning) {
+        const result = await this.generateDefinition(word, display, tags, googleMeaning.meaning);
+        if (result?.definition) {
           return {
-
             ...result,
-
-            source:
-              "google+anthropic",
-
-            definition_source:
-              "anthropic",
-
-            translation_source:
-              "google",
-
-            source_language:
-              "pap",
-
-            target_language:
-              "en",
-
-            verification_status:
-              "automatic",
-
-            english:
-              googleMeaning.meaning,
-
-            needs_review:
-              1,
-
-            translation_ambiguous:
-              googleMeaning.needsReview
-                ? 1
-                : 0
-
+            source: "google+anthropic",
+            definition_source: "anthropic",
+            translation_source: "google",
+            source_language: "pap",
+            target_language: "en",
+            verification_status: "automatic",
+            english: googleMeaning.meaning,
+            needs_review: 1,
+            translation_ambiguous: googleMeaning.needsReview ? 1 : 0,
           };
-
         }
-
-      } else {
-
-        console.log(
-          `Google returned no usable translation for "${displayWord}".`
-        );
-
       }
-
     }
 
-
-    // ========================================================
-    // ATTEMPT 3
-    // Claude-only fallback
-    //
-    // Important:
-    // This is deliberately marked unverified and needs_review
-    // because it has no Google/dictionary grounding.
-    // ========================================================
-
-    if (
-      this.env.ANTHROPIC_API_KEY
-    ) {
-
-      try {
-
-        console.log(
-          `Trying Anthropic-only fallback for "${displayWord}".`
-        );
-
-
-        const result =
-          await this.generateDefinition(
-            normalWord,
-            displayWord,
-            tags,
-            null
-          );
-
-
-        if (
-          result?.definition
-        ) {
-
-          return {
-
-            ...result,
-
-            source:
-              "anthropic-fallback",
-
-            definition_source:
-              "anthropic",
-
-            translation_source:
-              "anthropic",
-
-            source_language:
-              "pap",
-
-            target_language:
-              "en",
-
-            verification_status:
-              "unverified",
-
-            needs_review:
-              1,
-
-            translation_ambiguous:
-              1
-
-          };
-
-        }
-
-      } catch (e) {
-
-        console.error(
-          `Anthropic fallback failed for "${displayWord}":`,
-          e
-        );
-
-      }
-
-    }
-
-
-    console.error(
-      `No definition source succeeded for "${displayWord}".`
-    );
-
+    // Nothing worked.
     return null;
-
   }
 
 

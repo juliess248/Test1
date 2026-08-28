@@ -1269,35 +1269,6 @@ header{
   display:none;
 }
 
-/*
-  Privacy and About are opened from the landing page.
-
-  The landing page uses z-index:80, while normal
-  amiga overlays use z-index:60.
-
-  These two overlays therefore need to sit above
-  the landing page.
-*/
-#privacyOverlay,
-#aboutOverlay{
-  z-index:120;
-}
-
-/*
-  Keep Privasidat and Tokante nos visually consistent.
-  Both use the same landing-page legal sheet height.
-*/
-#privacyOverlay .amiga-sheet,
-#aboutOverlay .amiga-sheet{
-  height:min(78vh,680px);
-  min-height:min(78vh,680px);
-}
-
-#privacyOverlay .legal-text,
-#aboutOverlay .legal-text{
-  overflow-y:auto;
-}
-
 .amiga-backdrop{
   position:absolute;
   inset:0;

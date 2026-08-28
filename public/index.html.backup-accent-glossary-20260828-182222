@@ -1269,35 +1269,6 @@ header{
   display:none;
 }
 
-/*
-  Privacy and About are opened from the landing page.
-
-  The landing page uses z-index:80, while normal
-  amiga overlays use z-index:60.
-
-  These two overlays therefore need to sit above
-  the landing page.
-*/
-#privacyOverlay,
-#aboutOverlay{
-  z-index:120;
-}
-
-/*
-  Keep Privasidat and Tokante nos visually consistent.
-  Both use the same landing-page legal sheet height.
-*/
-#privacyOverlay .amiga-sheet,
-#aboutOverlay .amiga-sheet{
-  height:min(78vh,680px);
-  min-height:min(78vh,680px);
-}
-
-#privacyOverlay .legal-text,
-#aboutOverlay .legal-text{
-  overflow-y:auto;
-}
-
 .amiga-backdrop{
   position:absolute;
   inset:0;
@@ -30452,30 +30423,9 @@ function localWordInfo(word){
 
 async function fetchWordInfo(word,display,overrideOnly){
 
-  /*
-    `word` is accent-folded for gameplay:
-      mèlè -> mele
+  if(REMOTE_GLOSSARY[word]){
 
-    Definitions must use the actual Papiamentu
-    spelling instead:
-      mèlè -> mèlè
-
-    Otherwise different accented spellings can
-    collide in the glossary/D1 cache.
-  */
-
-  const glossaryWord =
-    String(
-      display || word
-    )
-      .normalize('NFC')
-      .trim()
-      .toLowerCase();
-
-
-  if(REMOTE_GLOSSARY[glossaryWord]){
-
-    return REMOTE_GLOSSARY[glossaryWord];
+    return REMOTE_GLOSSARY[word];
 
   }
 
@@ -30485,9 +30435,9 @@ async function fetchWordInfo(word,display,overrideOnly){
 
       '/api/define' +
       '?word=' +
-      encodeURIComponent(glossaryWord) +
+      encodeURIComponent(word) +
       '&display=' +
-        encodeURIComponent(display || glossaryWord) +
+        encodeURIComponent(display) +
       '&tags=' +
         encodeURIComponent(WORD_TAGS[word] || '') +
         (overrideOnly ? '&override=1' : '')
@@ -30530,7 +30480,7 @@ async function fetchWordInfo(word,display,overrideOnly){
   };
 
 
-  REMOTE_GLOSSARY[glossaryWord] =
+  REMOTE_GLOSSARY[word] =
     info;
 
   return info;
