@@ -2440,11 +2440,43 @@ button:focus-visible{
   height:100%;
 }
 
+
+/* Curaçao flag stars above landing title */
+.curacao-stars{
+  position:relative;
+  z-index:1;
+
+  width:52px;
+  height:29px;
+
+  margin:0 auto 5px;
+}
+
+.curacao-star{
+  position:absolute;
+  display:block;
+  fill:#FFFFFF;
+}
+
+.curacao-star-large{
+  width:21px;
+  height:21px;
+  left:5px;
+  bottom:0;
+}
+
+.curacao-star-small{
+  width:13px;
+  height:13px;
+  right:6px;
+  top:0;
+}
+
 .landing-title{
   position:relative;
   z-index:1;
 
-  margin-top:28px;
+  margin-top:7px;
 
   font-family:'Bricolage Grotesque',sans-serif;
 
@@ -2716,6 +2748,16 @@ button:focus-visible{
 <div
   class="landing"
   id="landingPage">
+
+  <div class="curacao-stars" aria-hidden="true">
+    <svg class="curacao-star curacao-star-large" viewBox="0 0 24 24">
+      <path d="M12 2.5l2.83 5.73 6.32.92-4.57 4.46 1.08 6.3L12 16.94 6.34 19.9l1.08-6.3L2.85 9.15l6.32-.92L12 2.5z"/>
+    </svg>
+
+    <svg class="curacao-star curacao-star-small" viewBox="0 0 24 24">
+      <path d="M12 2.5l2.83 5.73 6.32.92-4.57 4.46 1.08 6.3L12 16.94 6.34 19.9l1.08-6.3L2.85 9.15l6.32-.92L12 2.5z"/>
+    </svg>
+  </div>
 
   <div class="landing-title">
     Palabra di <span>Kòrsou</span>
