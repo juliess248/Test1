@@ -33237,5 +33237,65 @@ addEventListener(
 
 </script>
 
+<!-- Add near the bottom of your landing page HTML, before </body> -->
+<button id="sound-toggle" aria-label="Toggle sound" style="position:absolute; bottom:16px; right:16px; background:none; border:none; cursor:pointer; opacity:0.6; font-size:20px;">
+  🔊
+</button>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'palabraSoundEnabled';
+  let soundEnabled = localStorage.getItem(STORAGE_KEY) !== 'false'; // default: on
+  let ctx;
+
+  function getCtx() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    return ctx;
+  }
+
+  function playDing() {
+    if (!soundEnabled) return;
+    const c = getCtx();
+    if (c.state === 'suspended') c.resume();
+
+    function tone(freq, dur, gain, delay) {
+      const t0 = c.currentTime + delay;
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(gain, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g);
+      g.connect(c.destination);
+      o.start(t0);
+      o.stop(t0 + dur + 0.02);
+    }
+
+    tone(880, 0.15, 0.2, 0);
+    tone(1320, 0.15, 0.12, 0.03);
+  }
+
+  // Wire the ding to your "Hunga" button — update the selector to match your actual button
+  const playBtn = document.querySelector('#hunga-button, .hunga-btn, [data-action="play"]');
+  if (playBtn) {
+    playBtn.addEventListener('click', playDing);
+  }
+
+  // Mute toggle
+  const toggleBtn = document.getElementById('sound-toggle');
+  function updateIcon() {
+    toggleBtn.textContent = soundEnabled ? '🔊' : '🔇';
+  }
+  updateIcon();
+  toggleBtn.addEventListener('click', function() {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem(STORAGE_KEY, soundEnabled);
+    updateIcon();
+  });
+})();
+</script>
+
 </body>
 </html>
