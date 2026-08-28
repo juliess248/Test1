@@ -1867,6 +1867,839 @@ header{
   background:rgba(var(--overlay),.04);
 }
 
+
+/* ===== AMIGA PROGRESS REDESIGN ===== */
+
+.amiga-progress-sheet{
+  max-height:min(88vh,760px);
+}
+
+
+/* Sticky header keeps close button available */
+
+.amiga-progress-sheet .amiga-head{
+  position:sticky;
+  top:-18px;
+  z-index:5;
+
+  margin:-18px 0 10px;
+  padding:18px 0 10px;
+
+  background:var(--bg);
+}
+
+
+.amiga-kicker{
+  margin-bottom:2px;
+
+  color:var(--dim2);
+
+  font-size:10px;
+  font-weight:800;
+
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+
+
+.amiga-progress-sheet .amiga-title{
+  font-size:23px;
+  letter-spacing:-.025em;
+}
+
+
+/* ========================================================
+   HERO PROGRESS
+======================================================== */
+
+.amiga-progress-hero{
+  padding:16px;
+
+  border:
+    1px solid
+    rgba(249,227,0,.26);
+
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(249,227,0,.14),
+      rgba(15,159,224,.07)
+    );
+
+  margin-bottom:11px;
+}
+
+
+.amiga-progress-top{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+
+  gap:12px;
+}
+
+
+.amiga-progress-number{
+  display:flex;
+  align-items:baseline;
+
+  gap:5px;
+}
+
+
+.amiga-progress-number strong{
+  color:var(--ink);
+
+  font-family:
+    'Bricolage Grotesque',
+    sans-serif;
+
+  font-size:28px;
+  font-weight:800;
+
+  letter-spacing:-.04em;
+}
+
+
+.amiga-progress-number span{
+  color:var(--dim);
+
+  font-size:13px;
+  font-weight:600;
+}
+
+
+.amiga-progress-percent{
+  color:var(--flag-ink);
+
+  font-family:
+    'Bricolage Grotesque',
+    sans-serif;
+
+  font-size:18px;
+  font-weight:800;
+}
+
+
+.amiga-progress-track{
+  height:7px;
+
+  margin-top:12px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:
+    rgba(var(--overlay),.10);
+}
+
+
+.amiga-progress-track i{
+  display:block;
+
+  width:0;
+  height:100%;
+
+  border-radius:inherit;
+
+  background:var(--flag);
+
+  transition:
+    width .65s
+    cubic-bezier(.2,.85,.25,1);
+}
+
+
+.amiga-progress-caption{
+  margin-top:8px;
+
+  color:var(--dim);
+
+  font-size:11.5px;
+  font-weight:600;
+}
+
+
+/* ========================================================
+   BEST NEXT GROUP
+======================================================== */
+
+.amiga-next{
+  min-height:56px;
+
+  display:flex;
+  align-items:center;
+
+  gap:11px;
+
+  padding:10px 12px;
+
+  margin-bottom:12px;
+
+  border:
+    1px solid
+    rgba(15,159,224,.25);
+
+  border-radius:15px;
+
+  background:
+    rgba(15,159,224,.07);
+}
+
+
+.amiga-next.is-hidden{
+  display:none;
+}
+
+
+.amiga-next-icon{
+  width:34px;
+  height:34px;
+
+  flex-shrink:0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:11px;
+
+  background:
+    rgba(249,227,0,.15);
+
+  font-size:17px;
+}
+
+
+.amiga-next-copy{
+  min-width:0;
+  flex:1;
+
+  display:flex;
+  flex-direction:column;
+}
+
+
+.amiga-next-copy span{
+  color:var(--dim);
+
+  font-size:10.5px;
+  font-weight:700;
+}
+
+
+.amiga-next-copy strong{
+  margin-top:1px;
+
+  color:var(--ink);
+
+  font-family:
+    'Bricolage Grotesque',
+    sans-serif;
+
+  font-size:17px;
+  font-weight:800;
+}
+
+
+.amiga-next-count{
+  color:var(--flag-ink);
+
+  font-size:12px;
+  font-weight:800;
+
+  white-space:nowrap;
+}
+
+
+.amiga-short-help{
+  margin:
+    4px 2px
+    14px;
+
+  color:var(--dim);
+
+  font-size:12.5px;
+  line-height:1.45;
+}
+
+
+/* ========================================================
+   GROUP LIST
+======================================================== */
+
+.amiga-group-list{
+  display:flex;
+  flex-direction:column;
+
+  gap:9px;
+}
+
+
+.amiga-list-section{
+  display:flex;
+  flex-direction:column;
+
+  gap:8px;
+}
+
+
+.amiga-list-section +
+.amiga-list-section{
+  margin-top:12px;
+}
+
+
+.amiga-section-label{
+  display:flex;
+  align-items:center;
+
+  gap:7px;
+
+  padding:0 2px;
+
+  color:var(--dim2);
+
+  font-size:10px;
+  font-weight:800;
+
+  letter-spacing:.09em;
+  text-transform:uppercase;
+}
+
+
+.amiga-section-label span{
+  min-width:19px;
+  height:19px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:999px;
+
+  background:
+    rgba(var(--overlay),.07);
+
+  color:var(--dim);
+
+  font-size:10px;
+  letter-spacing:0;
+}
+
+
+/* ========================================================
+   PREFIX CARD
+======================================================== */
+
+.amiga-prefix-group{
+  overflow:hidden;
+
+  border:1px solid var(--line);
+
+  border-radius:17px;
+
+  background:
+    rgba(var(--overlay),.025);
+
+  animation:
+    amigaCardIn
+    .3s
+    cubic-bezier(.2,.8,.2,1)
+    both;
+
+  transition:
+    border-color .18s,
+    background .18s,
+    transform .15s;
+}
+
+
+@keyframes amigaCardIn{
+  from{
+    opacity:0;
+    transform:translateY(6px);
+  }
+}
+
+
+.amiga-prefix-group.is-open{
+  border-color:
+    rgba(249,227,0,.34);
+
+  background:
+    rgba(249,227,0,.025);
+}
+
+
+.amiga-prefix-card{
+  appearance:none;
+
+  width:100%;
+  min-height:72px;
+
+  display:flex;
+  align-items:center;
+
+  gap:12px;
+
+  padding:11px 12px;
+
+  border:0;
+
+  background:transparent;
+
+  color:var(--ink);
+
+  text-align:left;
+
+  cursor:pointer;
+}
+
+
+.amiga-prefix-card:active{
+  transform:scale(.99);
+}
+
+
+.amiga-prefix-badge{
+  width:46px;
+  height:46px;
+
+  flex-shrink:0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:
+    1px solid
+    rgba(249,227,0,.30);
+
+  border-radius:14px;
+
+  background:
+    rgba(249,227,0,.12);
+
+  color:var(--flag-ink);
+
+  font-family:
+    'Bricolage Grotesque',
+    sans-serif;
+
+  font-size:17px;
+  font-weight:800;
+
+  letter-spacing:.02em;
+}
+
+
+.amiga-prefix-main{
+  min-width:0;
+  flex:1;
+}
+
+
+.amiga-prefix-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  gap:8px;
+
+  margin-bottom:7px;
+}
+
+
+.amiga-prefix-count{
+  font-size:13px;
+  font-weight:700;
+}
+
+
+.amiga-prefix-count strong{
+  color:var(--ink);
+
+  font-size:15px;
+  font-weight:800;
+}
+
+
+.amiga-prefix-status{
+  color:var(--flag-ink);
+
+  font-size:11px;
+  font-weight:800;
+
+  white-space:nowrap;
+}
+
+
+.amiga-mini-track{
+  height:4px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:
+    rgba(var(--overlay),.09);
+}
+
+
+.amiga-mini-track i{
+  display:block;
+
+  height:100%;
+
+  border-radius:inherit;
+
+  background:var(--flag);
+}
+
+
+.amiga-prefix-meta{
+  display:block;
+
+  margin-top:6px;
+
+  color:var(--dim2);
+
+  font-size:10.5px;
+  font-weight:600;
+}
+
+
+.amiga-chevron{
+  flex-shrink:0;
+
+  color:var(--dim2);
+
+  font-size:18px;
+
+  transform:rotate(0deg);
+
+  transition:transform .18s;
+}
+
+
+.amiga-prefix-group.is-open
+.amiga-chevron{
+  transform:rotate(180deg);
+}
+
+
+/* ========================================================
+   COMPLETED PREFIX
+======================================================== */
+
+.amiga-prefix-group.is-complete{
+  background:
+    rgba(111,191,168,.055);
+}
+
+
+.amiga-prefix-group.is-complete
+.amiga-prefix-badge{
+  border-color:
+    rgba(111,191,168,.30);
+
+  background:
+    rgba(111,191,168,.13);
+
+  color:var(--ok);
+}
+
+
+.amiga-prefix-group.is-complete
+.amiga-mini-track i{
+  background:var(--ok);
+}
+
+
+.amiga-prefix-group.is-complete
+.amiga-prefix-status{
+  color:var(--ok);
+}
+
+
+/* ========================================================
+   EXPANDED DETAILS
+======================================================== */
+
+.amiga-prefix-detail{
+  padding:
+    2px
+    13px
+    14px
+    71px;
+}
+
+
+.amiga-prefix-detail[hidden]{
+  display:none;
+}
+
+
+.amiga-detail-block +
+.amiga-detail-block{
+  margin-top:14px;
+}
+
+
+.amiga-detail-label{
+  margin-bottom:7px;
+
+  color:var(--dim2);
+
+  font-size:9.5px;
+  font-weight:800;
+
+  letter-spacing:.10em;
+  text-transform:uppercase;
+}
+
+
+.amiga-found-list{
+  display:flex;
+  flex-wrap:wrap;
+
+  gap:6px;
+}
+
+
+.amiga-found-chip{
+  display:inline-flex;
+  align-items:center;
+
+  min-height:28px;
+
+  padding:5px 9px;
+
+  border:
+    1px solid
+    rgba(111,191,168,.24);
+
+  border-radius:999px;
+
+  background:
+    rgba(111,191,168,.10);
+
+  color:var(--ink);
+
+  font-size:11.5px;
+  font-weight:700;
+}
+
+
+.amiga-found-chip.is-pangram{
+  border-color:
+    rgba(249,227,0,.35);
+
+  background:
+    rgba(249,227,0,.12);
+
+  color:var(--flag-ink);
+}
+
+
+.amiga-none-yet{
+  color:var(--dim2);
+
+  font-size:11.5px;
+  font-style:italic;
+}
+
+
+/* ========================================================
+   MISSING WORD HINTS
+======================================================== */
+
+.amiga-missing-list{
+  display:flex;
+  flex-direction:column;
+
+  gap:6px;
+}
+
+
+.amiga-missing-word{
+  min-height:36px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  gap:8px;
+
+  padding:7px 9px;
+
+  border-radius:10px;
+
+  background:
+    rgba(var(--overlay),.045);
+}
+
+
+.amiga-missing-pattern{
+  display:flex;
+  align-items:center;
+
+  min-width:0;
+
+  gap:5px;
+}
+
+
+.amiga-missing-pattern b{
+  color:var(--ink);
+
+  font-family:
+    'Bricolage Grotesque',
+    sans-serif;
+
+  font-size:12px;
+  font-weight:800;
+}
+
+
+.amiga-missing-dots{
+  display:flex;
+
+  gap:3px;
+}
+
+
+.amiga-missing-dots span{
+  width:7px;
+  height:2px;
+
+  display:block;
+
+  border-radius:999px;
+
+  background:
+    rgba(var(--overlay),.30);
+}
+
+
+.amiga-missing-length{
+  flex-shrink:0;
+
+  color:var(--dim);
+
+  font-size:10.5px;
+  font-weight:700;
+}
+
+
+/* ========================================================
+   COMPLETION REWARD
+======================================================== */
+
+.amiga-complete-banner{
+  margin-top:12px;
+
+  display:flex;
+  align-items:center;
+
+  gap:12px;
+
+  padding:14px;
+
+  border:
+    1px solid
+    rgba(111,191,168,.32);
+
+  border-radius:16px;
+
+  background:
+    rgba(111,191,168,.10);
+
+  animation:
+    amigaCompletePop
+    .4s
+    cubic-bezier(.2,1.25,.4,1);
+}
+
+
+.amiga-complete-banner.is-hidden{
+  display:none;
+}
+
+
+@keyframes amigaCompletePop{
+  from{
+    opacity:0;
+    transform:scale(.94);
+  }
+}
+
+
+.amiga-complete-icon{
+  width:40px;
+  height:40px;
+
+  flex-shrink:0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:13px;
+
+  background:
+    rgba(249,227,0,.15);
+
+  font-size:20px;
+}
+
+
+.amiga-complete-banner strong{
+  display:block;
+
+  color:var(--ink);
+
+  font-family:
+    'Bricolage Grotesque',
+    sans-serif;
+
+  font-size:14px;
+  font-weight:800;
+}
+
+
+.amiga-complete-banner span{
+  display:block;
+
+  margin-top:2px;
+
+  color:var(--dim);
+
+  font-size:11px;
+}
+
+
+@media(max-width:360px){
+
+  .amiga-prefix-detail{
+    padding-left:13px;
+  }
+
+  .amiga-prefix-badge{
+    width:42px;
+    height:42px;
+  }
+
+}
+
+
+/* ===== END AMIGA PROGRESS REDESIGN ===== */
+
+
 .glossary-sheet{
   max-height:min(74vh,620px);
   padding-top:14px;
@@ -4141,56 +4974,137 @@ button:focus-visible{
 
 
 <!-- AMIGA -->
-
 <div
   class="amiga-overlay is-hidden"
-  id="amigaOverlay">
+  id="amigaOverlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="amigaTitle">
 
   <div
     class="amiga-backdrop"
     id="amigaBackdrop">
   </div>
 
-  <div class="amiga-sheet">
+  <div class="amiga-sheet amiga-progress-sheet">
 
     <div class="amiga-head">
 
-      <div class="amiga-title">
-        Tabla di lèternan
+      <div>
+        <div class="amiga-kicker">
+          Bo progreso
+        </div>
+
+        <div
+          class="amiga-title"
+          id="amigaTitle">
+          Tabla di lèternan
+        </div>
       </div>
 
       <button
         class="amiga-close"
         id="amigaClose"
+        type="button"
         aria-label="Sera">
         ✕
       </button>
 
     </div>
 
-    <div
-      class="amiga-msg"
-      id="amigaMsg">
-      E tabla aki ta mustra kuantu palabra resta pa kada
-      kombinashon di promé dos lèter i largura di e palabra.
-      Usa esaki pa yuda bo pensa riba kua palabra ta posibel.
+
+    <!-- OVERALL PROGRESS -->
+    <div class="amiga-progress-hero">
+
+      <div class="amiga-progress-top">
+
+        <div class="amiga-progress-number">
+
+          <strong id="amigaFoundCount">
+            0
+          </strong>
+
+          <span>
+            / <span id="amigaTotalCount">0</span>
+            palabra
+          </span>
+
+        </div>
+
+        <div
+          class="amiga-progress-percent"
+          id="amigaProgressPct">
+          0%
+        </div>
+
+      </div>
+
+      <div class="amiga-progress-track">
+        <i id="amigaProgressBar"></i>
+      </div>
+
+      <div
+        class="amiga-progress-caption"
+        id="amigaProgressCaption">
+      </div>
+
     </div>
 
+
+    <!-- RECOMMENDED PREFIX -->
     <div
-      class="amiga-table-wrap"
+      class="amiga-next is-hidden"
+      id="amigaNext">
+
+      <div class="amiga-next-icon">
+        💡
+      </div>
+
+      <div class="amiga-next-copy">
+
+        <span>
+          Bon pa sigui
+        </span>
+
+        <strong id="amigaNextPrefix"></strong>
+
+      </div>
+
+      <div
+        class="amiga-next-count"
+        id="amigaNextCount">
+      </div>
+
+    </div>
+
+
+    <div class="amiga-short-help">
+      Toca un grupo pa mira loke bo a haña
+      i kua palabra ainda falta.
+    </div>
+
+
+    <!-- PREFIX CARDS -->
+    <div
+      class="amiga-group-list"
       id="hintTableWrap">
-
-      <table
-        class="amiga-table"
-        id="amigaTable">
-      </table>
-
     </div>
 
+
+    <!-- FULL COMPLETION REWARD -->
     <div
-      class="amiga-empty is-hidden"
+      class="amiga-complete-banner is-hidden"
       id="hintEmpty">
-      Bo a haña tur palabra kaba! 🌴
+
+      <div class="amiga-complete-icon">
+        🏆
+      </div>
+
+      <div>
+        <strong>Tur palabra hañá!</strong>
+        <span>Bo a kompletá tur grupo di awe.</span>
+      </div>
+
     </div>
 
   </div>
@@ -31108,191 +32022,848 @@ function remainingAnswers(){
   possible words was even being hinted at.
 */
 
+function escapeAmigaHtml(value){
+
+  return String(value)
+    .replace(
+      /[&<>"']/g,
+      character => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#039;'
+      })[character]
+    );
+
+}
+
+
+/*
+  Build progress from ALL answers — not only the
+  remaining answers.
+
+  That lets the player see both:
+    - words already found
+    - word slots still missing
+*/
 function buildHintData(){
 
   const grouped = {};
 
+
+  [...P.answers]
+    .sort()
+    .forEach(
+      word => {
+
+        const characters =
+          [...word];
+
+        const prefix =
+          characters
+            .slice(0,2)
+            .join('')
+            .toUpperCase();
+
+
+        if(!grouped[prefix]){
+
+          grouped[prefix] = {
+            prefix,
+            words:[]
+          };
+
+        }
+
+
+        grouped[prefix]
+          .words
+          .push({
+
+            word,
+
+            display:
+              P.displayForm(word),
+
+            length:
+              characters.length,
+
+            found:
+              P.found.has(word)
+
+          });
+
+      }
+    );
+
+
+  return Object
+    .values(grouped)
+    .map(
+      group => {
+
+        const foundWords =
+          group.words.filter(
+            item => item.found
+          );
+
+        const missingWords =
+          group.words.filter(
+            item => !item.found
+          );
+
+        const lengths =
+          [
+            ...new Set(
+              group.words.map(
+                item => item.length
+              )
+            )
+          ].sort(
+            (a,b) => a - b
+          );
+
+
+        return {
+
+          prefix:
+            group.prefix,
+
+          words:
+            group.words,
+
+          foundWords,
+
+          missingWords,
+
+          found:
+            foundWords.length,
+
+          missing:
+            missingWords.length,
+
+          total:
+            group.words.length,
+
+          complete:
+            missingWords.length === 0,
+
+          pct:
+            group.words.length
+              ? Math.round(
+                  foundWords.length /
+                  group.words.length *
+                  100
+                )
+              : 0,
+
+          lengths
+
+        };
+
+      }
+    )
+    .sort(
+      (a,b) => {
+
+        /*
+          Incomplete groups first.
+          Inside those, put groups with the most
+          possibilities at the top.
+          Completed groups move to the bottom.
+        */
+
+        if(a.complete !== b.complete){
+
+          return a.complete
+            ? 1
+            : -1;
+
+        }
+
+        if(!a.complete){
+
+          return (
+            b.missing -
+            a.missing
+          ) || (
+            b.total -
+            a.total
+          ) || (
+            a.prefix
+              .localeCompare(
+                b.prefix
+              )
+          );
+
+        }
+
+        return a.prefix
+          .localeCompare(
+            b.prefix
+          );
+
+      }
+    );
+
+}
+
+
+
+function renderAmigaGroup(
+  group,
+  index
+){
+
+  const detailId =
+    'amiga-prefix-' +
+    group.prefix
+      .replace(
+        /[^A-Z0-9]/g,
+        ''
+      );
+
+
+  const foundHtml =
+    group.foundWords.length
+
+      ? group.foundWords
+          .map(
+            item => {
+
+              const pangram =
+                P.pangrams.has(
+                  item.word
+                );
+
+              return `
+                <span
+                  class="
+                    amiga-found-chip
+                    ${
+                      pangram
+                        ? 'is-pangram'
+                        : ''
+                    }
+                  ">
+
+                  ${
+                    pangram
+                      ? '★'
+                      : '✓'
+                  }
+
+                  ${
+                    escapeAmigaHtml(
+                      item.display
+                    )
+                  }
+
+                </span>
+              `;
+
+            }
+          )
+          .join('')
+
+      : `
+          <span class="amiga-none-yet">
+            Nada ainda
+          </span>
+        `;
+
+
+  const missingHtml =
+    group.missingWords.length
+
+      ? group.missingWords
+          .map(
+            item => {
+
+              const remainingLetters =
+                Math.max(
+                  0,
+                  item.length - 2
+                );
+
+              const dots =
+                Array.from(
+                  {
+                    length:
+                      remainingLetters
+                  },
+                  () =>
+                    '<span></span>'
+                )
+                .join('');
+
+
+              return `
+                <div
+                  class="amiga-missing-word">
+
+                  <div
+                    class="amiga-missing-pattern">
+
+                    <b>
+                      ${
+                        escapeAmigaHtml(
+                          group.prefix
+                        )
+                      }
+                    </b>
+
+                    <span
+                      class="amiga-missing-dots"
+                      aria-hidden="true">
+                      ${dots}
+                    </span>
+
+                  </div>
+
+                  <span
+                    class="amiga-missing-length">
+
+                    ${item.length}
+                    lèter
+
+                  </span>
+
+                </div>
+              `;
+
+            }
+          )
+          .join('')
+
+      : `
+          <span class="amiga-none-yet">
+            ✓ E grupo aki ta kompletá
+          </span>
+        `;
+
+
   const lengths =
-    new Set();
+    group.lengths.join(' · ');
 
 
-  remainingAnswers().forEach(
-    word => {
+  return `
+    <div
+      class="
+        amiga-prefix-group
+        ${
+          group.complete
+            ? 'is-complete'
+            : ''
+        }
+      "
+      style="
+        animation-delay:
+        ${Math.min(index * 35,210)}ms
+      ">
 
-      const prefix =
-        word.slice(0,2)
-          .toUpperCase();
+      <button
+        class="amiga-prefix-card"
+        type="button"
+        aria-expanded="false"
+        aria-controls="${detailId}">
 
-      const len =
-        [...word].length;
+        <span
+          class="amiga-prefix-badge">
 
-      lengths.add(len);
+          ${
+            escapeAmigaHtml(
+              group.prefix
+            )
+          }
 
-      grouped[prefix] =
-        grouped[prefix] || {};
+        </span>
 
-      grouped[prefix][len] =
-        (grouped[prefix][len] || 0) + 1;
+
+        <span
+          class="amiga-prefix-main">
+
+          <span
+            class="amiga-prefix-top">
+
+            <span
+              class="amiga-prefix-count">
+
+              <strong>
+                ${group.found}
+              </strong>
+
+              / ${group.total}
+
+            </span>
+
+
+            <span
+              class="amiga-prefix-status">
+
+              ${
+                group.complete
+
+                  ? '✓ Kla'
+
+                  : (
+                      group.missing +
+                      ' falta'
+                    )
+              }
+
+            </span>
+
+          </span>
+
+
+          <span
+            class="amiga-mini-track">
+
+            <i
+              style="
+                width:${group.pct}%
+              ">
+            </i>
+
+          </span>
+
+
+          <span
+            class="amiga-prefix-meta">
+
+            Largura:
+            ${lengths}
+
+          </span>
+
+        </span>
+
+
+        <span
+          class="amiga-chevron"
+          aria-hidden="true">
+          ⌄
+        </span>
+
+      </button>
+
+
+      <div
+        class="amiga-prefix-detail"
+        id="${detailId}"
+        hidden>
+
+        <div
+          class="amiga-detail-block">
+
+          <div
+            class="amiga-detail-label">
+            Hañá · ${group.found}
+          </div>
+
+          <div
+            class="amiga-found-list">
+            ${foundHtml}
+          </div>
+
+        </div>
+
+
+        <div
+          class="amiga-detail-block">
+
+          <div
+            class="amiga-detail-label">
+
+            Ainda falta ·
+            ${group.missing}
+
+          </div>
+
+          <div
+            class="amiga-missing-list">
+            ${missingHtml}
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+}
+
+
+
+function renderAmigaTable(){
+
+  const container =
+    $('hintTableWrap');
+
+  const groups =
+    buildHintData();
+
+
+  const total =
+    P.answers.size;
+
+  const found =
+    P.found.size;
+
+  const missing =
+    Math.max(
+      0,
+      total - found
+    );
+
+  const pct =
+    total
+      ? Math.round(
+          found /
+          total *
+          100
+        )
+      : 0;
+
+
+  const incomplete =
+    groups.filter(
+      group =>
+        !group.complete
+    );
+
+  const completed =
+    groups.filter(
+      group =>
+        group.complete
+    );
+
+
+  /*
+    Overall progress
+  */
+
+  $('amigaFoundCount')
+    .textContent =
+      found;
+
+  $('amigaTotalCount')
+    .textContent =
+      total;
+
+  $('amigaProgressPct')
+    .textContent =
+      pct + '%';
+
+
+  const progressBar =
+    $('amigaProgressBar');
+
+  progressBar.style.width =
+    '0%';
+
+  requestAnimationFrame(
+    () => {
+
+      requestAnimationFrame(
+        () => {
+
+          progressBar.style.width =
+            pct + '%';
+
+        }
+      );
 
     }
   );
 
 
-  return {
+  $('amigaProgressCaption')
+    .textContent =
 
-    grouped,
+      missing
 
-    lengths:
-      [...lengths].sort(
-        (a,b) => a - b
-      ),
+        ? (
+            found +
+            ' hañá · ' +
+            missing +
+            ' falta · ' +
+            completed.length +
+            ' grupo kla'
+          )
 
-    prefixes:
-      Object.keys(grouped).sort()
-
-  };
-
-}
-
-
-function renderAmigaTable(){
-
-  const table =
-    $('amigaTable');
-
-  const {
-    grouped,
-    lengths,
-    prefixes
-
-  } = buildHintData();
+        : (
+            'Tur ' +
+            total +
+            ' palabra hañá 🎉'
+          );
 
 
-  if(!prefixes.length){
+  /*
+    Best next prefix:
+    because groups were sorted with the most
+    remaining possibilities first, the first
+    incomplete group is a useful place to continue.
+  */
 
-    table.innerHTML = '';
+  const best =
+    incomplete[0];
 
+  if(best){
+
+    $('amigaNext')
+      .classList
+      .remove(
+        'is-hidden'
+      );
+
+    $('amigaNextPrefix')
+      .textContent =
+        best.prefix;
+
+    $('amigaNextCount')
+      .textContent =
+        best.missing +
+        (
+          best.missing === 1
+            ? ' palabra falta'
+            : ' palabra falta'
+        );
+
+  }else{
+
+    $('amigaNext')
+      .classList
+      .add(
+        'is-hidden'
+      );
+
+  }
+
+
+  /*
+    Completed-game reward.
+    Keep the completed groups visible underneath,
+    rather than replacing the entire interface.
+  */
+
+  $('hintEmpty')
+    .classList
+    .toggle(
+      'is-hidden',
+      missing !== 0
+    );
+
+
+  if(!groups.length){
+
+    container.innerHTML = '';
     return;
 
   }
 
 
-  let html =
-    '<thead><tr><th></th>' +
-
-    lengths
-      .map(
-        len =>
-          '<th>' + len + '</th>'
-      )
-      .join('') +
-
-    '<th>Σ</th></tr></thead><tbody>';
+  let cardIndex = 0;
 
 
-  const colTotals = {};
+  const incompleteHtml =
+    incomplete.length
 
-  lengths.forEach(
-    len =>
-      colTotals[len] = 0
-  );
+      ? `
+          <div
+            class="amiga-list-section">
 
-  let grandTotal = 0;
+            <div
+              class="amiga-section-label">
 
+              Ainda tin palabra
 
-  prefixes.forEach(
+              <span>
+                ${incomplete.length}
+              </span>
 
-    prefix => {
+            </div>
 
-      let rowTotal = 0;
+            ${
+              incomplete
+                .map(
+                  group =>
+                    renderAmigaGroup(
+                      group,
+                      cardIndex++
+                    )
+                )
+                .join('')
+            }
 
-      html +=
-        '<tr><td class="amiga-prefix">' +
-        prefix +
-        '</td>';
+          </div>
+        `
 
-      lengths.forEach(
-
-        len => {
-
-          const count =
-            grouped[prefix][len] || 0;
-
-          rowTotal += count;
-
-          colTotals[len] += count;
-
-          html +=
-            '<td>' +
-            (count || '') +
-            '</td>';
-
-        }
-
-      );
-
-      grandTotal += rowTotal;
-
-      html +=
-        '<td class="amiga-total">' +
-        rowTotal +
-        '</td></tr>';
-
-    }
-
-  );
+      : '';
 
 
-  html +=
-    '<tr class="amiga-footer"><td>Σ</td>' +
+  const completedHtml =
+    completed.length
 
-    lengths
-      .map(
-        len =>
-          '<td>' + colTotals[len] + '</td>'
-      )
-      .join('') +
+      ? `
+          <div
+            class="amiga-list-section">
 
-    '<td>' + grandTotal + '</td></tr>' +
-    '</tbody>';
+            <div
+              class="amiga-section-label">
+
+              Kla ✓
+
+              <span>
+                ${completed.length}
+              </span>
+
+            </div>
+
+            ${
+              completed
+                .map(
+                  group =>
+                    renderAmigaGroup(
+                      group,
+                      cardIndex++
+                    )
+                )
+                .join('')
+            }
+
+          </div>
+        `
+
+      : '';
 
 
-  table.innerHTML = html;
+  container.innerHTML =
+    incompleteHtml +
+    completedHtml;
+
+
+  /*
+    Accordion:
+    only one prefix stays open at a time,
+    keeping the page easy to scan.
+  */
+
+  container
+    .querySelectorAll(
+      '.amiga-prefix-card'
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          'click',
+          () => {
+
+            const currentGroup =
+              button.closest(
+                '.amiga-prefix-group'
+              );
+
+            const currentDetail =
+              currentGroup
+                .querySelector(
+                  '.amiga-prefix-detail'
+                );
+
+            const opening =
+              button.getAttribute(
+                'aria-expanded'
+              ) !== 'true';
+
+
+            /*
+              Close other rows first.
+            */
+
+            container
+              .querySelectorAll(
+                '.amiga-prefix-group'
+              )
+              .forEach(
+                group => {
+
+                  group
+                    .classList
+                    .remove(
+                      'is-open'
+                    );
+
+                  const groupButton =
+                    group.querySelector(
+                      '.amiga-prefix-card'
+                    );
+
+                  const detail =
+                    group.querySelector(
+                      '.amiga-prefix-detail'
+                    );
+
+                  groupButton
+                    .setAttribute(
+                      'aria-expanded',
+                      'false'
+                    );
+
+                  detail.hidden =
+                    true;
+
+                }
+              );
+
+
+            if(opening){
+
+              currentGroup
+                .classList
+                .add(
+                  'is-open'
+                );
+
+              button
+                .setAttribute(
+                  'aria-expanded',
+                  'true'
+                );
+
+              currentDetail.hidden =
+                false;
+
+            }
+
+          }
+        );
+
+      }
+    );
 
 }
+
 
 
 function openAmiga(){
 
   renderAmigaTable();
 
-
-  if(remainingAnswers().length){
-
-    $('hintTableWrap').classList.remove(
+  $('hintTableWrap')
+    .classList
+    .remove(
       'is-hidden'
     );
 
-    $('hintEmpty').classList.add(
+  $('amigaOverlay')
+    .classList
+    .remove(
       'is-hidden'
     );
-
-  }else{
-
-    $('hintTableWrap').classList.add(
-      'is-hidden'
-    );
-
-    $('hintEmpty').classList.remove(
-      'is-hidden'
-    );
-
-  }
-
-
-  $('amigaOverlay').classList.remove(
-    'is-hidden'
-  );
 
 }
 
@@ -31300,11 +32871,15 @@ function openAmiga(){
 
 function closeAmiga(){
 
-  $('amigaOverlay').classList.add(
-    'is-hidden'
-  );
+  $('amigaOverlay')
+    .classList
+    .add(
+      'is-hidden'
+    );
 
 }
+
+
 
 
 /* =========================================================
