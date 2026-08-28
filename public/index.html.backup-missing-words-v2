@@ -2790,70 +2790,9 @@ button:focus-visible{
 }
 
 
-
-/* QUICK MISSING WORD CTA */
-
-.missing-word-cta{
-  min-height:26px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:4px;
-
-  margin:-1px 0 2px;
-
-  color:var(--dim);
-
-  font-size:12.5px;
-  line-height:1.2;
-}
-
-.missing-word-cta.is-hidden{
-  display:none;
-}
-
-.missing-word-link{
-  appearance:none;
-
-  border:0;
-  border-radius:5px;
-
-  background:transparent;
-  color:var(--flag-ink);
-
-  padding:5px 3px;
-
-  font-family:'Karla',system-ui,sans-serif;
-  font-size:12.5px;
-  font-weight:800;
-
-  text-decoration:underline;
-  text-underline-offset:3px;
-
-  cursor:pointer;
-}
-
-.missing-word-link:focus-visible{
-  outline:2px solid var(--flag);
-  outline-offset:2px;
-}
-
-@media (hover:hover) and (pointer:fine){
-
-  .missing-word-link:hover{
-    opacity:.72;
-  }
-
-}
-
 </style>
 
-  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-
+  <link rel="icon" type="image/png" href="/favicon.png">
 </head>
 
 
@@ -3364,21 +3303,6 @@ button:focus-visible{
   <div
     class="hint"
     id="hint">
-  </div>
-
-  <div
-    class="missing-word-cta is-hidden"
-    id="missingWordCta">
-
-    <span>E palabra aki falta?</span>
-
-    <button
-      class="missing-word-link"
-      id="missingWordSuggestBtn"
-      type="button">
-      Sugeri'é
-    </button>
-
   </div>
 
 
@@ -29341,8 +29265,6 @@ const SOUND = (function(){
 
 function typeLetter(letter){
 
-  hideMissingWordCta();
-
   SOUND.tap();
 
   typed +=
@@ -29913,8 +29835,6 @@ function closeSuggestWord(){
   $('suggestOverlay').classList.add(
     'is-hidden'
   );
-
-  resetMissingWordSuggestUi();
 
 }
 
@@ -30740,134 +30660,6 @@ const MSG = {
 };
 
 
-
-function showMissingWordCta(word){
-
-  const cta =
-    $('missingWordCta');
-
-  cta.dataset.word =
-    word;
-
-  cta.classList.remove(
-    'is-hidden'
-  );
-
-}
-
-
-function hideMissingWordCta(){
-
-  const cta =
-    $('missingWordCta');
-
-  cta.classList.add(
-    'is-hidden'
-  );
-
-  delete cta.dataset.word;
-
-}
-
-
-function resetMissingWordSuggestUi(){
-
-  const title =
-    document.querySelector(
-      '#suggestOverlay .amiga-title'
-    );
-
-  if(title){
-    title.textContent =
-      'Sugerí un kambio';
-  }
-
-  $('suggestIntro').textContent =
-    'Bo sugerensia lo wordu risibí i revisá.';
-
-  $('suggestTypeChips').style.display =
-    '';
-
-  $('suggestNote').style.display =
-    '';
-
-  $('suggestSubmit').textContent =
-    'Manda sugerensia';
-
-}
-
-
-function openMissingWordSuggestion(word){
-
-  /*
-    Reuse the existing suggestion system.
-    Its normal validation remains untouched.
-  */
-
-  openSuggestWord(word);
-
-  suggestType =
-    'add';
-
-  const title =
-    document.querySelector(
-      '#suggestOverlay .amiga-title'
-    );
-
-  if(title){
-    title.textContent =
-      'Sugeri palabra';
-  }
-
-  $('suggestIntro').textContent =
-    'Yuda nos agreg’é.';
-
-
-  /*
-    Existing backend requires a note.
-    Fill it automatically so the player
-    doesn't have to type anything.
-  */
-
-  $('suggestNote').value =
-    'Sugeri despues di palabra rechasá den e wega.';
-
-
-  /*
-    Hide unnecessary controls for this
-    quick submission flow.
-  */
-
-  $('suggestTypeChips').style.display =
-    'none';
-
-  $('suggestNote').style.display =
-    'none';
-
-  $('suggestSubmit').textContent =
-    'Manda';
-
-
-  /*
-    Keep the existing "Agregá" state
-    correctly selected internally.
-  */
-
-  document
-    .querySelectorAll(
-      '#suggestTypeChips .feedback-chip'
-    )
-    .forEach(
-      chip =>
-        chip.classList.toggle(
-          'active',
-          chip.dataset.type === 'add'
-        )
-    );
-
-}
-
-
 /* =========================================================
    20. SUBMIT
 ========================================================= */
@@ -30876,8 +30668,6 @@ function submit(){
 
   if(!typed)
     return;
-
-  hideMissingWordCta();
 
 
   const result =
@@ -30965,17 +30755,6 @@ function submit(){
 
 
     shake();
-
-    if(
-      result.result ===
-      RESULT.NOT_A_WORD
-    ){
-
-      showMissingWordCta(
-        result.word
-      );
-
-    }
 
   }
 
@@ -31717,7 +31496,7 @@ const ACCOUNT_KEY =
   'palabraDiKorsouAccount';
 
 
-let account = null;
+let account = loadAccount();
 
 let authMode = 'signup';
 
@@ -31785,8 +31564,8 @@ function saveAccountLocal(){
 function activePlayerId(){
 
   return account
-    ? 'acct:' + account.id
-    : null;
+    ? 'acct:' + account.username
+    : player.id;
 
 }
 
@@ -32098,62 +31877,6 @@ async function submitAuth(username,password){
 }
 
 
-
-async function restoreSession(){
-
-  try{
-
-    const response =
-      await fetch(
-        AUTH_ENDPOINT + 'me',
-        {
-          method:'GET',
-          cache:'no-store'
-        }
-      );
-
-    if(!response.ok){
-
-      account = null;
-      saveAccountLocal();
-
-      renderName();
-      renderAuth();
-
-      return false;
-
-    }
-
-    const data =
-      await response.json();
-
-    account = {
-      id:data.id,
-      username:data.username
-    };
-
-    saveAccountLocal();
-
-    renderName();
-    renderAuth();
-
-    return true;
-
-  }catch{
-
-    account = null;
-    saveAccountLocal();
-
-    renderName();
-    renderAuth();
-
-    return false;
-
-  }
-
-}
-
-
 /* ---------------------------------------------------------
    SERVER
 --------------------------------------------------------- */
@@ -32219,7 +31942,7 @@ async function loadBoard(){
 
 async function syncScore(){
 
-  if(!account)
+  if(!activeName())
     return;
 
 
@@ -32240,6 +31963,10 @@ async function syncScore(){
           },
 
           body:JSON.stringify({
+
+            playerId:activePlayerId(),
+
+            name:activeName(),
 
             date:GAME_DATE,
 
@@ -32284,7 +32011,7 @@ async function syncScore(){
 
 function queueScoreSync(){
 
-  if(!account)
+  if(!activeName())
     return;
 
 
@@ -32396,7 +32123,11 @@ async function loadProgress(){
       await fetch(
 
         PROGRESS_ENDPOINT +
-        '?date=' +
+        '?playerId=' +
+        encodeURIComponent(
+          activePlayerId()
+        ) +
+        '&date=' +
         encodeURIComponent(
           GAME_DATE
         )
@@ -32450,6 +32181,9 @@ async function syncProgress(){
         },
 
         body:JSON.stringify({
+
+          playerId:
+            activePlayerId(),
 
           date:GAME_DATE,
 
@@ -32729,7 +32463,6 @@ $('authForm').onsubmit =
 
 
       account = {
-        id:data.id,
         username:data.username
       };
 
@@ -32782,18 +32515,7 @@ $('authToggle').onclick =
 
 
 $('authLogout').onclick =
-  async () => {
-
-    try{
-
-      await fetch(
-        AUTH_ENDPOINT + 'signout',
-        {
-          method:'POST'
-        }
-      );
-
-    }catch{}
+  () => {
 
     account = null;
 
@@ -32802,17 +32524,8 @@ $('authLogout').onclick =
     editingName = false;
 
     renderName();
+
     renderAuth();
-
-    $('appRoot')
-      .classList.add(
-        'is-hidden'
-      );
-
-    $('landingPage')
-      .classList.remove(
-        'is-hidden'
-      );
 
     loadBoard();
 
@@ -32862,19 +32575,11 @@ renderName();
 renderAuth();
 
 
-restoreSession()
-  .then(
-    signedIn => {
+if(account){
 
-      if(signedIn){
+  loadProgress();
 
-        loadProgress();
-        loadBoard();
-
-      }
-
-    }
-  );
+}
 
 
 /* =========================================================
@@ -32893,26 +32598,6 @@ const pages = [
 function showPage(
   pageId
 ){
-
-  if(
-    pageId === 'gamePage' &&
-    !account
-  ){
-
-    pageId =
-      'rankingPage';
-
-    authMode =
-      'signup';
-
-    renderAuth();
-
-    showAuthMessage(
-      'Krea un kuenta òf drenta pa por hunga i warda bo score.',
-      'ok'
-    );
-
-  }
 
   pages.forEach(
     id => {
@@ -33177,50 +32862,8 @@ function enterApp(pageId){
 
 
 $('playBtn').onclick =
-  async () => {
-
-    let signedIn =
-      Boolean(account);
-
-    if(!signedIn){
-
-      signedIn =
-        await restoreSession();
-
-    }
-
-    if(!signedIn){
-
-      enterApp(
-        'rankingPage'
-      );
-
-      authMode =
-        'signup';
-
-      renderAuth();
-
-      showAuthMessage(
-        'Krea un kuenta òf drenta pa por hunga i warda bo score.',
-        'ok'
-      );
-
-      setTimeout(
-        () =>
-          $('authUsername')
-            .focus(),
-        50
-      );
-
-      return;
-
-    }
-
-    enterApp(
-      'gamePage'
-    );
-
-  };
+  () =>
+    enterApp('gamePage');
 
 
 $('aboutBtn').onclick =
@@ -33456,22 +33099,6 @@ $('reportForm').onsubmit =
     event.preventDefault();
 
     submitReportWord();
-
-  };
-
-
-$('missingWordSuggestBtn').onclick =
-  () => {
-
-    const word =
-      $('missingWordCta').dataset.word;
-
-    if(!word)
-      return;
-
-    openMissingWordSuggestion(
-      word
-    );
 
   };
 

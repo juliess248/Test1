@@ -2849,11 +2849,7 @@ button:focus-visible{
 
 </style>
 
-  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-
+  <link rel="icon" type="image/png" href="/favicon.png">
 </head>
 
 
@@ -31717,7 +31713,7 @@ const ACCOUNT_KEY =
   'palabraDiKorsouAccount';
 
 
-let account = null;
+let account = loadAccount();
 
 let authMode = 'signup';
 
@@ -31785,8 +31781,8 @@ function saveAccountLocal(){
 function activePlayerId(){
 
   return account
-    ? 'acct:' + account.id
-    : null;
+    ? 'acct:' + account.username
+    : player.id;
 
 }
 
@@ -32098,62 +32094,6 @@ async function submitAuth(username,password){
 }
 
 
-
-async function restoreSession(){
-
-  try{
-
-    const response =
-      await fetch(
-        AUTH_ENDPOINT + 'me',
-        {
-          method:'GET',
-          cache:'no-store'
-        }
-      );
-
-    if(!response.ok){
-
-      account = null;
-      saveAccountLocal();
-
-      renderName();
-      renderAuth();
-
-      return false;
-
-    }
-
-    const data =
-      await response.json();
-
-    account = {
-      id:data.id,
-      username:data.username
-    };
-
-    saveAccountLocal();
-
-    renderName();
-    renderAuth();
-
-    return true;
-
-  }catch{
-
-    account = null;
-    saveAccountLocal();
-
-    renderName();
-    renderAuth();
-
-    return false;
-
-  }
-
-}
-
-
 /* ---------------------------------------------------------
    SERVER
 --------------------------------------------------------- */
@@ -32219,7 +32159,7 @@ async function loadBoard(){
 
 async function syncScore(){
 
-  if(!account)
+  if(!activeName())
     return;
 
 
@@ -32240,6 +32180,10 @@ async function syncScore(){
           },
 
           body:JSON.stringify({
+
+            playerId:activePlayerId(),
+
+            name:activeName(),
 
             date:GAME_DATE,
 
@@ -32284,7 +32228,7 @@ async function syncScore(){
 
 function queueScoreSync(){
 
-  if(!account)
+  if(!activeName())
     return;
 
 
@@ -32396,7 +32340,11 @@ async function loadProgress(){
       await fetch(
 
         PROGRESS_ENDPOINT +
-        '?date=' +
+        '?playerId=' +
+        encodeURIComponent(
+          activePlayerId()
+        ) +
+        '&date=' +
         encodeURIComponent(
           GAME_DATE
         )
@@ -32450,6 +32398,9 @@ async function syncProgress(){
         },
 
         body:JSON.stringify({
+
+          playerId:
+            activePlayerId(),
 
           date:GAME_DATE,
 
@@ -32729,7 +32680,6 @@ $('authForm').onsubmit =
 
 
       account = {
-        id:data.id,
         username:data.username
       };
 
@@ -32782,18 +32732,7 @@ $('authToggle').onclick =
 
 
 $('authLogout').onclick =
-  async () => {
-
-    try{
-
-      await fetch(
-        AUTH_ENDPOINT + 'signout',
-        {
-          method:'POST'
-        }
-      );
-
-    }catch{}
+  () => {
 
     account = null;
 
@@ -32802,17 +32741,8 @@ $('authLogout').onclick =
     editingName = false;
 
     renderName();
+
     renderAuth();
-
-    $('appRoot')
-      .classList.add(
-        'is-hidden'
-      );
-
-    $('landingPage')
-      .classList.remove(
-        'is-hidden'
-      );
 
     loadBoard();
 
@@ -32862,19 +32792,11 @@ renderName();
 renderAuth();
 
 
-restoreSession()
-  .then(
-    signedIn => {
+if(account){
 
-      if(signedIn){
+  loadProgress();
 
-        loadProgress();
-        loadBoard();
-
-      }
-
-    }
-  );
+}
 
 
 /* =========================================================
@@ -32893,26 +32815,6 @@ const pages = [
 function showPage(
   pageId
 ){
-
-  if(
-    pageId === 'gamePage' &&
-    !account
-  ){
-
-    pageId =
-      'rankingPage';
-
-    authMode =
-      'signup';
-
-    renderAuth();
-
-    showAuthMessage(
-      'Krea un kuenta òf drenta pa por hunga i warda bo score.',
-      'ok'
-    );
-
-  }
 
   pages.forEach(
     id => {
@@ -33177,50 +33079,8 @@ function enterApp(pageId){
 
 
 $('playBtn').onclick =
-  async () => {
-
-    let signedIn =
-      Boolean(account);
-
-    if(!signedIn){
-
-      signedIn =
-        await restoreSession();
-
-    }
-
-    if(!signedIn){
-
-      enterApp(
-        'rankingPage'
-      );
-
-      authMode =
-        'signup';
-
-      renderAuth();
-
-      showAuthMessage(
-        'Krea un kuenta òf drenta pa por hunga i warda bo score.',
-        'ok'
-      );
-
-      setTimeout(
-        () =>
-          $('authUsername')
-            .focus(),
-        50
-      );
-
-      return;
-
-    }
-
-    enterApp(
-      'gamePage'
-    );
-
-  };
+  () =>
+    enterApp('gamePage');
 
 
 $('aboutBtn').onclick =
