@@ -1792,8 +1792,23 @@ export default class extends WorkerEntrypoint {
     // --- Attempt 1: dictionary-grounded (no Google needed for this path) ---
     if (this.env.PA_DICTIONARY && this.env.ANTHROPIC_API_KEY) {
       try {
-        const rawDictEntry = await this.env.PA_DICTIONARY.get(word);
-        const dictEntry = rawDictEntry ? JSON.parse(rawDictEntry) : null;
+        // The frontend strips accents from `word` for its own hive-matching
+        // logic (í -> i, é -> e, etc.), but PA_DICTIONARY keys preserve the
+        // original accented spelling (e.g. "metí", not "meti"). Try the
+        // accent-stripped word first, then fall back to the accented
+        // `display` spelling, so accented words don't silently miss.
+        const candidateKeys = [...new Set(
+          [word, (display || "").toLowerCase()].filter(Boolean)
+        )];
+
+        let dictEntry = null;
+        for (const candidateKey of candidateKeys) {
+          const rawDictEntry = await this.env.PA_DICTIONARY.get(candidateKey);
+          if (rawDictEntry) {
+            dictEntry = JSON.parse(rawDictEntry);
+            break;
+          }
+        }
 
         if (Array.isArray(dictEntry) && dictEntry.length) {
           const result = await this.generateDefinitionFromDictionary(word, display, tags, dictEntry);
