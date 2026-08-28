@@ -33277,8 +33277,8 @@ addEventListener(
     tone(1320, 0.15, 0.12, 0.03);
   }
 
-  // Wire the ding to your "Hunga" button — update the selector to match your actual button
-  const playBtn = document.querySelector('#hunga-button, .hunga-btn, [data-action="play"]');
+  // Wire the ding to your "Hunga" button
+  const playBtn = document.querySelector('#playBtn');
   if (playBtn) {
     playBtn.addEventListener('click', playDing);
   }
