@@ -3114,58 +3114,128 @@ button:focus-visible{
 }
 
 
-/* FEEDBACK ACTION INSIDE HELP */
-.info-feedback-action{
-  margin-top:20px;
-  padding-top:16px;
-  border-top:1px solid var(--line);
+/* DICTIONARY CONTRIBUTION CARD INSIDE HOW-TO */
+
+.rules-sheet .rule{
+  border-bottom:0;
+  padding:14px 0;
 }
 
-.info-feedback-btn{
+.dictionary-help-card{
+  margin-top:24px;
+  padding:18px;
+
+  border-radius:18px;
+  background:rgba(var(--overlay),.055);
+}
+
+.dictionary-help-eyebrow{
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  margin-bottom:7px;
+
+  color:var(--ink);
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:16px;
+  font-weight:750;
+  line-height:1.25;
+}
+
+.dictionary-help-icon{
+  width:30px;
+  height:30px;
+
+  flex:0 0 30px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:10px;
+
+  background:rgba(249,227,0,.12);
+  color:var(--flag-ink);
+}
+
+.dictionary-help-icon svg{
+  width:17px;
+  height:17px;
+}
+
+.dictionary-help-copy{
+  margin:0;
+
+  color:var(--dim);
+  font-size:13.5px;
+  line-height:1.5;
+}
+
+.dictionary-help-actions{
+  display:grid;
+  gap:9px;
+
+  margin-top:15px;
+}
+
+.dictionary-help-btn{
   width:100%;
   min-height:46px;
 
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:9px;
+  gap:8px;
 
-  padding:11px 18px;
+  padding:11px 16px;
 
-  border:1.5px solid var(--line);
-  border-radius:999px;
-
-  background:rgba(var(--overlay),.04);
-  color:var(--ink);
+  border:0;
+  border-radius:12px;
 
   font-family:'Karla',system-ui,sans-serif;
   font-size:14px;
-  font-weight:700;
+  font-weight:800;
 
   cursor:pointer;
 
   transition:
-    background .15s,
     transform .1s,
-    border-color .15s;
+    background .15s,
+    opacity .15s;
 }
 
-.info-feedback-btn svg{
-  width:18px;
-  height:18px;
-  flex-shrink:0;
+.dictionary-help-btn.primary{
+  background:var(--flag);
+  color:var(--ink-fixed);
 }
 
-.info-feedback-btn:hover{
-  background:rgba(var(--overlay),.09);
-  border-color:rgba(var(--overlay),.25);
+.dictionary-help-btn.secondary{
+  background:rgba(var(--overlay),.075);
+  color:var(--ink);
 }
 
-.info-feedback-btn:active{
+.dictionary-help-btn:hover{
+  opacity:.9;
+}
+
+.dictionary-help-btn:active{
   transform:scale(.98);
 }
 
+.dictionary-help-btn:focus-visible{
+  outline:2px solid var(--flag);
+  outline-offset:2px;
+}
 
+.dictionary-help-note{
+  margin-top:11px;
+
+  color:var(--dim2);
+  font-size:11.5px;
+  line-height:1.4;
+  text-align:center;
+}
 
 /* QUICK MISSING WORD CTA */
 
@@ -3617,26 +3687,62 @@ button:focus-visible{
 
     </div>
 
+    <div class="dictionary-help-card">
 
-    <div class="info-feedback-action">
-      <button
-        class="info-feedback-btn"
-        id="feedbackHelpBtn"
-        type="button">
+      <div class="dictionary-help-eyebrow">
 
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+        <span
+          class="dictionary-help-icon"
           aria-hidden="true">
-          <path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z"></path>
-        </svg>
 
-        <span>Duna bo opinion</span>
-      </button>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+
+          </svg>
+
+        </span>
+
+        <span>Yuda nos mehorá e dikshonario</span>
+
+      </div>
+
+      <p class="dictionary-help-copy">
+        Tin un palabra ku ta falta òf un definishon ku no ta korekto?
+        Laga nos sa.
+      </p>
+
+      <div class="dictionary-help-actions">
+
+        <button
+          class="dictionary-help-btn primary"
+          id="suggestWordHelpBtn"
+          type="button">
+          <span aria-hidden="true">＋</span>
+          <span>Sugerí un palabra</span>
+        </button>
+
+        <button
+          class="dictionary-help-btn secondary"
+          id="correctWordHelpBtn"
+          type="button">
+          <span aria-hidden="true">✎</span>
+          <span>Sugerí un korekshon</span>
+        </button>
+
+      </div>
+
+      <div class="dictionary-help-note">
+        Nos ta revisá tur sugerensia.
+      </div>
+
     </div>
 
   </div>
@@ -34402,15 +34508,90 @@ $('amigaBackdrop').onclick =
   closeAmiga;
 
 
-$('feedbackHelpBtn').onclick =
-  () => {
-    closeInfoOverlay();
+function openDictionaryContribution(type){
 
-    setTimeout(
-      openFeedback,
-      0
+  closeInfoOverlay();
+
+  setTimeout(
+    () => {
+
+      /*
+        Restore the normal suggestion form in case
+        the quick missing-word flow was used before.
+      */
+      resetMissingWordSuggestUi();
+
+      openSuggestWord(null);
+
+      /*
+        Preselect the correct contribution type.
+        "add"    = new word
+        "adjust" = correction
+      */
+      suggestType = type;
+
+      document
+        .querySelectorAll(
+          '#suggestTypeChips .feedback-chip'
+        )
+        .forEach(
+          chip =>
+            chip.classList.toggle(
+              'active',
+              chip.dataset.type === type
+            )
+        );
+
+      const title =
+        document.querySelector(
+          '#suggestOverlay .amiga-title'
+        );
+
+      if(type === 'add'){
+
+        if(title){
+          title.textContent =
+            'Sugerí un palabra';
+        }
+
+        $('suggestIntro').textContent =
+          'Tin un palabra ku ta falta? Laga nos sa.';
+
+      }else{
+
+        if(title){
+          title.textContent =
+            'Sugerí un korekshon';
+        }
+
+        $('suggestIntro').textContent =
+          'Tin un definishon ku no ta korekto? Laga nos sa.';
+
+      }
+
+      $('suggestWord').focus();
+
+    },
+    0
+  );
+
+}
+
+
+$('suggestWordHelpBtn').onclick =
+  () =>
+    openDictionaryContribution(
+      'add'
     );
-  };
+
+
+$('correctWordHelpBtn').onclick =
+  () =>
+    openDictionaryContribution(
+      'adjust'
+    );
+
+
 
 $('feedbackClose').onclick =
   closeFeedback;
