@@ -5062,6 +5062,394 @@ button:focus-visible{
 
 /* === CLEAN LETTER TABLE UX END === */
 
+
+
+/* === REWARDING LETTER TABLE V4 START === */
+
+/*
+  Hide the old card-based list.
+*/
+.amiga-next,
+.amiga-short-help,
+.amiga-group-list,
+.amiga-list-section{
+  display:none !important;
+}
+
+
+/* ==========================================================
+   GENERATED AREA
+========================================================== */
+
+#letterProgressTableArea{
+  margin-top:15px;
+
+  font-family:'Karla',system-ui,sans-serif;
+}
+
+
+/* ==========================================================
+   SMALL REWARD MESSAGE
+========================================================== */
+
+.progress-reward-message{
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  margin-bottom:22px;
+
+  color:var(--dim);
+
+  font-size:12px;
+  font-weight:500;
+}
+
+.reward-dot{
+  width:7px;
+  height:7px;
+
+  flex:0 0 7px;
+
+  border-radius:50%;
+
+  background:var(--flag);
+}
+
+.reward-check{
+  width:19px;
+  height:19px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  flex:0 0 19px;
+
+  border-radius:50%;
+
+  background:rgba(249,227,0,.12);
+
+  color:var(--flag-ink);
+
+  font-size:11px;
+  font-weight:700;
+}
+
+.progress-reward-message.all-complete{
+  color:var(--ink);
+
+  font-weight:600;
+}
+
+
+/* ==========================================================
+   SECTIONS
+========================================================== */
+
+.reward-table-section{
+  margin-top:0;
+}
+
+.reward-length-section{
+  margin-top:30px;
+}
+
+
+.reward-table-title{
+  margin-bottom:8px;
+
+  color:var(--dim2);
+
+  font-size:10px;
+  font-weight:700;
+
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+
+/* ==========================================================
+   TABLE BASE
+========================================================== */
+
+.reward-progress-table,
+.reward-length-table{
+  width:100%;
+
+  border-collapse:collapse;
+  table-layout:fixed;
+
+  font-family:'Karla',system-ui,sans-serif;
+}
+
+
+/*
+  No outer border.
+  No grid.
+  No row boxes.
+*/
+
+.reward-progress-table th,
+.reward-progress-table td,
+.reward-length-table th,
+.reward-length-table td{
+  border:0;
+}
+
+
+/* ==========================================================
+   HEADER
+========================================================== */
+
+.reward-progress-table thead th,
+.reward-length-table thead th{
+  padding:7px 4px 9px;
+
+  border-bottom:1px solid rgba(var(--overlay),.07);
+
+  color:var(--dim2);
+
+  font-size:9px;
+  font-weight:600;
+
+  letter-spacing:.07em;
+  text-align:left;
+  text-transform:uppercase;
+}
+
+
+/* ==========================================================
+   ROWS
+========================================================== */
+
+.reward-progress-table tbody td{
+  padding:12px 4px;
+
+  vertical-align:middle;
+
+  color:var(--ink);
+
+  font-size:13px;
+  font-weight:500;
+}
+
+
+.reward-length-table tbody td{
+  padding:9px 4px;
+
+  color:var(--dim);
+
+  font-size:12px;
+  font-weight:400;
+}
+
+
+/* Very faint rhythm — not a grid */
+
+.reward-progress-table tbody tr + tr td{
+  border-top:1px solid rgba(var(--overlay),.035);
+}
+
+
+/* ==========================================================
+   COLUMNS
+========================================================== */
+
+.reward-progress-table th:first-child,
+.reward-progress-table td:first-child{
+  width:30%;
+}
+
+.reward-progress-table th:last-child,
+.reward-progress-table td:last-child{
+  width:70%;
+}
+
+
+.reward-length-table th:first-child,
+.reward-length-table td:first-child{
+  width:30%;
+}
+
+.reward-length-table th:last-child,
+.reward-length-table td:last-child{
+  width:70%;
+}
+
+
+/* ==========================================================
+   GROUP NAME
+========================================================== */
+
+.reward-prefix{
+  color:var(--ink) !important;
+
+  font-size:13px !important;
+  font-weight:600 !important;
+}
+
+.reward-prefix small{
+  display:block;
+
+  margin-top:2px;
+
+  color:var(--flag-ink);
+
+  font-size:8px;
+  font-weight:600;
+
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+
+/* ==========================================================
+   PROGRESS
+========================================================== */
+
+.reward-progress-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  gap:12px;
+}
+
+
+.reward-progress-number{
+  color:var(--dim);
+
+  font-size:12px;
+  font-weight:400;
+}
+
+.reward-progress-number strong{
+  color:var(--ink);
+
+  font-size:13px;
+  font-weight:600;
+}
+
+
+/* Tiny rewarding progress bar */
+
+.reward-mini-track{
+  width:100%;
+  height:3px;
+
+  margin-top:6px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:rgba(var(--overlay),.08);
+}
+
+
+.reward-mini-fill{
+  height:100%;
+
+  border-radius:inherit;
+
+  background:var(--flag);
+
+  transition:width .35s ease;
+}
+
+
+/* ==========================================================
+   COMPLETION
+========================================================== */
+
+.reward-complete{
+  color:var(--flag-ink);
+
+  font-size:9px;
+  font-weight:600;
+}
+
+
+.reward-progress-table tr.is-complete
+.reward-prefix span{
+  color:var(--flag-ink);
+}
+
+
+/*
+  Completion is noticeable without turning the whole
+  row into a bright card.
+*/
+
+.reward-progress-table tr.is-complete{
+  background:
+    linear-gradient(
+      90deg,
+      rgba(249,227,0,.035),
+      transparent 70%
+    );
+}
+
+
+/* ==========================================================
+   RECOMMENDED
+========================================================== */
+
+.reward-progress-table tr.is-recommended
+.reward-prefix span{
+  color:var(--flag-ink);
+}
+
+
+/* ==========================================================
+   LENGTH TABLE
+========================================================== */
+
+.reward-length{
+  color:var(--dim) !important;
+
+  font-weight:400 !important;
+}
+
+
+/*
+  Largura is reference information, not progress,
+  so keep it deliberately quieter.
+*/
+
+.reward-length-table tbody tr + tr td{
+  border-top:0;
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media(max-width:480px){
+
+  #letterProgressTableArea{
+    margin-top:12px;
+  }
+
+  .progress-reward-message{
+    margin-bottom:18px;
+  }
+
+  .reward-length-section{
+    margin-top:24px;
+  }
+
+  .reward-progress-table tbody td{
+    padding-top:11px;
+    padding-bottom:11px;
+  }
+
+}
+
+/* === REWARDING LETTER TABLE V4 END === */
+
 </style>
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/favicon.png">
@@ -37796,7 +38184,7 @@ addEventListener(
 
 (function(){
 
-  function buildLetterProgressGroups(){
+  function getGroups(){
 
     if(
       typeof P === 'undefined' ||
@@ -37806,156 +38194,163 @@ addEventListener(
       return [];
     }
 
-    const groups = {};
+    const map = {};
 
-    [...P.answers].forEach(
-      word => {
+    [...P.answers].forEach(word => {
 
-        const prefix =
-          String(word)
-            .slice(0,2)
-            .toUpperCase();
+      const text = String(word);
 
-        const length =
-          [...String(word)].length;
+      const prefix =
+        text.slice(0,2).toUpperCase();
 
-        if(!groups[prefix]){
+      const length =
+        [...text].length;
 
-          groups[prefix] = {
-            prefix:prefix,
-            found:0,
-            total:0,
-            missing:0,
-            lengths:new Set()
-          };
+      if(!map[prefix]){
 
-        }
-
-        groups[prefix].total++;
-
-        groups[prefix].lengths.add(
-          length
-        );
-
-        if(P.found.has(word)){
-          groups[prefix].found++;
-        }
+        map[prefix] = {
+          prefix,
+          found:0,
+          total:0,
+          lengths:new Set()
+        };
 
       }
-    );
 
+      map[prefix].total++;
 
-    Object.values(groups).forEach(
-      group => {
+      map[prefix].lengths.add(
+        length
+      );
 
-        group.missing =
-          group.total -
-          group.found;
-
-        group.lengths =
-          [...group.lengths]
-            .sort(
-              (a,b) => a - b
-            );
-
+      if(P.found.has(word)){
+        map[prefix].found++;
       }
-    );
+
+    });
+
+
+    const groups =
+      Object.values(map);
+
+    groups.forEach(group => {
+
+      group.lengths =
+        [...group.lengths]
+          .sort((a,b) => a - b);
+
+      group.complete =
+        group.total > 0 &&
+        group.found === group.total;
+
+      group.started =
+        group.found > 0 &&
+        !group.complete;
+
+      group.percent =
+        group.total
+          ? Math.round(
+              (
+                group.found /
+                group.total
+              ) * 100
+            )
+          : 0;
+
+    });
 
 
     /*
-      UX ordering:
+      UX order:
 
-      1. Groups where the player already found something
-      2. Groups with the fewest remaining words
-      3. Alphabetical as final tie-breaker
+      1. Started groups
+      2. Not-started groups
+      3. Completed groups
+
+      This keeps the next useful work visible,
+      while completed groups remain as rewards.
     */
 
-    return Object.values(groups)
-      .sort(
-        (a,b) => {
+    return groups.sort((a,b) => {
 
-          const aStarted =
-            a.found > 0 &&
-            a.missing > 0
-              ? 1
-              : 0;
+      const rank = group => {
 
-          const bStarted =
-            b.found > 0 &&
-            b.missing > 0
-              ? 1
-              : 0;
+        if(group.started) return 0;
+        if(!group.complete) return 1;
 
-          if(aStarted !== bStarted){
-            return bStarted - aStarted;
-          }
+        return 2;
 
-          if(a.missing !== b.missing){
-            return a.missing - b.missing;
-          }
+      };
 
-          return a.prefix.localeCompare(
-            b.prefix
-          );
+      const rankDiff =
+        rank(a) - rank(b);
 
+      if(rankDiff !== 0){
+        return rankDiff;
+      }
+
+      if(a.started && b.started){
+
+        if(a.percent !== b.percent){
+          return b.percent - a.percent;
         }
+
+      }
+
+      return a.prefix.localeCompare(
+        b.prefix
       );
+
+    });
 
   }
 
 
-  function recommendedPrefix(groups){
+  function getRecommended(groups){
 
     const started =
       groups.filter(
-        group =>
-          group.found > 0 &&
-          group.missing > 0
+        group => group.started
       );
 
     if(started.length){
 
       return [...started]
-        .sort(
-          (a,b) => {
-
-            const progressA =
-              a.found /
-              a.total;
-
-            const progressB =
-              b.found /
-              b.total;
-
-            if(progressA !== progressB){
-              return progressB - progressA;
-            }
-
-            return (
-              a.missing -
-              b.missing
-            );
-
-          }
+        .sort((a,b) =>
+          b.percent - a.percent
         )[0].prefix;
 
     }
 
-
-    const incomplete =
-      groups.filter(
-        group =>
-          group.missing > 0
+    const untouched =
+      groups.find(
+        group => !group.complete
       );
 
-    return incomplete.length
-      ? incomplete[0].prefix
+    return untouched
+      ? untouched.prefix
       : null;
 
   }
 
 
-  function renderLetterProgressTable(){
+  function heading(text){
+
+    const el =
+      document.createElement('div');
+
+    el.className =
+      'reward-table-title';
+
+    el.textContent =
+      text;
+
+    return el;
+
+  }
+
+
+  function render(){
 
     const overlay =
       document.getElementById(
@@ -37980,292 +38375,375 @@ addEventListener(
     }
 
 
-    /*
-      Delete previous generated table so the numbers
-      are always refreshed after finding a new word.
-    */
-
-    const old =
-      sheet.querySelector(
-        '#letterProgressTableArea'
+    const existing =
+      document.getElementById(
+        'letterProgressTableArea'
       );
 
-    if(old){
-      old.remove();
+    if(existing){
+      existing.remove();
     }
 
 
     const groups =
-      buildLetterProgressGroups();
+      getGroups();
 
     if(!groups.length){
       return;
     }
 
 
-    const recommendation =
-      recommendedPrefix(
-        groups
-      );
+    const recommended =
+      getRecommended(groups);
+
+
+    const completed =
+      groups.filter(
+        group => group.complete
+      ).length;
 
 
     const area =
-      document.createElement(
-        'div'
-      );
+      document.createElement('div');
 
     area.id =
       'letterProgressTableArea';
 
 
-    /* Heading */
+    /* ----------------------------------------------
+       REWARD MESSAGE
+    ---------------------------------------------- */
 
-    const heading =
-      document.createElement(
-        'div'
+    const reward =
+      document.createElement('div');
+
+    reward.className =
+      'progress-reward-message';
+
+
+    if(completed === groups.length){
+
+      reward.innerHTML =
+        '<span class="reward-check">✓</span>' +
+        '<span>Tur grupo kla. Masha bon!</span>';
+
+      reward.classList.add(
+        'all-complete'
       );
 
-    heading.className =
-      'letter-progress-heading';
+    }else if(completed > 0){
+
+      reward.innerHTML =
+        '<span class="reward-check">✓</span>' +
+        '<span>' +
+          completed +
+          (
+            completed === 1
+              ? ' grupo kla'
+              : ' grupo kla'
+          ) +
+          ' · sigui asina' +
+        '</span>';
+
+    }else if(P.found.size > 0){
+
+      reward.innerHTML =
+        '<span class="reward-dot"></span>' +
+        '<span>Bon kuminsamentu · sigui asina</span>';
+
+    }else{
+
+      reward.innerHTML =
+        '<span class="reward-dot"></span>' +
+        '<span>Buska bo promé palabra</span>';
+
+    }
 
 
-    const headingTitle =
-      document.createElement(
-        'div'
-      );
-
-    headingTitle.className =
-      'letter-progress-heading-title';
-
-    headingTitle.textContent =
-      'Palabranan pa grupo';
-
-
-    const headingCount =
-      document.createElement(
-        'div'
-      );
-
-    headingCount.className =
-      'letter-progress-heading-count';
-
-    headingCount.textContent =
-      String(
-        groups.filter(
-          group =>
-            group.missing > 0
-        ).length
-      );
-
-
-    heading.append(
-      headingTitle,
-      headingCount
+    area.appendChild(
+      reward
     );
 
 
-    /* Table */
+    /* ==============================================
+       TABLE 1 — PROGRESS
+    ============================================== */
 
-    const wrap =
-      document.createElement(
-        'div'
-      );
+    const progressSection =
+      document.createElement('section');
 
-    wrap.className =
-      'letter-progress-table-wrap';
+    progressSection.className =
+      'reward-table-section';
 
 
-    const table =
-      document.createElement(
-        'table'
-      );
+    progressSection.appendChild(
+      heading('Progreso pa grupo')
+    );
 
-    table.className =
-      'letter-progress-table';
 
-    table.setAttribute(
+    const progressTable =
+      document.createElement('table');
+
+    progressTable.className =
+      'reward-progress-table';
+
+    progressTable.setAttribute(
       'aria-label',
       'Progreso di palabranan pa grupo'
     );
 
 
-    table.innerHTML =
+    progressTable.innerHTML =
       '<thead>' +
         '<tr>' +
           '<th>Grupo</th>' +
           '<th>Progreso</th>' +
-          '<th>Falta</th>' +
-          '<th>Largura</th>' +
         '</tr>' +
       '</thead>';
 
 
     const tbody =
-      document.createElement(
-        'tbody'
+      document.createElement('tbody');
+
+
+    groups.forEach(group => {
+
+      const row =
+        document.createElement('tr');
+
+
+      if(group.complete){
+        row.classList.add(
+          'is-complete'
+        );
+      }
+
+      if(
+        group.prefix === recommended
+      ){
+        row.classList.add(
+          'is-recommended'
+        );
+      }
+
+
+      const progressCell =
+        document.createElement('td');
+
+      progressCell.className =
+        'reward-progress-cell';
+
+
+      const progressTop =
+        document.createElement('div');
+
+      progressTop.className =
+        'reward-progress-top';
+
+
+      const number =
+        document.createElement('span');
+
+      number.className =
+        'reward-progress-number';
+
+      number.innerHTML =
+        '<strong>' +
+          group.found +
+        '</strong>' +
+        '<span> / ' +
+          group.total +
+        '</span>';
+
+
+      progressTop.appendChild(
+        number
       );
 
 
-    groups.forEach(
-      group => {
+      if(group.complete){
 
-        const tr =
-          document.createElement(
-            'tr'
-          );
+        const done =
+          document.createElement('span');
 
+        done.className =
+          'reward-complete';
 
-        if(
-          group.prefix ===
-          recommendation
-        ){
-          tr.classList.add(
-            'is-recommended'
-          );
-        }
+        done.textContent =
+          '✓ Kla';
 
-
-        if(
-          group.missing === 0
-        ){
-          tr.classList.add(
-            'is-complete'
-          );
-        }
-
-
-        const missingText =
-          group.missing === 0
-            ? '✓'
-            : String(
-                group.missing
-              );
-
-
-        tr.innerHTML =
-          '<td class="letter-progress-prefix">' +
-            group.prefix +
-          '</td>' +
-
-          '<td class="letter-progress-value">' +
-            '<strong>' +
-              group.found +
-            '</strong>' +
-            '<span class="letter-progress-total">' +
-              ' / ' +
-              group.total +
-            '</span>' +
-          '</td>' +
-
-          '<td class="letter-progress-missing">' +
-            missingText +
-          '</td>' +
-
-          '<td class="letter-progress-lengths">' +
-            group.lengths.join(
-              ' · '
-            ) +
-          '</td>';
-
-
-        tbody.appendChild(
-          tr
+        progressTop.appendChild(
+          done
         );
 
       }
-    );
 
 
-    table.appendChild(
+      const track =
+        document.createElement('div');
+
+      track.className =
+        'reward-mini-track';
+
+
+      const fill =
+        document.createElement('div');
+
+      fill.className =
+        'reward-mini-fill';
+
+      fill.style.width =
+        group.percent + '%';
+
+
+      track.appendChild(fill);
+
+      progressCell.append(
+        progressTop,
+        track
+      );
+
+
+      const prefix =
+        document.createElement('td');
+
+      prefix.className =
+        'reward-prefix';
+
+
+      prefix.innerHTML =
+        '<span>' +
+          group.prefix +
+        '</span>' +
+        (
+          group.prefix === recommended
+            ? '<small>Sigui</small>'
+            : ''
+        );
+
+
+      row.append(
+        prefix,
+        progressCell
+      );
+
+      tbody.appendChild(
+        row
+      );
+
+    });
+
+
+    progressTable.appendChild(
       tbody
     );
 
 
-    /* Totals */
+    progressSection.appendChild(
+      progressTable
+    );
 
-    const totalAnswers =
-      [...P.answers].length;
-
-    const totalFound =
-      P.found.size;
-
-    const totalMissing =
-      Math.max(
-        0,
-        totalAnswers -
-        totalFound
-      );
+    area.appendChild(
+      progressSection
+    );
 
 
-    const tfoot =
-      document.createElement(
-        'tfoot'
-      );
+    /* ==============================================
+       TABLE 2 — LENGTH
+    ============================================== */
 
-    tfoot.innerHTML =
-      '<tr>' +
-        '<td>Total</td>' +
+    const lengthSection =
+      document.createElement('section');
 
-        '<td>' +
-          totalFound +
-          ' / ' +
-          totalAnswers +
+    lengthSection.className =
+      'reward-table-section reward-length-section';
+
+
+    lengthSection.appendChild(
+      heading('Largura di palabra')
+    );
+
+
+    const lengthTable =
+      document.createElement('table');
+
+    lengthTable.className =
+      'reward-length-table';
+
+    lengthTable.setAttribute(
+      'aria-label',
+      'Largura di palabranan pa grupo'
+    );
+
+
+    lengthTable.innerHTML =
+      '<thead>' +
+        '<tr>' +
+          '<th>Grupo</th>' +
+          '<th>Largura</th>' +
+        '</tr>' +
+      '</thead>';
+
+
+    const lengthBody =
+      document.createElement('tbody');
+
+
+    groups.forEach(group => {
+
+      const row =
+        document.createElement('tr');
+
+      if(group.complete){
+        row.classList.add(
+          'is-complete'
+        );
+      }
+
+
+      row.innerHTML =
+        '<td class="reward-prefix">' +
+          '<span>' +
+            group.prefix +
+          '</span>' +
         '</td>' +
 
-        '<td>' +
-          totalMissing +
-        '</td>' +
-
-        '<td>—</td>' +
-      '</tr>';
+        '<td class="reward-length">' +
+          group.lengths.join(' · ') +
+        '</td>';
 
 
-    table.appendChild(
-      tfoot
-    );
-
-
-    wrap.appendChild(
-      table
-    );
-
-
-    /* Short explanation */
-
-    const note =
-      document.createElement(
-        'div'
+      lengthBody.appendChild(
+        row
       );
 
-    note.className =
-      'letter-progress-note';
-
-    note.textContent =
-      'Largura ta mustra kuantu lèter e palabranan den e grupo tin.';
+    });
 
 
-    area.append(
-      heading,
-      wrap,
-      note
+    lengthTable.appendChild(
+      lengthBody
+    );
+
+    lengthSection.appendChild(
+      lengthTable
+    );
+
+    area.appendChild(
+      lengthSection
     );
 
 
-    /*
-      Put the table after the overall progress area.
-      Fall back to the header if the progress hero
-      has a different class.
-    */
+    /* Insert after existing total-progress section */
 
-    const progressHero =
+    const hero =
       sheet.querySelector(
         '.amiga-progress-hero'
       );
 
 
-    if(progressHero){
+    if(hero){
 
-      progressHero.insertAdjacentElement(
+      hero.insertAdjacentElement(
         'afterend',
         area
       );
@@ -38284,12 +38762,6 @@ addEventListener(
           area
         );
 
-      }else{
-
-        sheet.prepend(
-          area
-        );
-
       }
 
     }
@@ -38297,37 +38769,24 @@ addEventListener(
   }
 
 
-  /*
-    Re-render when the player opens Tabla di lèternan.
-  */
-
-  const amigaBtn =
+  const button =
     document.getElementById(
       'amigaBtn'
     );
 
-  if(amigaBtn){
+  if(button){
 
-    amigaBtn.addEventListener(
+    button.addEventListener(
       'click',
-      () => {
-
+      () =>
         setTimeout(
-          renderLetterProgressTable,
+          render,
           0
-        );
-
-      }
+        )
     );
 
   }
 
-
-  /*
-    Also rebuild if the overlay itself changes.
-    This keeps it in sync with the game's existing
-    rendering code.
-  */
 
   const overlay =
     document.getElementById(
@@ -38336,39 +38795,26 @@ addEventListener(
 
   if(overlay){
 
-    const observer =
-      new MutationObserver(
-        () => {
+    new MutationObserver(() => {
 
-          if(
-            !overlay.classList.contains(
-              'is-hidden'
-            )
-          ){
+      if(
+        !overlay.classList.contains(
+          'is-hidden'
+        ) &&
+        !document.getElementById(
+          'letterProgressTableArea'
+        )
+      ){
 
-            if(
-              !document.getElementById(
-                'letterProgressTableArea'
-              )
-            ){
+        render();
 
-              renderLetterProgressTable();
+      }
 
-            }
-
-          }
-
-        }
-      );
-
-
-    observer.observe(
+    }).observe(
       overlay,
       {
         attributes:true,
-        attributeFilter:[
-          'class'
-        ]
+        attributeFilter:['class']
       }
     );
 
