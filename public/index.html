@@ -5473,6 +5473,380 @@ button:focus-visible{
 
 /* === LETTER TAB INTRO CSS END === */
 
+
+
+/* === RANK UP CELEBRATION === */
+
+.rank-up-overlay{
+  position:fixed;
+  inset:0;
+  z-index:10000;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:22px;
+
+  pointer-events:none;
+
+  opacity:0;
+  visibility:hidden;
+
+  transition:
+    opacity .2s ease,
+    visibility .2s ease;
+}
+
+.rank-up-overlay.show{
+  opacity:1;
+  visibility:visible;
+}
+
+
+.rank-up-card{
+  position:relative;
+
+  width:min(340px, calc(100vw - 36px));
+
+  padding:
+    27px
+    23px
+    24px;
+
+  overflow:hidden;
+
+  border-radius:22px;
+
+  border:
+    1px solid
+    rgba(249,227,0,.25);
+
+  background:#081F36;
+
+  text-align:center;
+
+  box-shadow:
+    0 24px 65px
+    rgba(0,0,0,.30);
+
+  transform:
+    translateY(14px)
+    scale(.93);
+
+  transition:
+    transform
+    .42s
+    cubic-bezier(.2,1.25,.35,1);
+}
+
+
+.rank-up-overlay.show
+.rank-up-card{
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+
+/* Curaçao blue accent */
+
+.rank-up-card::before{
+  content:"";
+
+  position:absolute;
+
+  top:0;
+  left:0;
+  right:0;
+
+  height:4px;
+
+  background:#0F9FE0;
+}
+
+
+/* ----------------------------------------------------------
+   ICON
+---------------------------------------------------------- */
+
+.rank-up-icon{
+  width:54px;
+  height:54px;
+
+  margin:
+    0
+    auto
+    14px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:50%;
+
+  background:
+    rgba(249,227,0,.12);
+
+  color:#F9E300;
+
+  font-size:26px;
+
+  animation:
+    rankUpPop
+    .55s
+    cubic-bezier(.2,1.45,.35,1);
+}
+
+
+@keyframes rankUpPop{
+
+  0%{
+    opacity:0;
+
+    transform:
+      scale(.35)
+      rotate(-12deg);
+  }
+
+  65%{
+    opacity:1;
+
+    transform:
+      scale(1.14)
+      rotate(4deg);
+  }
+
+  100%{
+    transform:
+      scale(1)
+      rotate(0);
+  }
+
+}
+
+
+/* ----------------------------------------------------------
+   COPY
+---------------------------------------------------------- */
+
+.rank-up-kicker{
+  margin-bottom:5px;
+
+  font-family:
+    'Karla',
+    system-ui,
+    sans-serif;
+
+  color:
+    rgba(255,255,255,.56);
+
+  font-size:9px;
+  font-weight:700;
+
+  letter-spacing:.13em;
+
+  text-transform:uppercase;
+}
+
+
+.rank-up-title{
+  font-family:
+    'Bricolage Grotesque',
+    sans-serif;
+
+  color:#fff;
+
+  font-size:27px;
+  font-weight:700;
+
+  line-height:1.08;
+
+  letter-spacing:-.025em;
+}
+
+
+.rank-up-title strong{
+  color:#F9E300;
+}
+
+
+.rank-up-compliment{
+  max-width:270px;
+
+  margin:
+    10px
+    auto
+    0;
+
+  font-family:
+    'Karla',
+    system-ui,
+    sans-serif;
+
+  color:
+    rgba(255,255,255,.80);
+
+  font-size:14px;
+  font-weight:500;
+
+  line-height:1.4;
+}
+
+
+/* ----------------------------------------------------------
+   SMALL CELEBRATION SPARKS
+---------------------------------------------------------- */
+
+.rank-up-sparks{
+  position:absolute;
+  inset:0;
+
+  overflow:hidden;
+
+  pointer-events:none;
+}
+
+
+.rank-up-spark{
+  position:absolute;
+
+  width:5px;
+  height:5px;
+
+  border-radius:50%;
+
+  background:#F9E300;
+
+  opacity:0;
+
+  animation:
+    rankUpSpark
+    .9s
+    ease-out
+    forwards;
+}
+
+
+.rank-up-spark:nth-child(1){
+  top:18%;
+  left:13%;
+}
+
+.rank-up-spark:nth-child(2){
+  top:12%;
+  left:28%;
+
+  background:#0F9FE0;
+
+  animation-delay:.08s;
+}
+
+.rank-up-spark:nth-child(3){
+  top:18%;
+  right:13%;
+
+  animation-delay:.05s;
+}
+
+.rank-up-spark:nth-child(4){
+  top:12%;
+  right:28%;
+
+  background:#0F9FE0;
+
+  animation-delay:.13s;
+}
+
+.rank-up-spark:nth-child(5){
+  top:45%;
+  left:8%;
+
+  animation-delay:.11s;
+}
+
+.rank-up-spark:nth-child(6){
+  top:42%;
+  right:8%;
+
+  background:#0F9FE0;
+
+  animation-delay:.17s;
+}
+
+
+@keyframes rankUpSpark{
+
+  0%{
+    opacity:0;
+
+    transform:
+      scale(.3)
+      translateY(7px);
+  }
+
+  30%{
+    opacity:1;
+  }
+
+  100%{
+    opacity:0;
+
+    transform:
+      scale(1.15)
+      translateY(-20px);
+  }
+
+}
+
+
+/* ----------------------------------------------------------
+   RANK NAME IN MAIN GAME
+---------------------------------------------------------- */
+
+#rankName.rank-up-pulse{
+  animation:
+    rankUpPulse
+    .7s
+    cubic-bezier(.2,1.3,.35,1);
+}
+
+
+@keyframes rankUpPulse{
+
+  0%{
+    transform:scale(1);
+  }
+
+  45%{
+    transform:scale(1.12);
+    color:var(--flag-ink);
+  }
+
+  100%{
+    transform:scale(1);
+  }
+
+}
+
+
+/* ----------------------------------------------------------
+   ACCESSIBILITY
+---------------------------------------------------------- */
+
+@media(prefers-reduced-motion:reduce){
+
+  .rank-up-overlay,
+  .rank-up-card,
+  .rank-up-icon,
+  .rank-up-spark,
+  #rankName.rank-up-pulse{
+    animation:none !important;
+    transition:none !important;
+  }
+
+}
+
 </style>
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/favicon.png">
@@ -34918,6 +35292,315 @@ const ACTION_SOUND = (() => {
 
 
 
+
+/* === RANK UP CELEBRATION JS === */
+
+
+/*
+  Every stage has its own compliment.
+  Prinsipiante doesn't need a celebration because
+  that's where everyone begins.
+*/
+
+const RANK_UP_MESSAGES = {
+
+  'Bon Kuminsá':{
+    icon:'✦',
+    compliment:
+      'Dushi! Bo ta kuminsá bon!'
+  },
+
+  'Bon':{
+    icon:'★',
+    compliment:
+      'Masha bon! Bo ta kue ritmo!'
+  },
+
+  'Bon Bon':{
+    icon:'✦',
+    compliment:
+      'Kandela! Bo ta bai duru!'
+  },
+
+  'Bunita':{
+    icon:'★',
+    compliment:
+      'Bunita! Bo ta hasi trabou bunita!'
+  },
+
+  'Grandi':{
+    icon:'✦',
+    compliment:
+      'Duru! Bo progreso ta grandi!'
+  },
+
+  'Eksèlente':{
+    icon:'★',
+    compliment:
+      'Tremendo! Bo ta na otro nivel!'
+  },
+
+  'Formidabel':{
+    icon:'✦',
+    compliment:
+      'Kandela! Bo ta kasi na top!'
+  },
+
+  'Konosedó':{
+    icon:'★',
+    compliment:
+      'Masha dushi! Bo a domina e reto di awe!'
+  }
+
+};
+
+
+let rankUpTimer = null;
+
+
+/* ==========================================================
+   CREATE UI
+========================================================== */
+
+function getRankUpOverlay(){
+
+  let overlay =
+    document.getElementById(
+      'rankUpOverlay'
+    );
+
+
+  if(overlay){
+    return overlay;
+  }
+
+
+  overlay =
+    document.createElement(
+      'div'
+    );
+
+  overlay.id =
+    'rankUpOverlay';
+
+  overlay.className =
+    'rank-up-overlay';
+
+  overlay.setAttribute(
+    'role',
+    'status'
+  );
+
+  overlay.setAttribute(
+    'aria-live',
+    'polite'
+  );
+
+
+  overlay.innerHTML = `
+    <div class="rank-up-card">
+
+      <div
+        class="rank-up-sparks"
+        aria-hidden="true">
+
+        <i class="rank-up-spark"></i>
+        <i class="rank-up-spark"></i>
+        <i class="rank-up-spark"></i>
+        <i class="rank-up-spark"></i>
+        <i class="rank-up-spark"></i>
+        <i class="rank-up-spark"></i>
+
+      </div>
+
+      <div
+        class="rank-up-icon"
+        id="rankUpIcon"
+        aria-hidden="true">
+        ★
+      </div>
+
+      <div class="rank-up-kicker">
+        Rango nobo
+      </div>
+
+      <div class="rank-up-title">
+        Bo a yega na
+        <strong id="rankUpName"></strong>!
+      </div>
+
+      <div
+        class="rank-up-compliment"
+        id="rankUpCompliment">
+      </div>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    overlay
+  );
+
+
+  return overlay;
+}
+
+
+/* ==========================================================
+   SHOW CELEBRATION
+========================================================== */
+
+function showRankUp(rankName){
+
+  const message =
+    RANK_UP_MESSAGES[
+      rankName
+    ];
+
+
+  if(!message){
+    return;
+  }
+
+
+  const overlay =
+    getRankUpOverlay();
+
+
+  $('rankUpIcon').textContent =
+    message.icon;
+
+
+  $('rankUpName').textContent =
+    rankName;
+
+
+  $('rankUpCompliment').textContent =
+    message.compliment;
+
+
+  /*
+    Restart animations every time.
+  */
+
+  overlay.classList.remove(
+    'show'
+  );
+
+  void overlay.offsetWidth;
+
+  overlay.classList.add(
+    'show'
+  );
+
+
+  /*
+    Give the rank at the top of the actual game
+    a subtle reaction as well.
+  */
+
+  const rankNameEl =
+    $('rankName');
+
+
+  if(rankNameEl){
+
+    rankNameEl.classList.remove(
+      'rank-up-pulse'
+    );
+
+    void rankNameEl.offsetWidth;
+
+    rankNameEl.classList.add(
+      'rank-up-pulse'
+    );
+
+  }
+
+
+  if(rankUpTimer){
+    clearTimeout(
+      rankUpTimer
+    );
+  }
+
+
+  rankUpTimer =
+    setTimeout(
+      () => {
+
+        overlay.classList.remove(
+          'show'
+        );
+
+      },
+      1900
+    );
+
+}
+
+
+/* ==========================================================
+   DETECT AN ACTUAL RANK INCREASE
+========================================================== */
+
+function checkRankUp(
+  previousRank,
+  newRank
+){
+
+  if(
+    !previousRank ||
+    !newRank ||
+    previousRank === newRank
+  ){
+    return;
+  }
+
+
+  const previousIndex =
+    RANKS.findIndex(
+      rank =>
+        rank.name ===
+        previousRank
+    );
+
+
+  const newIndex =
+    RANKS.findIndex(
+      rank =>
+        rank.name ===
+        newRank
+    );
+
+
+  /*
+    Don't celebrate page loads or backward movement.
+  */
+
+  if(
+    previousIndex === -1 ||
+    newIndex === -1 ||
+    newIndex <= previousIndex
+  ){
+    return;
+  }
+
+
+  /*
+    If one very valuable word crosses more than one
+    threshold, show the highest new rank rather than
+    several popups in a row.
+  */
+
+  showRankUp(
+    newRank
+  );
+
+}
+
+
 /* =========================================================
    20. SUBMIT
 ========================================================= */
@@ -34928,6 +35611,13 @@ function submit(){
     return;
 
   hideMissingWordCta();
+
+
+  /*
+    Remember the rank before points are added.
+  */
+  const rankBeforeGuess =
+    P.rank().name;
 
 
   const result =
@@ -35034,7 +35724,22 @@ function submit(){
     );
 
 
+    /*
+      P.guess() has already added the points,
+      so we can now check the player's new rank.
+    */
+    const rankAfterGuess =
+      P.rank().name;
+
+
     updateGame();
+
+
+    checkRankUp(
+      rankBeforeGuess,
+      rankAfterGuess
+    );
+
 
     saveCurrentGame();
 
