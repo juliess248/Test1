@@ -4350,6 +4350,383 @@ button:focus-visible{
 
 /* === HOW-TO UX POLISH END === */
 
+
+
+/* === LETTER PROGRESS TABLE V3 START === */
+
+/* ---------------------------------------------------------
+   CLEANER PROGRESS MODAL
+--------------------------------------------------------- */
+
+.amiga-progress-sheet{
+  padding-left:24px !important;
+  padding-right:24px !important;
+}
+
+
+/* Hide the old card-based group UI */
+.amiga-next,
+.amiga-short-help,
+.amiga-group-list,
+.amiga-list-section{
+  display:none !important;
+}
+
+
+/* ---------------------------------------------------------
+   COMPACT OVERALL PROGRESS
+--------------------------------------------------------- */
+
+.amiga-progress-hero{
+  margin:8px 0 20px !important;
+  padding:0 !important;
+
+  border:0 !important;
+  border-radius:0 !important;
+  background:none !important;
+}
+
+.amiga-progress-number strong{
+  font-size:30px !important;
+}
+
+.amiga-progress-percent{
+  font-size:18px !important;
+}
+
+.amiga-progress-track{
+  height:6px !important;
+  margin-top:10px !important;
+}
+
+
+/* ---------------------------------------------------------
+   TABLE INTRO
+--------------------------------------------------------- */
+
+.letter-progress-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  margin:4px 0 9px;
+}
+
+.letter-progress-heading-title{
+  color:var(--dim2);
+
+  font-size:10.5px;
+  font-weight:800;
+
+  letter-spacing:.09em;
+  text-transform:uppercase;
+}
+
+.letter-progress-heading-count{
+  min-width:23px;
+  height:23px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:999px;
+
+  background:rgba(var(--overlay),.08);
+
+  color:var(--dim);
+
+  font-size:10px;
+  font-weight:800;
+}
+
+
+/* ---------------------------------------------------------
+   TABLE WRAPPER
+--------------------------------------------------------- */
+
+.letter-progress-table-wrap{
+  width:100%;
+
+  overflow:hidden;
+
+  border:1px solid rgba(var(--overlay),.12);
+  border-radius:14px;
+
+  background:rgba(var(--overlay),.018);
+}
+
+
+/* ---------------------------------------------------------
+   ACTUAL TABLE
+--------------------------------------------------------- */
+
+.letter-progress-table{
+  width:100%;
+
+  table-layout:fixed;
+  border-collapse:collapse;
+
+  font-family:'Karla',system-ui,sans-serif;
+}
+
+
+/* Header */
+
+.letter-progress-table thead th{
+  padding:10px 9px;
+
+  border-bottom:1px solid rgba(var(--overlay),.12);
+
+  color:var(--dim2);
+
+  font-size:9.5px;
+  font-weight:800;
+
+  letter-spacing:.07em;
+  text-transform:uppercase;
+
+  text-align:left;
+}
+
+
+/* Column widths */
+
+.letter-progress-table th:nth-child(1),
+.letter-progress-table td:nth-child(1){
+  width:19%;
+}
+
+.letter-progress-table th:nth-child(2),
+.letter-progress-table td:nth-child(2){
+  width:23%;
+}
+
+.letter-progress-table th:nth-child(3),
+.letter-progress-table td:nth-child(3){
+  width:17%;
+}
+
+.letter-progress-table th:nth-child(4),
+.letter-progress-table td:nth-child(4){
+  width:41%;
+}
+
+
+/* Rows */
+
+.letter-progress-table tbody tr{
+  transition:background .15s;
+}
+
+.letter-progress-table tbody tr + tr td{
+  border-top:1px solid rgba(var(--overlay),.08);
+}
+
+.letter-progress-table tbody td{
+  padding:13px 9px;
+
+  color:var(--ink);
+
+  font-size:12.5px;
+  line-height:1.25;
+
+  vertical-align:middle;
+}
+
+
+/* ---------------------------------------------------------
+   GROUP / PREFIX
+--------------------------------------------------------- */
+
+.letter-progress-prefix{
+  font-family:'Bricolage Grotesque',sans-serif;
+
+  font-size:15px !important;
+  font-weight:800 !important;
+
+  color:var(--ink) !important;
+}
+
+
+/* ---------------------------------------------------------
+   PROGRESS
+--------------------------------------------------------- */
+
+.letter-progress-value{
+  font-weight:700;
+}
+
+.letter-progress-value strong{
+  font-family:'Bricolage Grotesque',sans-serif;
+
+  font-size:14px;
+  font-weight:800;
+}
+
+.letter-progress-total{
+  color:var(--dim);
+}
+
+
+/* ---------------------------------------------------------
+   MISSING COUNT
+--------------------------------------------------------- */
+
+.letter-progress-missing{
+  font-weight:800;
+
+  color:var(--flag-ink) !important;
+}
+
+
+/* ---------------------------------------------------------
+   LENGTHS
+--------------------------------------------------------- */
+
+.letter-progress-lengths{
+  color:var(--dim) !important;
+
+  font-size:11.5px !important;
+}
+
+
+/* ---------------------------------------------------------
+   RECOMMENDED / ACTIVE GROUP
+--------------------------------------------------------- */
+
+.letter-progress-table tr.is-recommended{
+  background:rgba(249,227,0,.065);
+}
+
+.letter-progress-table tr.is-recommended
+.letter-progress-prefix{
+  color:var(--flag-ink) !important;
+}
+
+.letter-progress-table tr.is-recommended
+.letter-progress-prefix::after{
+  content:"Sigui";
+
+  display:inline-block;
+
+  margin-left:6px;
+  padding:2px 5px;
+
+  border-radius:999px;
+
+  background:rgba(249,227,0,.14);
+
+  color:var(--flag-ink);
+
+  font-family:'Karla',sans-serif;
+
+  font-size:7.5px;
+  font-weight:800;
+
+  letter-spacing:.04em;
+  text-transform:uppercase;
+
+  vertical-align:2px;
+}
+
+
+/* ---------------------------------------------------------
+   COMPLETED GROUP
+--------------------------------------------------------- */
+
+.letter-progress-table tr.is-complete
+.letter-progress-missing{
+  color:var(--ok) !important;
+}
+
+.letter-progress-table tr.is-complete{
+  opacity:.72;
+}
+
+
+/* ---------------------------------------------------------
+   TOTAL ROW
+--------------------------------------------------------- */
+
+.letter-progress-table tfoot td{
+  padding:10px 9px;
+
+  border-top:1px solid rgba(var(--overlay),.14);
+
+  background:rgba(var(--overlay),.035);
+
+  color:var(--dim);
+
+  font-size:10.5px;
+  font-weight:700;
+}
+
+.letter-progress-table tfoot td:first-child{
+  color:var(--ink);
+
+  font-weight:800;
+}
+
+
+/* ---------------------------------------------------------
+   SMALL EXPLANATION BELOW TABLE
+--------------------------------------------------------- */
+
+.letter-progress-note{
+  margin-top:9px;
+
+  color:var(--dim2);
+
+  font-size:10.5px;
+  line-height:1.4;
+}
+
+
+/* ---------------------------------------------------------
+   MOBILE
+--------------------------------------------------------- */
+
+@media(max-width:480px){
+
+  .amiga-progress-sheet{
+    padding-left:17px !important;
+    padding-right:17px !important;
+  }
+
+  .letter-progress-table thead th{
+    padding:
+      9px
+      6px;
+
+    font-size:8.5px;
+  }
+
+  .letter-progress-table tbody td{
+    padding:
+      12px
+      6px;
+
+    font-size:11.5px;
+  }
+
+  .letter-progress-prefix{
+    font-size:14px !important;
+  }
+
+  .letter-progress-lengths{
+    font-size:10.5px !important;
+  }
+
+  .letter-progress-table tr.is-recommended
+  .letter-progress-prefix::after{
+    display:none;
+  }
+
+}
+
+/* === LETTER PROGRESS TABLE V3 END === */
+
 </style>
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/favicon.png">
@@ -37075,6 +37452,596 @@ addEventListener(
   }
 );
 
+</script>
+
+
+
+<script>
+/* === LETTER PROGRESS TABLE V3 JS START === */
+
+(function(){
+
+  function buildLetterProgressGroups(){
+
+    if(
+      typeof P === 'undefined' ||
+      !P.answers ||
+      !P.found
+    ){
+      return [];
+    }
+
+    const groups = {};
+
+    [...P.answers].forEach(
+      word => {
+
+        const prefix =
+          String(word)
+            .slice(0,2)
+            .toUpperCase();
+
+        const length =
+          [...String(word)].length;
+
+        if(!groups[prefix]){
+
+          groups[prefix] = {
+            prefix:prefix,
+            found:0,
+            total:0,
+            missing:0,
+            lengths:new Set()
+          };
+
+        }
+
+        groups[prefix].total++;
+
+        groups[prefix].lengths.add(
+          length
+        );
+
+        if(P.found.has(word)){
+          groups[prefix].found++;
+        }
+
+      }
+    );
+
+
+    Object.values(groups).forEach(
+      group => {
+
+        group.missing =
+          group.total -
+          group.found;
+
+        group.lengths =
+          [...group.lengths]
+            .sort(
+              (a,b) => a - b
+            );
+
+      }
+    );
+
+
+    /*
+      UX ordering:
+
+      1. Groups where the player already found something
+      2. Groups with the fewest remaining words
+      3. Alphabetical as final tie-breaker
+    */
+
+    return Object.values(groups)
+      .sort(
+        (a,b) => {
+
+          const aStarted =
+            a.found > 0 &&
+            a.missing > 0
+              ? 1
+              : 0;
+
+          const bStarted =
+            b.found > 0 &&
+            b.missing > 0
+              ? 1
+              : 0;
+
+          if(aStarted !== bStarted){
+            return bStarted - aStarted;
+          }
+
+          if(a.missing !== b.missing){
+            return a.missing - b.missing;
+          }
+
+          return a.prefix.localeCompare(
+            b.prefix
+          );
+
+        }
+      );
+
+  }
+
+
+  function recommendedPrefix(groups){
+
+    const started =
+      groups.filter(
+        group =>
+          group.found > 0 &&
+          group.missing > 0
+      );
+
+    if(started.length){
+
+      return [...started]
+        .sort(
+          (a,b) => {
+
+            const progressA =
+              a.found /
+              a.total;
+
+            const progressB =
+              b.found /
+              b.total;
+
+            if(progressA !== progressB){
+              return progressB - progressA;
+            }
+
+            return (
+              a.missing -
+              b.missing
+            );
+
+          }
+        )[0].prefix;
+
+    }
+
+
+    const incomplete =
+      groups.filter(
+        group =>
+          group.missing > 0
+      );
+
+    return incomplete.length
+      ? incomplete[0].prefix
+      : null;
+
+  }
+
+
+  function renderLetterProgressTable(){
+
+    const overlay =
+      document.getElementById(
+        'amigaOverlay'
+      );
+
+    if(!overlay){
+      return;
+    }
+
+
+    const sheet =
+      overlay.querySelector(
+        '.amiga-progress-sheet'
+      ) ||
+      overlay.querySelector(
+        '.amiga-sheet'
+      );
+
+    if(!sheet){
+      return;
+    }
+
+
+    /*
+      Delete previous generated table so the numbers
+      are always refreshed after finding a new word.
+    */
+
+    const old =
+      sheet.querySelector(
+        '#letterProgressTableArea'
+      );
+
+    if(old){
+      old.remove();
+    }
+
+
+    const groups =
+      buildLetterProgressGroups();
+
+    if(!groups.length){
+      return;
+    }
+
+
+    const recommendation =
+      recommendedPrefix(
+        groups
+      );
+
+
+    const area =
+      document.createElement(
+        'div'
+      );
+
+    area.id =
+      'letterProgressTableArea';
+
+
+    /* Heading */
+
+    const heading =
+      document.createElement(
+        'div'
+      );
+
+    heading.className =
+      'letter-progress-heading';
+
+
+    const headingTitle =
+      document.createElement(
+        'div'
+      );
+
+    headingTitle.className =
+      'letter-progress-heading-title';
+
+    headingTitle.textContent =
+      'Palabranan pa grupo';
+
+
+    const headingCount =
+      document.createElement(
+        'div'
+      );
+
+    headingCount.className =
+      'letter-progress-heading-count';
+
+    headingCount.textContent =
+      String(
+        groups.filter(
+          group =>
+            group.missing > 0
+        ).length
+      );
+
+
+    heading.append(
+      headingTitle,
+      headingCount
+    );
+
+
+    /* Table */
+
+    const wrap =
+      document.createElement(
+        'div'
+      );
+
+    wrap.className =
+      'letter-progress-table-wrap';
+
+
+    const table =
+      document.createElement(
+        'table'
+      );
+
+    table.className =
+      'letter-progress-table';
+
+    table.setAttribute(
+      'aria-label',
+      'Progreso di palabranan pa grupo'
+    );
+
+
+    table.innerHTML =
+      '<thead>' +
+        '<tr>' +
+          '<th>Grupo</th>' +
+          '<th>Progreso</th>' +
+          '<th>Falta</th>' +
+          '<th>Largura</th>' +
+        '</tr>' +
+      '</thead>';
+
+
+    const tbody =
+      document.createElement(
+        'tbody'
+      );
+
+
+    groups.forEach(
+      group => {
+
+        const tr =
+          document.createElement(
+            'tr'
+          );
+
+
+        if(
+          group.prefix ===
+          recommendation
+        ){
+          tr.classList.add(
+            'is-recommended'
+          );
+        }
+
+
+        if(
+          group.missing === 0
+        ){
+          tr.classList.add(
+            'is-complete'
+          );
+        }
+
+
+        const missingText =
+          group.missing === 0
+            ? '✓'
+            : String(
+                group.missing
+              );
+
+
+        tr.innerHTML =
+          '<td class="letter-progress-prefix">' +
+            group.prefix +
+          '</td>' +
+
+          '<td class="letter-progress-value">' +
+            '<strong>' +
+              group.found +
+            '</strong>' +
+            '<span class="letter-progress-total">' +
+              ' / ' +
+              group.total +
+            '</span>' +
+          '</td>' +
+
+          '<td class="letter-progress-missing">' +
+            missingText +
+          '</td>' +
+
+          '<td class="letter-progress-lengths">' +
+            group.lengths.join(
+              ' · '
+            ) +
+          '</td>';
+
+
+        tbody.appendChild(
+          tr
+        );
+
+      }
+    );
+
+
+    table.appendChild(
+      tbody
+    );
+
+
+    /* Totals */
+
+    const totalAnswers =
+      [...P.answers].length;
+
+    const totalFound =
+      P.found.size;
+
+    const totalMissing =
+      Math.max(
+        0,
+        totalAnswers -
+        totalFound
+      );
+
+
+    const tfoot =
+      document.createElement(
+        'tfoot'
+      );
+
+    tfoot.innerHTML =
+      '<tr>' +
+        '<td>Total</td>' +
+
+        '<td>' +
+          totalFound +
+          ' / ' +
+          totalAnswers +
+        '</td>' +
+
+        '<td>' +
+          totalMissing +
+        '</td>' +
+
+        '<td>—</td>' +
+      '</tr>';
+
+
+    table.appendChild(
+      tfoot
+    );
+
+
+    wrap.appendChild(
+      table
+    );
+
+
+    /* Short explanation */
+
+    const note =
+      document.createElement(
+        'div'
+      );
+
+    note.className =
+      'letter-progress-note';
+
+    note.textContent =
+      'Largura ta mustra kuantu lèter e palabranan den e grupo tin.';
+
+
+    area.append(
+      heading,
+      wrap,
+      note
+    );
+
+
+    /*
+      Put the table after the overall progress area.
+      Fall back to the header if the progress hero
+      has a different class.
+    */
+
+    const progressHero =
+      sheet.querySelector(
+        '.amiga-progress-hero'
+      );
+
+
+    if(progressHero){
+
+      progressHero.insertAdjacentElement(
+        'afterend',
+        area
+      );
+
+    }else{
+
+      const head =
+        sheet.querySelector(
+          '.amiga-head'
+        );
+
+      if(head){
+
+        head.insertAdjacentElement(
+          'afterend',
+          area
+        );
+
+      }else{
+
+        sheet.prepend(
+          area
+        );
+
+      }
+
+    }
+
+  }
+
+
+  /*
+    Re-render when the player opens Tabla di lèternan.
+  */
+
+  const amigaBtn =
+    document.getElementById(
+      'amigaBtn'
+    );
+
+  if(amigaBtn){
+
+    amigaBtn.addEventListener(
+      'click',
+      () => {
+
+        setTimeout(
+          renderLetterProgressTable,
+          0
+        );
+
+      }
+    );
+
+  }
+
+
+  /*
+    Also rebuild if the overlay itself changes.
+    This keeps it in sync with the game's existing
+    rendering code.
+  */
+
+  const overlay =
+    document.getElementById(
+      'amigaOverlay'
+    );
+
+  if(overlay){
+
+    const observer =
+      new MutationObserver(
+        () => {
+
+          if(
+            !overlay.classList.contains(
+              'is-hidden'
+            )
+          ){
+
+            if(
+              !document.getElementById(
+                'letterProgressTableArea'
+              )
+            ){
+
+              renderLetterProgressTable();
+
+            }
+
+          }
+
+        }
+      );
+
+
+    observer.observe(
+      overlay,
+      {
+        attributes:true,
+        attributeFilter:[
+          'class'
+        ]
+      }
+    );
+
+  }
+
+})();
+
+/* === LETTER PROGRESS TABLE V3 JS END === */
 </script>
 
 </body>
