@@ -1062,7 +1062,7 @@ ${text}`;
       const word = (url.searchParams.get("word") || "").trim().toLowerCase();
       const display = url.searchParams.get("display") || word;
       const tags = (url.searchParams.get("tags") || "").slice(0, 40);
-      if (!word || !/^[a-zñ]+$/.test(word)) {
+      if (!word || !/^[a-zàáèéìíòóùúñ]+$/.test(word)) {
         return json({ error: "Palabra inv\xE1lido" }, 400);
       }
       const cached = await this.env.GAME_HISTORY.prepare(
@@ -1189,7 +1189,7 @@ ${text}`;
     } catch {
       return json({ error: "JSON body required" }, 400);
     }
-    const words = Array.isArray(body.words) ? [...new Set(body.words.map((word) => String(word).trim().toLowerCase()))].filter((word) => /^[a-zñ]+$/.test(word)).slice(0, 500) : [];
+    const words = Array.isArray(body.words) ? [...new Set(body.words.map((word) => String(word).trim().toLowerCase()))].filter((word) => /^[a-zàáèéìíòóùúñ]+$/.test(word)).slice(0, 500) : [];
     const results = [];
     for (const word of words) {
       const response = await this.handleDefine(

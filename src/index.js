@@ -1254,7 +1254,7 @@ export default class extends WorkerEntrypoint {
       const display = url.searchParams.get("display") || word;
       const tags = (url.searchParams.get("tags") || "").slice(0, 40);
 
-      if (!word || !/^[a-zñ]+$/.test(word)) {
+      if (!word || !/^[a-zàáèéìíòóùúñ]+$/.test(word)) {
         return json({ error: "Palabra inválido" }, 400);
       }
 
@@ -1426,7 +1426,7 @@ export default class extends WorkerEntrypoint {
 
     const words = Array.isArray(body.words)
       ? [...new Set(body.words.map((word) => String(word).trim().toLowerCase()))]
-          .filter((word) => /^[a-zñ]+$/.test(word))
+          .filter((word) => /^[a-zàáèéìíòóùúñ]+$/.test(word))
           .slice(0, 500)
       : [];
     const results = [];
