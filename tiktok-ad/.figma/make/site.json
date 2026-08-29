@@ -1,0 +1,10 @@
+{
+  "description": "Create engaging TikTok ad storyboards for the Papiamentu word game Palabra di Kòrsou with customizable frames, enhancing user interaction and visibility.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
