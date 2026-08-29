@@ -34662,6 +34662,25 @@ const SOUND = (function(){
         : 'true'
     );
 
+
+    /*
+      Tell the user what clicking the button will do.
+    */
+    const label =
+      enabled
+        ? 'Apagá zonido'
+        : 'Prendé zonido';
+
+    button.setAttribute(
+      'aria-label',
+      label
+    );
+
+    button.setAttribute(
+      'title',
+      label
+    );
+
   }
 
 
@@ -34761,6 +34780,36 @@ document.addEventListener(
 );
 
 
+/* SOUND_TOGGLE_FIX_V1
+   Connect the header sound button to the SOUND controller.
+========================================================= */
+
+const soundToggleButton =
+  document.getElementById(
+    'sound-toggle'
+  );
+
+if(soundToggleButton){
+
+  soundToggleButton.addEventListener(
+    'click',
+    event => {
+
+      event.preventDefault();
+
+      SOUND.toggle();
+
+    }
+  );
+
+}
+
+
+/*
+  Set the correct icon immediately:
+  🔊 = sounds on
+  🔇 = sounds off
+*/
 SOUND.syncToggle();
 
 
