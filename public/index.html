@@ -32391,99 +32391,236 @@ function renderEntry(){
 
 const SOUND = (function(){
 
-  const STORAGE_KEY = 'palabraSoundEnabled';
+  const STORAGE_KEY =
+    'palabraSoundEnabled';
 
   let ctx = null;
-  let enabled = true;
 
-  try{
-    enabled =
-      localStorage.getItem(STORAGE_KEY) !== 'false';
-  }catch(e){}
+  /*
+    While AudioContext.resume() is running,
+    reuse the same Promise instead of asking
+    the browser to resume several times.
+  */
+  let resumePromise = null;
+
+
+  function isEnabled(){
+
+    try{
+
+      return (
+        localStorage.getItem(
+          STORAGE_KEY
+        ) !== 'false'
+      );
+
+    }catch(error){
+
+      return true;
+
+    }
+
+  }
+
+
+  function AudioContextClass(){
+
+    return (
+      window.AudioContext ||
+      window.webkitAudioContext ||
+      null
+    );
+
+  }
 
 
   function getCtx(){
 
-    if(ctx){
-      return ctx;
-    }
-
     const AudioCtx =
-      window.AudioContext ||
-      window.webkitAudioContext;
+      AudioContextClass();
 
+    /*
+      Audio unsupported?
+      Do nothing rather than breaking the game.
+    */
     if(!AudioCtx){
       return null;
     }
 
-    ctx = new AudioCtx();
 
-    return ctx;
-  }
-
-
-  function unlock(){
-
-    if(!enabled){
-      return;
+    /*
+      Reuse ONE AudioContext.
+    */
+    if(
+      ctx &&
+      ctx.state !== 'closed'
+    ){
+      return ctx;
     }
 
-    const c = getCtx();
 
-    if(!c){
-      return;
-    }
+    try{
 
-    if(c.state === 'suspended'){
+      /*
+        latencyHint improves responsiveness for
+        tiny UI sounds such as letter taps.
+      */
+      ctx =
+        new AudioCtx({
+          latencyHint:'interactive'
+        });
 
-      c.resume().catch(
-        () => {}
-      );
+    }catch(error){
 
-    }
+      /*
+        Older Safari versions may not like
+        constructor options.
+      */
+      try{
 
-  }
+        ctx =
+          new AudioCtx();
 
+      }catch(secondError){
 
-  function playWhenReady(callback){
-
-    if(!enabled){
-      return;
-    }
-
-    const c = getCtx();
-
-    if(!c){
-      return;
-    }
-
-    if(c.state === 'running'){
-
-      callback(c);
-      return;
-
-    }
-
-    if(c.state === 'suspended'){
-
-      c.resume()
-        .then(
-          () => {
-
-            if(
-              enabled &&
-              c.state === 'running'
-            ){
-              callback(c);
-            }
-
-          }
-        )
-        .catch(
-          () => {}
+        console.warn(
+          'AudioContext could not be created.',
+          secondError
         );
 
+        ctx = null;
+
+      }
+
     }
+
+
+    return ctx;
+
+  }
+
+
+  async function ensureRunning(){
+
+    if(!isEnabled()){
+      return null;
+    }
+
+
+    const c =
+      getCtx();
+
+    if(!c){
+      return null;
+    }
+
+
+    if(
+      c.state === 'running'
+    ){
+
+      return c;
+
+    }
+
+
+    /*
+      This is the important fix.
+
+      The old version called resume(), but then
+      immediately tried to play.
+
+      We now WAIT until the browser confirms that
+      audio is running.
+    */
+    try{
+
+      if(!resumePromise){
+
+        resumePromise =
+          c.resume()
+            .catch(
+              error => {
+
+                console.warn(
+                  'Audio resume was blocked:',
+                  error
+                );
+
+              }
+            )
+            .finally(
+              () => {
+
+                resumePromise =
+                  null;
+
+              }
+            );
+
+      }
+
+
+      await resumePromise;
+
+    }catch(error){
+
+      return null;
+
+    }
+
+
+    return (
+      c.state === 'running'
+        ? c
+        : null
+    );
+
+  }
+
+
+  /*
+    Every sound passes through this function.
+
+    If the browser suspended audio while the
+    phone/tab was inactive, it recovers before
+    playing.
+  */
+  function playWhenReady(callback){
+
+    ensureRunning()
+      .then(
+        c => {
+
+          if(
+            !c ||
+            !isEnabled()
+          ){
+            return;
+          }
+
+          try{
+
+            callback(c);
+
+          }catch(error){
+
+            /*
+              Sound failure must NEVER break
+              game play.
+            */
+            console.warn(
+              'Game sound failed:',
+              error
+            );
+
+          }
+
+        }
+      )
+      .catch(
+        () => {}
+      );
 
   }
 
@@ -32492,25 +32629,33 @@ const SOUND = (function(){
     c,
     freq,
     start,
-    dur,
+    duration,
     type,
     peak
   ){
 
-    const osc =
+    const oscillator =
       c.createOscillator();
 
     const gain =
       c.createGain();
 
-    osc.type = type;
 
-    osc.frequency
+    oscillator.type =
+      type;
+
+
+    oscillator.frequency
       .setValueAtTime(
         freq,
         start
       );
 
+
+    /*
+      Never start an exponential audio ramp
+      at absolute zero.
+    */
     gain.gain
       .setValueAtTime(
         0.0001,
@@ -32526,15 +32671,46 @@ const SOUND = (function(){
     gain.gain
       .exponentialRampToValueAtTime(
         0.0001,
-        start + dur
+        start + duration
       );
 
-    osc.connect(gain);
-    gain.connect(c.destination);
 
-    osc.start(start);
-    osc.stop(
-      start + dur + 0.02
+    oscillator.connect(
+      gain
+    );
+
+    gain.connect(
+      c.destination
+    );
+
+
+    /*
+      Disconnect nodes after playback so rapid
+      tapping does not leave old audio nodes
+      hanging around.
+    */
+    oscillator.onended =
+      () => {
+
+        try{
+          oscillator.disconnect();
+        }catch(error){}
+
+        try{
+          gain.disconnect();
+        }catch(error){}
+
+      };
+
+
+    oscillator.start(
+      start
+    );
+
+    oscillator.stop(
+      start +
+      duration +
+      0.02
     );
 
   }
@@ -32545,8 +32721,13 @@ const SOUND = (function(){
     playWhenReady(
       c => {
 
+        /*
+          Tiny scheduling buffer makes rapid taps
+          more reliable on mobile browsers.
+        */
         const t =
-          c.currentTime;
+          c.currentTime +
+          0.002;
 
         tone(
           c,
@@ -32569,27 +32750,33 @@ const SOUND = (function(){
       c => {
 
         const t =
-          c.currentTime;
+          c.currentTime +
+          0.002;
 
-        const osc =
+
+        const oscillator =
           c.createOscillator();
 
         const gain =
           c.createGain();
 
-        osc.type = 'sine';
 
-        osc.frequency
+        oscillator.type =
+          'sine';
+
+
+        oscillator.frequency
           .setValueAtTime(
             520,
             t
           );
 
-        osc.frequency
+        oscillator.frequency
           .exponentialRampToValueAtTime(
             280,
             t + 0.09
           );
+
 
         gain.gain
           .setValueAtTime(
@@ -32609,11 +32796,32 @@ const SOUND = (function(){
             t + 0.09
           );
 
-        osc.connect(gain);
-        gain.connect(c.destination);
 
-        osc.start(t);
-        osc.stop(t + 0.11);
+        oscillator.connect(
+          gain
+        );
+
+        gain.connect(
+          c.destination
+        );
+
+
+        oscillator.onended =
+          () => {
+
+            try{
+              oscillator.disconnect();
+            }catch(error){}
+
+            try{
+              gain.disconnect();
+            }catch(error){}
+
+          };
+
+
+        oscillator.start(t);
+        oscillator.stop(t + 0.11);
 
       }
     );
@@ -32621,13 +32829,22 @@ const SOUND = (function(){
   }
 
 
+  /*
+    Keep these for backward compatibility.
+
+    If any existing part of the game still calls
+    SOUND.word() or SOUND.pangram(), the website
+    will not break.
+  */
+
   function word(){
 
     playWhenReady(
       c => {
 
         const t =
-          c.currentTime;
+          c.currentTime +
+          0.002;
 
         tone(
           c,
@@ -32659,7 +32876,8 @@ const SOUND = (function(){
       c => {
 
         const t =
-          c.currentTime;
+          c.currentTime +
+          0.002;
 
         const notes = [
           523.25,
@@ -32667,6 +32885,7 @@ const SOUND = (function(){
           783.99,
           1046.50
         ];
+
 
         notes.forEach(
           (freq,index) => {
@@ -32680,6 +32899,7 @@ const SOUND = (function(){
               0.17
             );
 
+
             tone(
               c,
               freq * 2,
@@ -32692,6 +32912,7 @@ const SOUND = (function(){
           }
         );
 
+
         tone(
           c,
           2093,
@@ -32701,10 +32922,13 @@ const SOUND = (function(){
           0.09
         );
 
+
         tone(
           c,
           3135.5,
-          t + notes.length * 0.085 + 0.02,
+          t +
+          notes.length * 0.085 +
+          0.02,
           0.35,
           'sine',
           0.05
@@ -32716,59 +32940,48 @@ const SOUND = (function(){
   }
 
 
-  function pop(){
+  /*
+    Used by pointerdown/keydown listeners.
+  */
+  function unlock(){
 
-    playWhenReady(
-      c => {
+    if(!isEnabled()){
+      return;
+    }
 
-        const t =
-          c.currentTime;
+    ensureRunning();
 
-        const osc =
-          c.createOscillator();
+  }
 
-        const gain =
-          c.createGain();
 
-        osc.type = 'sine';
+  function setEnabled(value){
 
-        osc.frequency
-          .setValueAtTime(
-            500,
-            t
-          );
+    try{
 
-        osc.frequency
-          .exponentialRampToValueAtTime(
-            900,
-            t + 0.12
-          );
+      localStorage.setItem(
+        STORAGE_KEY,
+        String(Boolean(value))
+      );
 
-        gain.gain
-          .setValueAtTime(
-            0.0001,
-            t
-          );
+    }catch(error){}
 
-        gain.gain
-          .exponentialRampToValueAtTime(
-            0.25,
-            t + 0.01
-          );
 
-        gain.gain
-          .exponentialRampToValueAtTime(
-            0.0001,
-            t + 0.12
-          );
+    if(value){
 
-        osc.connect(gain);
-        gain.connect(c.destination);
+      unlock();
 
-        osc.start(t);
-        osc.stop(t + 0.14);
+    }
 
-      }
+
+    syncToggle();
+
+  }
+
+
+  function toggle(){
+
+    setEnabled(
+      !isEnabled()
     );
 
   }
@@ -32785,10 +32998,16 @@ const SOUND = (function(){
       return;
     }
 
+
+    const enabled =
+      isEnabled();
+
+
     button.textContent =
       enabled
         ? '🔊'
         : '🔇';
+
 
     button.setAttribute(
       'aria-pressed',
@@ -32800,23 +33019,28 @@ const SOUND = (function(){
   }
 
 
-  function toggle(){
+  /*
+    Useful for checking audio from the browser
+    console without changing the game.
+  */
+  function status(){
 
-    enabled =
-      !enabled;
+    return {
 
-    try{
-      localStorage.setItem(
-        STORAGE_KEY,
-        String(enabled)
-      );
-    }catch(e){}
+      supported:
+        Boolean(
+          AudioContextClass()
+        ),
 
-    syncToggle();
+      enabled:
+        isEnabled(),
 
-    if(enabled){
-      unlock();
-    }
+      state:
+        ctx
+          ? ctx.state
+          : 'not-created'
+
+    };
 
   }
 
@@ -32825,19 +33049,22 @@ const SOUND = (function(){
 
     tap,
 
-    delete: deleteSound,
+    delete:
+      deleteSound,
 
     word,
 
     pangram,
 
-    pop,
-
     unlock,
 
     toggle,
 
-    syncToggle
+    setEnabled,
+
+    syncToggle,
+
+    status
 
   };
 
@@ -32845,68 +33072,50 @@ const SOUND = (function(){
 
 
 /*
-  Unlock Web Audio as early as possible during a
-  genuine user interaction.
+  IMPORTANT:
+  Unlock on pointer DOWN, before the later click event
+  calls typeLetter().
 
-  pointerdown happens before click, which means the
-  AudioContext normally has time to resume before the
-  letter's click handler calls SOUND.tap().
+  capture:true means this happens before the hive's
+  normal event handler.
 */
 document.addEventListener(
   'pointerdown',
-  () => SOUND.unlock(),
+  SOUND.unlock,
   {
+    capture:true,
     passive:true
   }
 );
 
+
+/*
+  Safari/iOS fallback.
+*/
 document.addEventListener(
-  'keydown',
-  () => SOUND.unlock()
+  'touchstart',
+  SOUND.unlock,
+  {
+    capture:true,
+    passive:true
+  }
 );
 
 
 /*
-  One mute control for ALL game sounds.
+  Keyboard users also unlock audio before the game's
+  normal keydown handler processes the letter.
 */
-const soundToggleButton =
-  document.getElementById(
-    'sound-toggle'
-  );
-
-if(soundToggleButton){
-
-  SOUND.syncToggle();
-
-  soundToggleButton
-    .addEventListener(
-      'click',
-      () => {
-        SOUND.toggle();
-      }
-    );
-
-}
+document.addEventListener(
+  'keydown',
+  SOUND.unlock,
+  {
+    capture:true
+  }
+);
 
 
-/*
-  Keep the existing Hunga button pop sound,
-  but use the same AudioContext.
-*/
-const playSoundButton =
-  document.getElementById(
-    'playBtn'
-  );
-
-if(playSoundButton){
-
-  playSoundButton
-    .addEventListener(
-      'click',
-      () => SOUND.pop()
-    );
-
-}
+SOUND.syncToggle();
 
 
 function typeLetter(letter){
