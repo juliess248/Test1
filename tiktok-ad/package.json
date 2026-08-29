@@ -1,0 +1,33 @@
+{
+  "name": "figma-make-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
+    "format": "oxfmt",
+    "remotion:studio": "remotion studio src/remotion/index.ts",
+    "render:tiktok": "remotion render src/remotion/index.ts PalabraDiKorsouTikTok out/palabra-di-korsou-tiktok.mp4 --codec=h264 --audio-codec=aac",
+    "render:wide": "remotion render src/remotion/index.ts PalabraDiKorsouWide out/palabra-di-korsou-wide.mp4 --codec=h264 --audio-codec=aac",
+    "render:square": "remotion render src/remotion/index.ts PalabraDiKorsouSquare out/palabra-di-korsou-square.mp4 --codec=h264 --audio-codec=aac"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "4.0.502"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "oxfmt": "^0.2.0",
+    "typescript": "^5.7.0",
+    "vite": "^8.0.5",
+    "@remotion/cli": "4.0.502"
+  }
+}
