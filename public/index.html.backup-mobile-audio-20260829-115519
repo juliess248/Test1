@@ -35036,31 +35036,6 @@ function renderEntry(){
 
 const SOUND = (function(){
 
-  /*
-    MOBILE SAFARI FIX
-
-    iOS normally treats Web Audio as ambient audio.
-    Ambient audio can be silenced by the iPhone's
-    Ring/Silent setting.
-
-    On supported Safari versions, use the playback
-    audio session instead.
-  */
-  try{
-    if(
-      navigator.audioSession &&
-      'type' in navigator.audioSession
-    ){
-      navigator.audioSession.type = 'playback';
-    }
-  }catch(error){
-    console.warn(
-      'Could not set iOS audio session:',
-      error
-    );
-  }
-
-
   const STORAGE_KEY =
     'palabraSoundEnabled';
 
@@ -35386,37 +35361,19 @@ const SOUND = (function(){
   }
 
 
-  function popTone(c, startFreq, endFreq, start, duration, peak){
-    const oscillator = c.createOscillator();
-    const gain = c.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(startFreq, start);
-    oscillator.frequency.exponentialRampToValueAtTime(endFreq, start + duration * 0.8);
-    gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.linearRampToValueAtTime(peak, start + 0.008);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-    oscillator.connect(gain);
-    gain.connect(c.destination);
-    oscillator.onended = () => {
-      try{ oscillator.disconnect(); }catch(e){}
-      try{ gain.disconnect(); }catch(e){}
-    };
-    oscillator.start(start);
-    oscillator.stop(start + duration + 0.02);
-  }
-
   function tap(){
     playWhenReady(c=>{
-      const t = c.currentTime + 0.002;
-      const wobble = 1 + (Math.random() * 0.06 - 0.03);
-      tone(c, 640 * wobble, t, 0.028, 'sine', 0.014);
+      const t=c.currentTime+0.002;
+      tone(c,1180,t,0.038,'triangle',0.018);
+      tone(c,1800,t,0.022,'sine',0.004);
     });
   }
 
   function deleteSound(){
     playWhenReady(c=>{
-      const t = c.currentTime + 0.002;
-      popTone(c, 320, 150, t, 0.07, 0.02);
+      const t=c.currentTime+0.002;
+      tone(c,285,t,0.040,'triangle',0.016);
+      tone(c,175,t+0.025,0.045,'triangle',0.012);
     });
   }
 
@@ -35448,8 +35405,9 @@ const SOUND = (function(){
 
   function hunga(){
     playWhenReady(c=>{
-      const t = c.currentTime + 0.002;
-      popTone(c, 320, 140, t, 0.16, 0.05);
+      const t=c.currentTime+0.002;
+      tone(c,190,t,0.120,'sine',0.038);
+      tone(c,380,t,0.080,'sine',0.010);
     });
   }
 
@@ -35487,76 +35445,10 @@ const SOUND = (function(){
       return;
     }
 
-    const c = getCtx();
-
-    if(!c){
-      return;
-    }
-
-    /*
-      Prime Web Audio INSIDE the user's tap/click.
-      The sound is effectively silent.
-    */
-    try{
-
-      const oscillator =
-        c.createOscillator();
-
-      const gain =
-        c.createGain();
-
-      gain.gain.setValueAtTime(
-        0.000001,
-        c.currentTime
-      );
-
-      oscillator.connect(gain);
-      gain.connect(c.destination);
-
-      oscillator.start();
-      oscillator.stop(
-        c.currentTime + 0.01
-      );
-
-    }catch(error){}
-
-
-    /*
-      Resume directly inside the user gesture.
-    */
-    if(c.state !== 'running'){
-
-      try{
-
-        const result =
-          c.resume();
-
-        if(
-          result &&
-          typeof result.catch === 'function'
-        ){
-          result.catch(
-            error => {
-              console.warn(
-                'Audio resume blocked:',
-                error
-              );
-            }
-          );
-        }
-
-      }catch(error){
-
-        console.warn(
-          'Audio resume failed:',
-          error
-        );
-
-      }
-
-    }
+    ensureRunning();
 
   }
+
 
   function setEnabled(value){
 
@@ -35681,6 +35573,8 @@ const SOUND = (function(){
 
     pangram,
 
+    hunga,
+
     invalid,
 
     complete,
@@ -35701,16 +35595,13 @@ const SOUND = (function(){
 
 
 /*
-  MOBILE AUDIO UNLOCK
+  IMPORTANT:
+  Unlock on pointer DOWN, before the later click event
+  calls typeLetter().
 
-  Keep several real user gestures because Safari,
-  Chrome and embedded mobile browsers do not all
-  behave identically.
-
-  capture:true makes this run BEFORE the game's
-  normal button handler.
+  capture:true means this happens before the hive's
+  normal event handler.
 */
-
 document.addEventListener(
   'pointerdown',
   SOUND.unlock,
@@ -35720,8 +35611,12 @@ document.addEventListener(
   }
 );
 
+
+/*
+  Safari/iOS fallback.
+*/
 document.addEventListener(
-  'touchend',
+  'touchstart',
   SOUND.unlock,
   {
     capture:true,
@@ -35729,41 +35624,16 @@ document.addEventListener(
   }
 );
 
-document.addEventListener(
-  'click',
-  SOUND.unlock,
-  {
-    capture:true
-  }
-);
 
+/*
+  Keyboard users also unlock audio before the game's
+  normal keydown handler processes the letter.
+*/
 document.addEventListener(
   'keydown',
   SOUND.unlock,
   {
     capture:true
-  }
-);
-
-
-/*
-  Safari can suspend/interupt Web Audio after
-  switching apps or locking the phone.
-  The next interaction will unlock it again.
-*/
-document.addEventListener(
-  'visibilitychange',
-  () => {
-
-    if(
-      document.visibilityState === 'visible'
-    ){
-      /*
-        Don't force playback here.
-        The next tap/click will call SOUND.unlock().
-      */
-    }
-
   }
 );
 

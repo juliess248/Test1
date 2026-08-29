@@ -8493,10 +8493,6 @@ tbody tr + tr td{
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
-
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5675218429622889"
-     crossorigin="anonymous"></script>
-
 </head>
 
 
@@ -35036,31 +35032,6 @@ function renderEntry(){
 
 const SOUND = (function(){
 
-  /*
-    MOBILE SAFARI FIX
-
-    iOS normally treats Web Audio as ambient audio.
-    Ambient audio can be silenced by the iPhone's
-    Ring/Silent setting.
-
-    On supported Safari versions, use the playback
-    audio session instead.
-  */
-  try{
-    if(
-      navigator.audioSession &&
-      'type' in navigator.audioSession
-    ){
-      navigator.audioSession.type = 'playback';
-    }
-  }catch(error){
-    console.warn(
-      'Could not set iOS audio session:',
-      error
-    );
-  }
-
-
   const STORAGE_KEY =
     'palabraSoundEnabled';
 
@@ -35386,39 +35357,411 @@ const SOUND = (function(){
   }
 
 
-  function popTone(c, startFreq, endFreq, start, duration, peak){
-    const oscillator = c.createOscillator();
-    const gain = c.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(startFreq, start);
-    oscillator.frequency.exponentialRampToValueAtTime(endFreq, start + duration * 0.8);
-    gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.linearRampToValueAtTime(peak, start + 0.008);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-    oscillator.connect(gain);
-    gain.connect(c.destination);
-    oscillator.onended = () => {
-      try{ oscillator.disconnect(); }catch(e){}
-      try{ gain.disconnect(); }catch(e){}
-    };
-    oscillator.start(start);
-    oscillator.stop(start + duration + 0.02);
+  function tap(){
+
+    playWhenReady(
+      c => {
+
+        const t =
+          c.currentTime +
+          0.002;
+
+        /*
+          Short filtered noise transient — the
+          "tick" of a physical/glass tile, not an
+          electronic beep.
+        */
+        const noiseDuration = 0.012;
+
+        const bufferSize =
+          Math.max(
+            1,
+            Math.floor(
+              c.sampleRate *
+              noiseDuration
+            )
+          );
+
+        const buffer =
+          c.createBuffer(
+            1,
+            bufferSize,
+            c.sampleRate
+          );
+
+        const data =
+          buffer.getChannelData(0);
+
+        for(
+          let i = 0;
+          i < bufferSize;
+          i++
+        ){
+          data[i] =
+            Math.random() * 2 - 1;
+        }
+
+        const noise =
+          c.createBufferSource();
+
+        noise.buffer =
+          buffer;
+
+        const bandpass =
+          c.createBiquadFilter();
+
+        bandpass.type =
+          'bandpass';
+
+        bandpass.frequency
+          .setValueAtTime(
+            2600,
+            t
+          );
+
+        bandpass.Q
+          .setValueAtTime(
+            1.2,
+            t
+          );
+
+        const noiseGain =
+          c.createGain();
+
+        noiseGain.gain
+          .setValueAtTime(
+            0.0001,
+            t
+          );
+
+        noiseGain.gain
+          .linearRampToValueAtTime(
+            0.05,
+            t + 0.002
+          );
+
+        noiseGain.gain
+          .exponentialRampToValueAtTime(
+            0.0001,
+            t + noiseDuration
+          );
+
+        noise.connect(
+          bandpass
+        );
+
+        bandpass.connect(
+          noiseGain
+        );
+
+        noiseGain.connect(
+          c.destination
+        );
+
+        noise.onended =
+          () => {
+
+            try{
+              noise.disconnect();
+            }catch(error){}
+
+            try{
+              bandpass.disconnect();
+            }catch(error){}
+
+            try{
+              noiseGain.disconnect();
+            }catch(error){}
+
+          };
+
+        noise.start(t);
+        noise.stop(t + noiseDuration + 0.005);
+
+
+        /*
+          Tiny falling tonal component gives the
+          tick a glassy resonance instead of a
+          pure electronic beep.
+        */
+        const toneDuration = 0.035;
+
+        const osc =
+          c.createOscillator();
+
+        const oscGain =
+          c.createGain();
+
+        osc.type =
+          'triangle';
+
+        osc.frequency
+          .setValueAtTime(
+            950,
+            t
+          );
+
+        osc.frequency
+          .exponentialRampToValueAtTime(
+            560,
+            t + toneDuration
+          );
+
+        oscGain.gain
+          .setValueAtTime(
+            0.0001,
+            t
+          );
+
+        oscGain.gain
+          .linearRampToValueAtTime(
+            0.045,
+            t + 0.004
+          );
+
+        oscGain.gain
+          .exponentialRampToValueAtTime(
+            0.0001,
+            t + toneDuration
+          );
+
+        osc.connect(
+          oscGain
+        );
+
+        oscGain.connect(
+          c.destination
+        );
+
+        osc.onended =
+          () => {
+
+            try{
+              osc.disconnect();
+            }catch(error){}
+
+            try{
+              oscGain.disconnect();
+            }catch(error){}
+
+          };
+
+        osc.start(t);
+        osc.stop(t + toneDuration + 0.02);
+
+      }
+    );
+
   }
 
-  function tap(){
-    playWhenReady(c=>{
-      const t = c.currentTime + 0.002;
-      const wobble = 1 + (Math.random() * 0.06 - 0.03);
-      tone(c, 640 * wobble, t, 0.028, 'sine', 0.014);
-    });
-  }
 
   function deleteSound(){
-    playWhenReady(c=>{
-      const t = c.currentTime + 0.002;
-      popTone(c, 320, 150, t, 0.07, 0.02);
-    });
+
+    playWhenReady(
+      c => {
+
+        const t =
+          c.currentTime +
+          0.002;
+
+        /*
+          Noticeably quieter and shorter than the
+          previous descending tone — a light nudge,
+          not a competing sound.
+        */
+        const duration = 0.05;
+
+        const oscillator =
+          c.createOscillator();
+
+        const gain =
+          c.createGain();
+
+
+        oscillator.type =
+          'sine';
+
+
+        oscillator.frequency
+          .setValueAtTime(
+            480,
+            t
+          );
+
+        oscillator.frequency
+          .exponentialRampToValueAtTime(
+            260,
+            t + duration
+          );
+
+
+        gain.gain
+          .setValueAtTime(
+            0.0001,
+            t
+          );
+
+        gain.gain
+          .linearRampToValueAtTime(
+            0.035,
+            t + 0.004
+          );
+
+        gain.gain
+          .exponentialRampToValueAtTime(
+            0.0001,
+            t + duration
+          );
+
+
+        oscillator.connect(
+          gain
+        );
+
+        gain.connect(
+          c.destination
+        );
+
+
+        oscillator.onended =
+          () => {
+
+            try{
+              oscillator.disconnect();
+            }catch(error){}
+
+            try{
+              gain.disconnect();
+            }catch(error){}
+
+          };
+
+
+        oscillator.start(t);
+        oscillator.stop(t + duration + 0.02);
+
+      }
+    );
+
   }
+
+
+  function hunga(){
+
+    playWhenReady(
+      c => {
+
+        const t =
+          c.currentTime +
+          0.002;
+
+        /*
+          Warm soft pop, distinct from the letter
+          tick — its own sound rather than reusing
+          tap().
+        */
+        const duration = 0.16;
+
+        const osc =
+          c.createOscillator();
+
+        const gain =
+          c.createGain();
+
+        const filter =
+          c.createBiquadFilter();
+
+
+        osc.type =
+          'sine';
+
+        osc.frequency
+          .setValueAtTime(
+            220,
+            t
+          );
+
+        osc.frequency
+          .exponentialRampToValueAtTime(
+            340,
+            t + 0.03
+          );
+
+        osc.frequency
+          .exponentialRampToValueAtTime(
+            260,
+            t + duration
+          );
+
+
+        filter.type =
+          'lowpass';
+
+        filter.frequency
+          .setValueAtTime(
+            1200,
+            t
+          );
+
+
+        gain.gain
+          .setValueAtTime(
+            0.0001,
+            t
+          );
+
+        gain.gain
+          .linearRampToValueAtTime(
+            0.12,
+            t + 0.012
+          );
+
+        gain.gain
+          .exponentialRampToValueAtTime(
+            0.0001,
+            t + duration
+          );
+
+
+        osc.connect(
+          filter
+        );
+
+        filter.connect(
+          gain
+        );
+
+        gain.connect(
+          c.destination
+        );
+
+
+        osc.onended =
+          () => {
+
+            try{
+              osc.disconnect();
+            }catch(error){}
+
+            try{
+              filter.disconnect();
+            }catch(error){}
+
+            try{
+              gain.disconnect();
+            }catch(error){}
+
+          };
+
+
+        osc.start(t);
+        osc.stop(t + duration + 0.02);
+
+      }
+    );
+
+  }
+
 
   /*
     Keep these for backward compatibility.
@@ -35429,54 +35772,107 @@ const SOUND = (function(){
   */
 
     function word(){
-    playWhenReady(c=>{
-      const t=c.currentTime+0.002;
-      tone(c,523.25,t,0.125,'sine',0.040);
-      tone(c,659.25,t+0.065,0.155,'sine',0.046);
-    });
+
+    playWhenReady(
+      c => {
+
+        const t =
+          c.currentTime +
+          0.002;
+
+        tone(
+          c,
+          523.25,
+          t,
+          0.13,
+          'sine',
+          0.16
+        );
+
+        tone(
+          c,
+          659.25,
+          t + 0.06,
+          0.17,
+          'sine',
+          0.19
+        );
+
+      }
+    );
+
   }
+
 
   function pangram(){
-    playWhenReady(c=>{
-      const t=c.currentTime+0.002;
-      [523.25,659.25,783.99,1046.50].forEach((f,i)=>{
-        tone(c,f,t+i*0.070,0.165,'triangle',0.034);
-        tone(c,f*2,t+i*0.070+0.008,0.095,'sine',0.007);
-      });
-    });
+
+    playWhenReady(
+      c => {
+
+        const t =
+          c.currentTime +
+          0.002;
+
+        const notes = [
+          523.25,
+          659.25,
+          783.99,
+          1046.50
+        ];
+
+
+        notes.forEach(
+          (freq,index) => {
+
+            tone(
+              c,
+              freq,
+              t + index * 0.085,
+              0.24,
+              'triangle',
+              0.17
+            );
+
+
+            tone(
+              c,
+              freq * 2,
+              t + index * 0.085,
+              0.16,
+              'sine',
+              0.05
+            );
+
+          }
+        );
+
+
+        tone(
+          c,
+          2093,
+          t + notes.length * 0.085,
+          0.4,
+          'sine',
+          0.09
+        );
+
+
+        tone(
+          c,
+          3135.5,
+          t +
+          notes.length * 0.085 +
+          0.02,
+          0.35,
+          'sine',
+          0.05
+        );
+
+      }
+    );
+
   }
 
-  function hunga(){
-    playWhenReady(c=>{
-      const t = c.currentTime + 0.002;
-      popTone(c, 320, 140, t, 0.16, 0.05);
-    });
-  }
-
-  function invalid(){
-    playWhenReady(c=>{
-      const t=c.currentTime+0.002;
-
-      /* Soft muted "tok" — noticeable but not punishing */
-      tone(c,175,t,0.085,'triangle',0.020);
-      tone(c,130,t+0.018,0.070,'sine',0.008);
-    });
-  }
-
-  function complete(){
-    playWhenReady(c=>{
-      const t=c.currentTime+0.002;
-
-      [523.25,659.25,783.99,1046.50].forEach((f,i)=>{
-        tone(c,f,t+i*0.075,0.195,'triangle',0.035);
-      });
-
-      const finish=t+0.315;
-      tone(c,523.25,finish,0.320,'sine',0.021);
-      tone(c,783.99,finish,0.320,'sine',0.024);
-      tone(c,1046.50,finish,0.320,'sine',0.027);
-    });
-  }
 
   /*
     Used by pointerdown/keydown listeners.
@@ -35487,76 +35883,10 @@ const SOUND = (function(){
       return;
     }
 
-    const c = getCtx();
-
-    if(!c){
-      return;
-    }
-
-    /*
-      Prime Web Audio INSIDE the user's tap/click.
-      The sound is effectively silent.
-    */
-    try{
-
-      const oscillator =
-        c.createOscillator();
-
-      const gain =
-        c.createGain();
-
-      gain.gain.setValueAtTime(
-        0.000001,
-        c.currentTime
-      );
-
-      oscillator.connect(gain);
-      gain.connect(c.destination);
-
-      oscillator.start();
-      oscillator.stop(
-        c.currentTime + 0.01
-      );
-
-    }catch(error){}
-
-
-    /*
-      Resume directly inside the user gesture.
-    */
-    if(c.state !== 'running'){
-
-      try{
-
-        const result =
-          c.resume();
-
-        if(
-          result &&
-          typeof result.catch === 'function'
-        ){
-          result.catch(
-            error => {
-              console.warn(
-                'Audio resume blocked:',
-                error
-              );
-            }
-          );
-        }
-
-      }catch(error){
-
-        console.warn(
-          'Audio resume failed:',
-          error
-        );
-
-      }
-
-    }
+    ensureRunning();
 
   }
+
 
   function setEnabled(value){
 
@@ -35681,10 +36011,6 @@ const SOUND = (function(){
 
     pangram,
 
-    invalid,
-
-    complete,
-
     unlock,
 
     toggle,
@@ -35701,16 +36027,13 @@ const SOUND = (function(){
 
 
 /*
-  MOBILE AUDIO UNLOCK
+  IMPORTANT:
+  Unlock on pointer DOWN, before the later click event
+  calls typeLetter().
 
-  Keep several real user gestures because Safari,
-  Chrome and embedded mobile browsers do not all
-  behave identically.
-
-  capture:true makes this run BEFORE the game's
-  normal button handler.
+  capture:true means this happens before the hive's
+  normal event handler.
 */
-
 document.addEventListener(
   'pointerdown',
   SOUND.unlock,
@@ -35720,8 +36043,12 @@ document.addEventListener(
   }
 );
 
+
+/*
+  Safari/iOS fallback.
+*/
 document.addEventListener(
-  'touchend',
+  'touchstart',
   SOUND.unlock,
   {
     capture:true,
@@ -35729,41 +36056,16 @@ document.addEventListener(
   }
 );
 
-document.addEventListener(
-  'click',
-  SOUND.unlock,
-  {
-    capture:true
-  }
-);
 
+/*
+  Keyboard users also unlock audio before the game's
+  normal keydown handler processes the letter.
+*/
 document.addEventListener(
   'keydown',
   SOUND.unlock,
   {
     capture:true
-  }
-);
-
-
-/*
-  Safari can suspend/interupt Web Audio after
-  switching apps or locking the phone.
-  The next interaction will unlock it again.
-*/
-document.addEventListener(
-  'visibilitychange',
-  () => {
-
-    if(
-      document.visibilityState === 'visible'
-    ){
-      /*
-        Don't force playback here.
-        The next tap/click will call SOUND.unlock().
-      */
-    }
-
   }
 );
 
@@ -38095,13 +38397,191 @@ function openMissingWordSuggestion(word){
 ========================================================= */
 
 const ACTION_SOUND = (() => {
-  return {
-    correct(){ SOUND.word(); },
-    special(){ SOUND.pangram(); },
-    invalid(){ SOUND.invalid(); },
-    complete(){ SOUND.complete(); }
+
+  const sounds = {
+
+    correct:
+      new Audio(
+        '/sounds/word-correct.wav'
+      ),
+
+    special:
+      new Audio(
+        '/sounds/word-special.wav'
+      ),
+
+    invalid:
+      new Audio(
+        '/sounds/word-invalid.wav'
+      ),
+
+    complete:
+      new Audio(
+        '/sounds/puzzle-complete.wav'
+      )
+
   };
+
+
+  /*
+    Ask the browser to prepare all four sounds
+    before the player needs them.
+  */
+  Object.values(sounds)
+    .forEach(audio => {
+
+      audio.preload = 'auto';
+
+    });
+
+
+  function play(name){
+
+    const audio =
+      sounds[name];
+
+    if(!audio){
+      return;
+    }
+
+    /*
+      Start from the beginning every time.
+      This also makes repeated submissions
+      feel immediate.
+    */
+    try{
+
+      audio.pause();
+      audio.currentTime = 0;
+
+      const promise =
+        audio.play();
+
+      if(
+        promise &&
+        typeof promise.catch === 'function'
+      ){
+
+        promise.catch(
+          () => {}
+        );
+
+      }
+
+    }catch(error){
+
+      console.warn(
+        'Could not play action sound:',
+        name,
+        error
+      );
+
+    }
+
+  }
+
+
+  return {
+
+    correct(){
+      play('correct');
+    },
+
+    special(){
+      play('special');
+    },
+
+    invalid(){
+
+    try{
+
+      const ctx =
+        this.ctx ||
+        new (
+          window.AudioContext ||
+          window.webkitAudioContext
+        )();
+
+      this.ctx = ctx;
+
+      const now =
+        ctx.currentTime;
+
+      const osc =
+        ctx.createOscillator();
+
+      const gain =
+        ctx.createGain();
+
+
+      /*
+        Soft muted "tok" for a word
+        that is not accepted.
+
+        Intentionally quiet:
+        acknowledgement, not punishment.
+      */
+
+      osc.type =
+        'sine';
+
+      osc.frequency
+        .setValueAtTime(
+          145,
+          now
+        );
+
+      osc.frequency
+        .exponentialRampToValueAtTime(
+          105,
+          now + 0.09
+        );
+
+
+      gain.gain
+        .setValueAtTime(
+          0.045,
+          now
+        );
+
+      gain.gain
+        .exponentialRampToValueAtTime(
+          0.001,
+          now + 0.10
+        );
+
+
+      osc.connect(
+        gain
+      );
+
+      gain.connect(
+        ctx.destination
+      );
+
+
+      osc.start(
+        now
+      );
+
+      osc.stop(
+        now + 0.10
+      );
+
+    }catch(e){}
+
+  },
+
+    complete(){
+      play('complete');
+    }
+
+  };
+
 })();
+
+
+
 
 /* === RANK UP CELEBRATION JS === */
 

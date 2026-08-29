@@ -3714,7 +3714,7 @@ button:focus-visible{
 
   max-width:280px;
 
-  margin:0 auto 20px;
+  margin:0 auto 40px;
 }
 
 .landing-actions{
@@ -5847,2655 +5847,12 @@ button:focus-visible{
 
 }
 
-
-
-/* ===== LANDING UX REDESIGN 2026 ===== */
-
-/*
-  Cleaner game-entry hierarchy:
-  Brand -> Challenge -> Hunga -> Daily promise -> About -> Footer
-*/
-
-.landing{
-  padding:
-    max(30px,env(safe-area-inset-top))
-    28px
-    max(26px,env(safe-area-inset-bottom));
-
-  background:
-    radial-gradient(
-      circle at 50% 37%,
-      rgba(var(--overlay),.028),
-      transparent 34%
-    ),
-    var(--bg);
-}
-
-
-/* Softer background texture */
-
-.landing::before{
-  background-image:
-    radial-gradient(
-      rgba(var(--overlay),.065) 1.45px,
-      transparent 1.55px
-    );
-
-  background-size:
-    34px 34px;
-
-  opacity:.62;
-}
-
-
-/* =========================================================
-   BRAND
-========================================================= */
-
-.landing-title{
-  position:relative;
-  z-index:1;
-
-  margin:
-    0 0 18px;
-
-  font-family:
-    'Bricolage Grotesque',
-    sans-serif;
-
-  font-size:
-    clamp(
-      42px,
-      6vw,
-      58px
-    );
-
-  font-weight:800;
-
-  letter-spacing:-.045em;
-
-  line-height:1;
-}
-
-
-.landing-title span{
-  display:inline-block;
-
-  padding:
-    .07em
-    .13em
-    .10em;
-
-  margin-left:.025em;
-
-  border-radius:6px;
-
-  background:var(--flag);
-
-  color:var(--ink-fixed);
-
-  transform:
-    translateY(-1px);
-}
-
-
-/* =========================================================
-   CHALLENGE QUESTION
-========================================================= */
-
-.landing-sub{
-  position:relative;
-  z-index:1;
-
-  max-width:360px;
-
-  margin:
-    0 auto 38px;
-
-  color:
-    rgba(var(--overlay),.82);
-
-  font-family:
-    'Bricolage Grotesque',
-    sans-serif;
-
-  font-size:
-    clamp(
-      17px,
-      2.2vw,
-      19px
-    );
-
-  font-weight:650;
-
-  line-height:1.4;
-
-  letter-spacing:-.01em;
-}
-
-
-/* =========================================================
-   ACTION AREA
-========================================================= */
-
-.landing-actions{
-  position:relative;
-  z-index:1;
-
-  width:
-    min(
-      100%,
-      445px
-    );
-
-  max-width:none;
-
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-
-  gap:0;
-}
-
-
-/* =========================================================
-   PRIMARY CTA — HUNGA
-========================================================= */
-
-.landing-btn.primary{
-  width:100%;
-
-  min-height:66px;
-
-  padding:
-    16px 28px;
-
-  border:
-    1.5px solid
-    var(--flag);
-
-  border-radius:999px;
-
-  background:
-    var(--flag);
-
-  color:
-    var(--ink-fixed);
-
-  font-family:
-    'Karla',
-    sans-serif;
-
-  font-size:19px;
-
-  font-weight:700;
-
-  letter-spacing:.035em;
-
-  cursor:pointer;
-
-  box-shadow:
-    0 0 0
-    rgba(249,227,0,0);
-
-  transition:
-    transform .14s ease,
-    box-shadow .18s ease,
-    filter .18s ease;
-}
-
-
-.landing-btn.primary:hover{
-  background:
-    var(--flag);
-
-  border-color:
-    var(--flag);
-
-  filter:
-    brightness(1.035);
-
-  transform:
-    translateY(-2px);
-
-  box-shadow:
-    0 10px 30px
-    rgba(249,227,0,.11);
-}
-
-
-.landing-btn.primary:active{
-  transform:
-    translateY(0)
-    scale(.985);
-
-  box-shadow:none;
-}
-
-
-.landing-btn.primary:focus-visible{
-  outline:
-    3px solid
-    rgba(var(--overlay),.55);
-
-  outline-offset:4px;
-}
-
-
-/* =========================================================
-   DAILY PROMISE
-========================================================= */
-
-.landing-daily{
-  margin-top:15px;
-
-  color:
-    rgba(var(--overlay),.70);
-
-  font-size:13.5px;
-
-  font-weight:600;
-
-  line-height:1.4;
-}
-
-
-/* =========================================================
-   SECONDARY ACTION
-
-   No second giant pill.
-   It should never compete with Hunga.
-========================================================= */
-
-.landing-about-link{
-  appearance:none;
-
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-
-  gap:6px;
-
-  width:auto;
-
-  margin-top:13px;
-
-  padding:
-    6px 8px;
-
-  border:0;
-
-  background:transparent;
-
-  color:
-    rgba(var(--overlay),.73);
-
-  font-family:
-    'Karla',
-    sans-serif;
-
-  font-size:14px;
-
-  font-weight:700;
-
-  line-height:1.3;
-
-  cursor:pointer;
-
-  transition:
-    color .15s ease,
-    transform .15s ease;
-}
-
-
-.landing-about-link span{
-  display:inline-block;
-
-  transition:
-    transform .15s ease;
-}
-
-
-.landing-about-link:hover{
-  color:
-    var(--ink);
-}
-
-
-.landing-about-link:hover span{
-  transform:
-    translateX(3px);
-}
-
-
-.landing-about-link:active{
-  transform:
-    scale(.98);
-}
-
-
-.landing-about-link:focus-visible{
-  outline:
-    2px solid
-    var(--flag);
-
-  outline-offset:3px;
-
-  border-radius:6px;
-}
-
-
-/* Old ghost style should no longer affect anything */
-
-.landing-btn.ghost{
-  display:none;
-}
-
-
-/* =========================================================
-   DATE / LEGAL
-========================================================= */
-
-.landing-foot{
-  position:relative;
-  z-index:1;
-
-  margin-top:38px;
-}
-
-
-.landing-date{
-  color:
-    rgba(var(--overlay),.60);
-
-  font-family:
-    'Karla',
-    sans-serif;
-
-  font-size:12.5px;
-
-  font-weight:650;
-
-  letter-spacing:.01em;
-}
-
-
-/*
-  Old location removed from HTML.
-  Defensive fallback in case an old cached version remains.
-*/
-
-.landing-tag{
-  display:none;
-}
-
-
-.landing-legal{
-  margin-top:16px;
-
-  gap:10px;
-}
-
-
-.landing-legal-link{
-  color:
-    rgba(var(--overlay),.43);
-
-  font-size:11.5px;
-
-  font-weight:600;
-
-  text-underline-offset:3px;
-
-  transition:
-    color .15s ease;
-}
-
-
-.landing-legal-link:hover{
-  color:
-    rgba(var(--overlay),.70);
-}
-
-
-.landing-legal-dot{
-  color:
-    rgba(var(--overlay),.28);
-}
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media(max-width:520px){
-
-  .landing{
-    padding-left:22px;
-    padding-right:22px;
-  }
-
-
-  .landing-title{
-    font-size:
-      clamp(
-        38px,
-        11vw,
-        50px
-      );
-
-    margin-bottom:17px;
-  }
-
-
-  .landing-sub{
-    margin-bottom:32px;
-
-    font-size:17px;
-  }
-
-
-  .landing-actions{
-    width:
-      min(
-        100%,
-        390px
-      );
-  }
-
-
-  .landing-btn.primary{
-    min-height:62px;
-
-    font-size:18px;
-  }
-
-
-  .landing-foot{
-    margin-top:34px;
-  }
-
-}
-
-
-/*
-  Respect users who prefer reduced motion.
-*/
-
-@media(prefers-reduced-motion:reduce){
-
-  .landing-btn.primary,
-  .landing-about-link,
-  .landing-about-link span{
-    transition:none;
-  }
-
-}
-
-/* ===== END LANDING UX REDESIGN 2026 ===== */
-
-
-
-
-/* FULLSCREEN_PROGRESS_WINDOW_V2
-   Tabla di lèternan
-========================================================= */
-
-body.amiga-progress-open{
-  overflow:hidden !important;
-}
-
-
-/* Entire viewport */
-
-#amigaOverlay{
-  position:fixed !important;
-  inset:0 !important;
-
-  width:100vw !important;
-  height:100dvh !important;
-
-  z-index:10000 !important;
-
-  display:flex !important;
-  align-items:stretch !important;
-  justify-content:stretch !important;
-
-  padding:0 !important;
-}
-
-#amigaOverlay.is-hidden{
-  display:none !important;
-}
-
-
-/* Background */
-
-#amigaOverlay > .amiga-backdrop{
-  position:fixed !important;
-  inset:0 !important;
-
-  background:rgba(var(--overlay),.88) !important;
-
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-}
-
-
-/* Main progress screen */
-
-#amigaOverlay > .amiga-sheet,
-#amigaOverlay > .amiga-progress-sheet{
-  position:relative !important;
-  z-index:1;
-
-  width:100% !important;
-  max-width:none !important;
-
-  height:100dvh !important;
-  max-height:none !important;
-
-  margin:0 !important;
-
-  overflow-y:auto !important;
-  overflow-x:hidden !important;
-
-  border:0 !important;
-  border-radius:0 !important;
-
-  padding:
-    max(34px,env(safe-area-inset-top))
-    clamp(22px,6vw,64px)
-    max(40px,env(safe-area-inset-bottom))
-    !important;
-
-  background:
-    radial-gradient(
-      circle at 84% 6%,
-      rgba(249,227,0,.09),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 8% 92%,
-      rgba(15,159,224,.07),
-      transparent 30%
-    ),
-    var(--bg) !important;
-
-  box-shadow:none !important;
-
-  animation:
-    progressScreenIn
-    .24s
-    cubic-bezier(.2,.8,.2,1);
-}
-
-
-@keyframes progressScreenIn{
-  from{
-    opacity:0;
-    transform:scale(.99);
-  }
-
-  to{
-    opacity:1;
-    transform:scale(1);
-  }
-}
-
-
-/* Reward line */
-
-#amigaOverlay > .amiga-sheet::before,
-#amigaOverlay > .amiga-progress-sheet::before{
-  content:"";
-
-  position:fixed;
-
-  top:0;
-  left:0;
-  right:0;
-
-  height:4px;
-
-  z-index:10;
-
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      var(--flag) 30%,
-      #fff38a 50%,
-      var(--flag) 70%,
-      transparent
-    );
-
-  pointer-events:none;
-}
-
-
-/* Keep content readable */
-
-#amigaOverlay .amiga-head,
-#amigaOverlay #amigaMsg,
-#amigaOverlay .amiga-table-wrap,
-#amigaOverlay #hintTableWrap,
-#amigaOverlay #hintEmpty,
-#amigaOverlay .amiga-progress-hero{
-  width:100%;
-  max-width:760px;
-
-  margin-left:auto !important;
-  margin-right:auto !important;
-}
-
-
-/* Header */
-
-#amigaOverlay .amiga-head{
-  padding-top:clamp(14px,4vh,40px);
-
-  margin-bottom:18px !important;
-
-  gap:22px;
-}
-
-
-/* Main title */
-
-#amigaOverlay .amiga-title{
-  font-size:
-    clamp(31px,5vw,44px)
-    !important;
-
-  line-height:1.04;
-
-  letter-spacing:-.035em;
-
-  font-weight:800;
-}
-
-
-/* Close */
-
-#amigaOverlay .amiga-close{
-  flex:0 0 auto;
-
-  width:46px !important;
-  height:46px !important;
-
-  display:grid;
-  place-items:center;
-
-  border-radius:50% !important;
-
-  background:
-    rgba(var(--overlay),.05)
-    !important;
-
-  border:
-    1px solid
-    var(--line)
-    !important;
-
-  font-size:18px;
-}
-
-
-/* Intro */
-
-#amigaOverlay #amigaMsg{
-  padding:0 !important;
-
-  margin-top:0 !important;
-  margin-bottom:28px !important;
-
-  border:0 !important;
-
-  background:transparent !important;
-
-  color:var(--dim);
-
-  font-size:16px;
-  line-height:1.55;
-}
-
-
-/* Table wrapper */
-
-#amigaOverlay .amiga-table-wrap{
-  margin-top:0 !important;
-
-  border:0 !important;
-  border-radius:0 !important;
-
-  background:transparent !important;
-}
-
-
-/* Remove visually heavy grid */
-
-#amigaOverlay .amiga-table th,
-#amigaOverlay .amiga-table td{
-  padding:15px 8px !important;
-
-  border-right:0 !important;
-
-  border-bottom:
-    1px solid
-    rgba(255,255,255,.055)
-    !important;
-}
-
-
-/* Column headings */
-
-#amigaOverlay .amiga-table thead th{
-  color:var(--dim2);
-
-  font-size:11px;
-
-  letter-spacing:.08em;
-
-  font-weight:700;
-
-  text-transform:uppercase;
-}
-
-
-/* Prefix */
-
-#amigaOverlay .amiga-prefix{
-  color:var(--ink);
-
-  font-weight:800;
-}
-
-
-/* Reward totals */
-
-#amigaOverlay .amiga-total{
-  color:var(--flag-ink);
-
-  font-weight:800;
-}
-
-
-/* Final row */
-
-#amigaOverlay .amiga-footer td{
-  background:transparent !important;
-
-  padding-top:18px !important;
-
-  border-bottom:0 !important;
-}
-
-
-/* Mobile */
-
-@media(max-width:600px){
-
-  #amigaOverlay > .amiga-sheet,
-  #amigaOverlay > .amiga-progress-sheet{
-
-    padding:
-      max(26px,env(safe-area-inset-top))
-      20px
-      max(32px,env(safe-area-inset-bottom))
-      !important;
-
-  }
-
-
-  #amigaOverlay .amiga-head{
-    padding-top:18px;
-  }
-
-
-  #amigaOverlay .amiga-title{
-    font-size:32px !important;
-  }
-
-
-  #amigaOverlay #amigaMsg{
-    font-size:15px;
-    margin-bottom:22px !important;
-  }
-
-
-  #amigaOverlay .amiga-table th,
-  #amigaOverlay .amiga-table td{
-    padding:13px 6px !important;
-  }
-
-}
-
-
-
-
-
-
-
-
-/* ===== LANDING FINAL FIX ===== */
-
-
-/* =========================================================
-   TWO CURAÇAO STARS ONLY
-========================================================= */
-
-.curacao-stars{
-  position:relative;
-  z-index:2;
-
-  width:52px;
-  height:32px;
-
-  margin:
-    0 auto 7px;
-
-  pointer-events:none;
-}
-
-
-.curacao-star{
-  position:absolute;
-
-  display:block;
-
-  fill:var(--ink);
-
-  transform-origin:center;
-
-  will-change:
-    transform,
-    opacity;
-}
-
-
-/*
-  Large lower-left star
-*/
-
-.curacao-star-large{
-  width:22px;
-  height:22px;
-
-  left:5px;
-  bottom:0;
-
-  animation:
-    curacaoStarLargeFloat
-    3.5s
-    ease-in-out
-    infinite;
-}
-
-
-/*
-  Small upper-right star
-*/
-
-.curacao-star-small{
-  width:13px;
-  height:13px;
-
-  right:6px;
-  top:0;
-
-  animation:
-    curacaoStarSmallFloat
-    4.1s
-    ease-in-out
-    -1s
-    infinite;
-}
-
-
-@keyframes curacaoStarLargeFloat{
-
-  0%,
-  100%{
-    transform:
-      translateY(0)
-      rotate(-2deg)
-      scale(.97);
-
-    opacity:.78;
-  }
-
-  50%{
-    transform:
-      translateY(-6px)
-      rotate(4deg)
-      scale(1.07);
-
-    opacity:1;
-  }
-
-}
-
-
-@keyframes curacaoStarSmallFloat{
-
-  0%,
-  100%{
-    transform:
-      translate(0,0)
-      rotate(3deg)
-      scale(.94);
-
-    opacity:.62;
-  }
-
-  50%{
-    transform:
-      translate(2px,-5px)
-      rotate(-5deg)
-      scale(1.08);
-
-    opacity:1;
-  }
-
-}
-
-
-/* =========================================================
-   SMALLER, BETTER-PROPORTIONED HUNGA CTA
-========================================================= */
-
-.landing-actions{
-  width:100%;
-
-  max-width:330px;
-}
-
-
-.landing-btn.primary{
-  width:100%;
-
-  min-height:56px;
-
-  padding:
-    13px 24px;
-
-  font-size:17px;
-
-  font-weight:700;
-
-  letter-spacing:.025em;
-
-  border-radius:999px;
-
-  background:var(--flag);
-
-  color:var(--ink-fixed);
-
-  border-color:var(--flag);
-
-  box-shadow:
-    0 6px 20px
-    rgba(249,227,0,.08);
-}
-
-
-.landing-btn.primary:hover{
-  background:var(--flag);
-
-  border-color:var(--flag);
-
-  transform:
-    translateY(-1px);
-
-  box-shadow:
-    0 8px 24px
-    rgba(249,227,0,.12);
-}
-
-
-.landing-btn.primary:active,
-.landing-btn.primary.is-launching{
-  transform:
-    scale(.98);
-}
-
-
-/* Supporting hierarchy */
-
-.landing-daily{
-  margin-top:13px;
-}
-
-
-.landing-about-link{
-  margin-top:10px;
-}
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media(max-width:520px){
-
-  .landing-actions{
-    max-width:300px;
-  }
-
-
-  .landing-btn.primary{
-    min-height:54px;
-
-    padding:
-      12px 21px;
-
-    font-size:16.5px;
-  }
-
-}
-
-
-/* Accessibility */
-
-@media(prefers-reduced-motion:reduce){
-
-  .curacao-star-large,
-  .curacao-star-small{
-    animation:none;
-  }
-
-}
-
-
-/* ===== END LANDING FINAL FIX ===== */
-
-
-
-
-
-/* PROGRESS_WINDOW_RESTORE_V1
-   Restore Tabla di lèternan as a proper modal window.
-   This intentionally overrides earlier fullscreen patches.
-========================================================= */
-
-
-/* Keep background locked while modal is open */
-
-body.amiga-progress-open{
-  overflow:hidden !important;
-}
-
-
-/* =========================================================
-   OVERLAY
-   The overlay covers the page, but the CARD does not.
-========================================================= */
-
-html body #amigaOverlay{
-  position:fixed !important;
-
-  inset:0 !important;
-
-  width:100vw !important;
-  height:100dvh !important;
-
-  z-index:10000 !important;
-
-  display:flex !important;
-
-  align-items:center !important;
-  justify-content:center !important;
-
-  padding:
-    max(18px,env(safe-area-inset-top))
-    18px
-    max(18px,env(safe-area-inset-bottom))
-    !important;
-}
-
-
-html body #amigaOverlay.is-hidden{
-  display:none !important;
-}
-
-
-/* =========================================================
-   BACKDROP
-========================================================= */
-
-html body #amigaOverlay > .amiga-backdrop{
-  position:absolute !important;
-
-  inset:0 !important;
-
-  background:
-    rgba(var(--overlay),.68)
-    !important;
-
-  backdrop-filter:
-    blur(5px)
-    !important;
-
-  -webkit-backdrop-filter:
-    blur(5px)
-    !important;
-}
-
-
-/* =========================================================
-   THE ACTUAL WINDOW
-========================================================= */
-
-html body #amigaOverlay >
-.amiga-sheet.amiga-progress-sheet{
-
-  position:relative !important;
-
-  z-index:2 !important;
-
-  width:
-    min(
-      620px,
-      calc(100vw - 36px)
-    )
-    !important;
-
-  max-width:
-    620px
-    !important;
-
-  height:auto !important;
-
-  min-height:0 !important;
-
-  max-height:
-    min(
-      86dvh,
-      780px
-    )
-    !important;
-
-  margin:auto !important;
-
-  padding:
-    24px
-    26px
-    28px
-    !important;
-
-  overflow-y:auto !important;
-  overflow-x:hidden !important;
-
-  overscroll-behavior:contain;
-
-  border:
-    1px solid
-    rgba(255,255,255,.08)
-    !important;
-
-  border-radius:
-    26px
-    !important;
-
-  background:
-    var(--bg)
-    !important;
-
-  box-shadow:
-    0 24px 80px
-    rgba(0,0,0,.34)
-    !important;
-
-  transform:none !important;
-
-  animation:
-    progressWindowIn
-    .22s
-    cubic-bezier(.2,.8,.2,1)
-    !important;
-}
-
-
-/* Remove fullscreen yellow line */
-
-html body #amigaOverlay >
-.amiga-sheet.amiga-progress-sheet::before{
-
-  content:none !important;
-
-  display:none !important;
-}
-
-
-@keyframes progressWindowIn{
-
-  from{
-    opacity:0;
-    transform:
-      translateY(10px)
-      scale(.985);
-  }
-
-  to{
-    opacity:1;
-    transform:
-      translateY(0)
-      scale(1);
-  }
-
-}
-
-
-/* =========================================================
-   RESET OLD FULLSCREEN CONTENT WIDTH RULES
-========================================================= */
-
-html body #amigaOverlay
-.amiga-progress-sheet > *{
-
-  width:auto !important;
-
-  max-width:none !important;
-
-  margin-left:0 !important;
-  margin-right:0 !important;
-}
-
-
-/* =========================================================
-   HEADER
-========================================================= */
-
-html body #amigaOverlay
-.amiga-progress-sheet
-.amiga-head{
-
-  position:sticky !important;
-
-  top:-24px !important;
-
-  z-index:5 !important;
-
-  display:flex !important;
-
-  align-items:flex-start !important;
-  justify-content:space-between !important;
-
-  gap:18px !important;
-
-  width:auto !important;
-
-  max-width:none !important;
-
-  margin:
-    -24px
-    -2px
-    14px
-    !important;
-
-  padding:
-    24px
-    2px
-    12px
-    !important;
-
-  background:
-    linear-gradient(
-      180deg,
-      var(--bg) 82%,
-      transparent
-    )
-    !important;
-}
-
-
-/* Kicker */
-
-html body #amigaOverlay
-.amiga-kicker{
-
-  margin-bottom:3px !important;
-
-  color:var(--dim2);
-
-  font-size:10px !important;
-
-  font-weight:800;
-
-  letter-spacing:.11em;
-
-  text-transform:uppercase;
-}
-
-
-/* Heading */
-
-html body #amigaOverlay
-.amiga-progress-sheet
-.amiga-title{
-
-  font-size:
-    27px
-    !important;
-
-  line-height:1.08 !important;
-
-  letter-spacing:
-    -.03em
-    !important;
-}
-
-
-/* Intro */
-
-html body #amigaOverlay
-.letter-tab-intro{
-
-  max-width:470px !important;
-
-  margin-top:7px !important;
-
-  color:var(--dim);
-
-  font-size:13.5px !important;
-
-  line-height:1.45 !important;
-}
-
-
-/* =========================================================
-   CLOSE BUTTON
-========================================================= */
-
-html body #amigaOverlay
-.amiga-close{
-
-  flex:0 0 auto !important;
-
-  width:40px !important;
-  height:40px !important;
-
-  display:grid !important;
-  place-items:center !important;
-
-  border-radius:50% !important;
-
-  border:
-    1px solid
-    var(--line)
-    !important;
-
-  background:
-    rgba(var(--overlay),.045)
-    !important;
-
-  color:var(--ink);
-
-  font-size:16px !important;
-
-  cursor:pointer;
-}
-
-
-/* =========================================================
-   OVERALL PROGRESS
-========================================================= */
-
-html body #amigaOverlay
-.amiga-progress-hero{
-
-  width:auto !important;
-
-  max-width:none !important;
-
-  margin:
-    4px
-    0
-    20px
-    !important;
-
-  padding:
-    0
-    !important;
-
-  border:0 !important;
-
-  background:
-    transparent
-    !important;
-}
-
-
-html body #amigaOverlay
-.amiga-progress-number strong{
-
-  font-size:
-    28px
-    !important;
-}
-
-
-html body #amigaOverlay
-.amiga-progress-track{
-
-  height:
-    6px
-    !important;
-
-  margin-top:
-    9px
-    !important;
-}
-
-
-/* =========================================================
-   TABLE SECTION
-========================================================= */
-
-html body #amigaOverlay
-.letter-progress-table-wrap,
-
-html body #amigaOverlay
-.amiga-table-wrap{
-
-  width:100% !important;
-
-  max-width:100% !important;
-
-  overflow-x:auto !important;
-
-  margin-left:0 !important;
-  margin-right:0 !important;
-
-  border-radius:
-    14px
-    !important;
-}
-
-
-/* Never allow table to grow beyond modal */
-
-html body #amigaOverlay
-.letter-progress-table,
-
-html body #amigaOverlay
-.amiga-table{
-
-  width:100% !important;
-
-  max-width:100% !important;
-
-  table-layout:fixed;
-}
-
-
-/* Comfortable rows */
-
-html body #amigaOverlay
-.letter-progress-table th,
-
-html body #amigaOverlay
-.letter-progress-table td{
-
-  padding:
-    12px
-    9px
-    !important;
-}
-
-
-/* First column */
-
-html body #amigaOverlay
-.letter-progress-table th:first-child,
-
-html body #amigaOverlay
-.letter-progress-table td:first-child{
-
-  width:48% !important;
-
-  text-align:left !important;
-}
-
-
-/* Second column */
-
-html body #amigaOverlay
-.letter-progress-table th:last-child,
-
-html body #amigaOverlay
-.letter-progress-table td:last-child{
-
-  width:52% !important;
-
-  text-align:left !important;
-}
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media(max-width:600px){
-
-  html body #amigaOverlay{
-
-    align-items:center !important;
-
-    padding:
-      max(12px,env(safe-area-inset-top))
-      12px
-      max(12px,env(safe-area-inset-bottom))
-      !important;
-
-  }
-
-
-  html body #amigaOverlay >
-  .amiga-sheet.amiga-progress-sheet{
-
-    width:
-      calc(100vw - 24px)
-      !important;
-
-    max-width:
-      calc(100vw - 24px)
-      !important;
-
-    max-height:
-      calc(100dvh - 24px)
-      !important;
-
-    padding:
-      20px
-      18px
-      24px
-      !important;
-
-    border-radius:
-      22px
-      !important;
-
-  }
-
-
-  html body #amigaOverlay
-  .amiga-progress-sheet
-  .amiga-head{
-
-    top:-20px !important;
-
-    margin:
-      -20px
-      0
-      12px
-      !important;
-
-    padding:
-      20px
-      0
-      11px
-      !important;
-
-  }
-
-
-  html body #amigaOverlay
-  .amiga-progress-sheet
-  .amiga-title{
-
-    font-size:
-      25px
-      !important;
-
-  }
-
-
-  html body #amigaOverlay
-  .letter-tab-intro{
-
-    font-size:
-      13px
-      !important;
-
-  }
-
-
-  html body #amigaOverlay
-  .amiga-close{
-
-    width:38px !important;
-    height:38px !important;
-
-  }
-
-
-  html body #amigaOverlay
-  .letter-progress-table th,
-
-  html body #amigaOverlay
-  .letter-progress-table td{
-
-    padding:
-      11px
-      7px
-      !important;
-
-    font-size:
-      12px
-      !important;
-
-  }
-
-}
-
-
-
-
-/* LANDING_SUBTITLE_SPACING_V1
-   Keep question visually connected to Hunga
-========================================================= */
-
-@media (min-width:768px){
-
-  .landing-sub{
-    margin-bottom:24px;
-  }
-
-}
-
-
-
-
-/* DESKTOP_LETTER_TABLE_FIX_V2
-   ==========================================================
-
-   WHY THIS EXISTS
-
-   .app previously always had:
-       transform:translateY(0)
-
-   A transformed parent becomes the containing block for
-   position:fixed children. Because Tabla di lèternan lives
-   inside #appRoot, the modal was positioned relative to the
-   narrow game column instead of the browser viewport.
-
-   Normal app state therefore uses transform:none.
-   The short app entrance animation is preserved separately.
-   ========================================================== */
-
-
-/* =========================================================
-   1. FIX THE REAL POSITIONING BUG
-========================================================= */
-
-.app{
-  transform:none !important;
-}
-
-
-/*
-  Preserve the existing little entrance animation.
-*/
-
-.app.app-entering{
-  transform:
-    translateY(8px)
-    !important;
-}
-
-
-/* =========================================================
-   2. MODAL OVERLAY — ALWAYS USE FULL BROWSER VIEWPORT
-========================================================= */
-
-html body #amigaOverlay{
-  position:fixed !important;
-
-  inset:0 !important;
-
-  width:100vw !important;
-  height:100dvh !important;
-
-  z-index:10000 !important;
-
-  display:flex !important;
-
-  align-items:center !important;
-  justify-content:center !important;
-
-  padding:
-    max(
-      20px,
-      env(safe-area-inset-top)
-    )
-    24px
-    max(
-      20px,
-      env(safe-area-inset-bottom)
-    )
-    !important;
-}
-
-
-html body #amigaOverlay.is-hidden{
-  display:none !important;
-}
-
-
-/* =========================================================
-   3. BACKDROP
-========================================================= */
-
-html body #amigaOverlay >
-.amiga-backdrop{
-
-  position:absolute !important;
-
-  inset:0 !important;
-
-  background:
-    rgba(var(--overlay),.64)
-    !important;
-
-  backdrop-filter:
-    blur(5px);
-
-  -webkit-backdrop-filter:
-    blur(5px);
-}
-
-
-/* =========================================================
-   4. ACTUAL TABLA DI LÈTERNAN WINDOW
-========================================================= */
-
-html body #amigaOverlay >
-.amiga-sheet.amiga-progress-sheet{
-
-  position:relative !important;
-
-  z-index:2 !important;
-
-  width:
-    min(
-      900px,
-      calc(100vw - 48px)
-    )
-    !important;
-
-  max-width:
-    900px
-    !important;
-
-  height:auto !important;
-
-  min-height:0 !important;
-
-  max-height:
-    min(
-      88dvh,
-      820px
-    )
-    !important;
-
-  margin:0 !important;
-
-  padding:
-    28px
-    34px
-    34px
-    !important;
-
-  overflow-y:auto !important;
-  overflow-x:hidden !important;
-
-  overscroll-behavior:
-    contain;
-
-  border:
-    1px solid
-    rgba(var(--overlay),.10)
-    !important;
-
-  border-radius:
-    26px
-    !important;
-
-  background:
-    var(--bg)
-    !important;
-
-  box-shadow:
-    0 28px 90px
-    rgba(0,0,0,.30)
-    !important;
-
-  transform:none !important;
-}
-
-
-/*
-  Kill the old fullscreen yellow top line.
-*/
-
-html body #amigaOverlay >
-.amiga-sheet.amiga-progress-sheet::before{
-
-  content:none !important;
-
-  display:none !important;
-}
-
-
-/* =========================================================
-   5. HEADER
-========================================================= */
-
-html body #amigaOverlay
-.amiga-progress-sheet
-.amiga-head{
-
-  position:sticky !important;
-
-  top:-28px !important;
-
-  z-index:5 !important;
-
-  display:flex !important;
-
-  align-items:flex-start !important;
-  justify-content:space-between !important;
-
-  gap:24px !important;
-
-  margin:
-    -28px
-    0
-    14px
-    !important;
-
-  padding:
-    28px
-    0
-    13px
-    !important;
-
-  background:
-    linear-gradient(
-      180deg,
-      var(--bg) 84%,
-      transparent
-    )
-    !important;
-}
-
-
-html body #amigaOverlay
-.amiga-progress-sheet
-.amiga-title{
-
-  font-size:
-    28px
-    !important;
-
-  line-height:
-    1.08
-    !important;
-
-  letter-spacing:
-    -.03em
-    !important;
-}
-
-
-html body #amigaOverlay
-.letter-tab-intro{
-
-  max-width:
-    590px
-    !important;
-
-  margin:
-    7px
-    0
-    0
-    !important;
-
-  color:
-    var(--dim);
-
-  font-size:
-    13.5px
-    !important;
-
-  line-height:
-    1.45
-    !important;
-}
-
-
-/* =========================================================
-   6. OVERALL PROGRESS
-========================================================= */
-
-html body #amigaOverlay
-.amiga-progress-hero{
-
-  width:100% !important;
-
-  max-width:none !important;
-
-  margin:
-    3px
-    0
-    18px
-    !important;
-
-  padding:0 !important;
-
-  border:0 !important;
-
-  background:
-    transparent
-    !important;
-}
-
-
-/* =========================================================
-   7. DESKTOP TABLE LAYOUT
-
-   Instead of one very narrow, extremely tall column:
-
-   [ Progreso pa grupo ] [ Largura di palabra ]
-
-========================================================= */
-
-@media(min-width:761px){
-
-  #letterProgressTableArea{
-
-    display:grid !important;
-
-    grid-template-columns:
-      minmax(0,1.25fr)
-      minmax(260px,.75fr);
-
-    column-gap:
-      38px;
-
-    row-gap:0;
-
-    align-items:start;
-
-    width:100% !important;
-
-    max-width:none !important;
-
-    margin-top:
-      14px
-      !important;
-  }
-
-
-  /*
-    Reward message spans both tables.
-  */
-
-  #letterProgressTableArea
-  .progress-reward-message{
-
-    grid-column:
-      1 / -1;
-
-    margin:
-      0 0 20px
-      !important;
-  }
-
-
-  /*
-    Main progress table.
-  */
-
-  #letterProgressTableArea
-  .reward-table-section{
-
-    min-width:0;
-  }
-
-
-  #letterProgressTableArea
-  .reward-table-section:not(
-    .reward-length-section
-  ){
-
-    grid-column:1;
-  }
-
-
-  /*
-    Separate word-length table.
-  */
-
-  #letterProgressTableArea
-  .reward-length-section{
-
-    grid-column:2;
-
-    margin-top:
-      0
-      !important;
-
-    padding-left:
-      30px;
-
-    border-left:
-      1px solid
-      rgba(var(--overlay),.08);
-  }
-
-
-  /*
-    Slightly tighter rows on desktop:
-    readable, but no huge vertical table.
-  */
-
-  .reward-progress-table
-  tbody td{
-
-    padding:
-      10px
-      5px
-      !important;
-  }
-
-
-  .reward-length-table
-  tbody td{
-
-    padding:
-      9px
-      5px
-      !important;
-  }
-
-
-  /*
-    Give progress more useful width.
-  */
-
-  .reward-progress-table
-  th:first-child,
-
-  .reward-progress-table
-  td:first-child{
-
-    width:27% !important;
-  }
-
-
-  .reward-progress-table
-  th:last-child,
-
-  .reward-progress-table
-  td:last-child{
-
-    width:73% !important;
-  }
-
-
-  /*
-    Length table is reference information,
-    so keep it visually quieter.
-  */
-
-  .reward-length-table
-  th:first-child,
-
-  .reward-length-table
-  td:first-child{
-
-    width:40% !important;
-  }
-
-
-  .reward-length-table
-  th:last-child,
-
-  .reward-length-table
-  td:last-child{
-
-    width:60% !important;
-  }
-
-}
-
-
-/* =========================================================
-   8. CLEAN TABLE VISUALS
-========================================================= */
-
-.reward-progress-table,
-.reward-length-table{
-
-  width:100% !important;
-
-  border-collapse:
-    collapse
-    !important;
-
-  table-layout:
-    fixed
-    !important;
-}
-
-
-.reward-progress-table
-thead th,
-
-.reward-length-table
-thead th{
-
-  padding:
-    7px
-    5px
-    9px
-    !important;
-
-  border:0 !important;
-
-  border-bottom:
-    1px solid
-    rgba(var(--overlay),.08)
-    !important;
-
-  background:
-    transparent
-    !important;
-
-  color:
-    var(--dim2);
-
-  font-size:
-    9px
-    !important;
-
-  font-weight:
-    600
-    !important;
-
-  letter-spacing:
-    .075em;
-
-  text-transform:
-    uppercase;
-
-  text-align:left;
-}
-
-
-/*
-  No heavy spreadsheet grid.
-*/
-
-.reward-progress-table
-tbody tr + tr td{
-
-  border-top:
-    1px solid
-    rgba(var(--overlay),.035)
-    !important;
-}
-
-
-.reward-length-table
-tbody tr + tr td{
-
-  border-top:
-    0
-    !important;
-}
-
-
-/* =========================================================
-   9. GROUP / PROGRESS VISUAL HIERARCHY
-========================================================= */
-
-.reward-prefix{
-
-  color:
-    var(--ink)
-    !important;
-
-  font-size:
-    13px
-    !important;
-
-  font-weight:
-    600
-    !important;
-}
-
-
-.reward-progress-number{
-
-  color:
-    var(--dim);
-
-  font-size:
-    12px
-    !important;
-}
-
-
-.reward-progress-number strong{
-
-  color:
-    var(--ink);
-
-  font-size:
-    13px
-    !important;
-
-  font-weight:
-    600;
-}
-
-
-.reward-mini-track{
-
-  height:
-    3px
-    !important;
-
-  margin-top:
-    6px
-    !important;
-
-  border-radius:
-    999px;
-
-  background:
-    rgba(var(--overlay),.08);
-}
-
-
-.reward-mini-fill{
-
-  height:100%;
-
-  border-radius:
-    inherit;
-
-  background:
-    var(--flag);
-}
-
-
-/* =========================================================
-   10. MOBILE / TABLET
-
-   Keep the two tables stacked on smaller screens.
-========================================================= */
-
-@media(max-width:760px){
-
-  html body #amigaOverlay{
-
-    padding:
-      max(
-        12px,
-        env(safe-area-inset-top)
-      )
-      12px
-      max(
-        12px,
-        env(safe-area-inset-bottom)
-      )
-      !important;
-  }
-
-
-  html body #amigaOverlay >
-  .amiga-sheet.amiga-progress-sheet{
-
-    width:
-      calc(100vw - 24px)
-      !important;
-
-    max-width:
-      calc(100vw - 24px)
-      !important;
-
-    max-height:
-      calc(100dvh - 24px)
-      !important;
-
-    padding:
-      20px
-      18px
-      24px
-      !important;
-
-    border-radius:
-      22px
-      !important;
-  }
-
-
-  #letterProgressTableArea{
-
-    display:block !important;
-  }
-
-
-  #letterProgressTableArea
-  .reward-length-section{
-
-    margin-top:
-      26px
-      !important;
-
-    padding-left:0;
-
-    border-left:0;
-  }
-
-
-  html body #amigaOverlay
-  .amiga-progress-sheet
-  .amiga-head{
-
-    top:-20px !important;
-
-    margin:
-      -20px
-      0
-      12px
-      !important;
-
-    padding:
-      20px
-      0
-      11px
-      !important;
-  }
-
-
-  html body #amigaOverlay
-  .amiga-progress-sheet
-  .amiga-title{
-
-    font-size:
-      24px
-      !important;
-  }
-
-}
-
-
-/* END DESKTOP_LETTER_TABLE_FIX_V2 */
-
-
-
-
-/* LETTER_TABLE_STACKED_LAYOUT_V1
-   ---------------------------------------------------------
-   Keep both progress sections underneath each other
-   on desktop as well as mobile.
---------------------------------------------------------- */
-
-
-/* Slightly narrower dialog now that we no longer
-   need two desktop columns */
-
-html body #amigaOverlay >
-.amiga-sheet.amiga-progress-sheet{
-
-  width:
-    min(
-      760px,
-      calc(100vw - 48px)
-    )
-    !important;
-
-  max-width:
-    760px
-    !important;
-}
-
-
-/* =========================================================
-   STACK TABLE SECTIONS
-========================================================= */
-
-#letterProgressTableArea{
-
-  display:block
-    !important;
-
-  width:100%
-    !important;
-
-  max-width:none
-    !important;
-
-  margin-top:
-    16px
-    !important;
-}
-
-
-/* Both sections use the full width */
-
-#letterProgressTableArea
-.reward-table-section{
-
-  display:block
-    !important;
-
-  width:100%
-    !important;
-
-  max-width:none
-    !important;
-
-  grid-column:auto
-    !important;
-}
-
-
-/* =========================================================
-   LARGURA GOES UNDER PROGRESO
-========================================================= */
-
-#letterProgressTableArea
-.reward-length-section{
-
-  display:block
-    !important;
-
-  width:100%
-    !important;
-
-  margin-top:
-    34px
-    !important;
-
-  padding:
-    28px
-    0
-    0
-    !important;
-
-  border-left:
-    0
-    !important;
-
-  border-top:
-    1px solid
-    rgba(var(--overlay),.09)
-    !important;
-
-  grid-column:auto
-    !important;
-}
-
-
-/* =========================================================
-   TABLE WIDTHS
-========================================================= */
-
-.reward-progress-table,
-.reward-length-table{
-
-  width:100%
-    !important;
-
-  table-layout:
-    fixed
-    !important;
-
-  border-collapse:
-    collapse
-    !important;
-}
-
-
-/* Progress table */
-
-.reward-progress-table
-th:first-child,
-
-.reward-progress-table
-td:first-child{
-
-  width:24%
-    !important;
-}
-
-
-.reward-progress-table
-th:last-child,
-
-.reward-progress-table
-td:last-child{
-
-  width:76%
-    !important;
-}
-
-
-/* Word-length table */
-
-.reward-length-table
-th:first-child,
-
-.reward-length-table
-td:first-child{
-
-  width:24%
-    !important;
-}
-
-
-.reward-length-table
-th:last-child,
-
-.reward-length-table
-td:last-child{
-
-  width:76%
-    !important;
-}
-
-
-/* =========================================================
-   CLEANER LENGTH ROWS
-========================================================= */
-
-.reward-length-table
-tbody td{
-
-  padding:
-    10px
-    5px
-    !important;
-}
-
-
-.reward-length-table
-tbody tr + tr td{
-
-  border-top:
-    1px solid
-    rgba(var(--overlay),.035)
-    !important;
-}
-
-
-/* Give the second section a little breathing room */
-
-.reward-length-section
-.reward-table-title,
-.reward-length-section
-.reward-section-title{
-
-  margin-bottom:
-    10px
-    !important;
-}
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media(max-width:760px){
-
-  html body #amigaOverlay >
-  .amiga-sheet.amiga-progress-sheet{
-
-    width:
-      calc(100vw - 24px)
-      !important;
-
-    max-width:
-      calc(100vw - 24px)
-      !important;
-  }
-
-
-  #letterProgressTableArea
-  .reward-length-section{
-
-    margin-top:
-      28px
-      !important;
-
-    padding-top:
-      24px
-      !important;
-  }
-
-}
-
-
-/* END LETTER_TABLE_STACKED_LAYOUT_V1 */
-
-
 </style>
   <link rel="icon" type="image/svg+xml" href="/logo.svg">
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-
-
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5675218429622889"
-     crossorigin="anonymous"></script>
 
 </head>
 
@@ -8515,7 +5872,8 @@ tbody tr + tr td{
       <path d="M12 2.5l2.83 5.73 6.32.92-4.57 4.46 1.08 6.3L12 16.94 6.34 19.9l1.08-6.3L2.85 9.15l6.32-.92L12 2.5z"/>
     </svg>
   </div>
-<div class="landing-title">
+
+  <div class="landing-title">
     Palabra di <span>Kòrsou</span>
   </div>
 
@@ -8527,21 +5885,14 @@ tbody tr + tr td{
 
     <button
       class="landing-btn primary"
-      id="playBtn"
-      type="button">
+      id="playBtn">
       Hunga
     </button>
 
-    <div class="landing-daily">
-      Un wega nobo tur dia
-    </div>
-
     <button
-      class="landing-about-link"
-      id="aboutBtn"
-      type="button">
+      class="landing-btn ghost"
+      id="aboutBtn">
       Tokante e wega
-      <span aria-hidden="true">→</span>
     </button>
 
   </div>
@@ -8551,6 +5902,10 @@ tbody tr + tr td{
     <div
       class="landing-date"
       id="landingDate">
+    </div>
+
+    <div class="landing-tag">
+      Un wega nobo tur dia
     </div>
 
     <div class="landing-legal">
@@ -35036,261 +32391,99 @@ function renderEntry(){
 
 const SOUND = (function(){
 
-  /*
-    MOBILE SAFARI FIX
-
-    iOS normally treats Web Audio as ambient audio.
-    Ambient audio can be silenced by the iPhone's
-    Ring/Silent setting.
-
-    On supported Safari versions, use the playback
-    audio session instead.
-  */
-  try{
-    if(
-      navigator.audioSession &&
-      'type' in navigator.audioSession
-    ){
-      navigator.audioSession.type = 'playback';
-    }
-  }catch(error){
-    console.warn(
-      'Could not set iOS audio session:',
-      error
-    );
-  }
-
-
-  const STORAGE_KEY =
-    'palabraSoundEnabled';
+  const STORAGE_KEY = 'palabraSoundEnabled';
 
   let ctx = null;
+  let enabled = true;
 
-  /*
-    While AudioContext.resume() is running,
-    reuse the same Promise instead of asking
-    the browser to resume several times.
-  */
-  let resumePromise = null;
-
-
-  function isEnabled(){
-
-    try{
-
-      return (
-        localStorage.getItem(
-          STORAGE_KEY
-        ) !== 'false'
-      );
-
-    }catch(error){
-
-      return true;
-
-    }
-
-  }
-
-
-  function AudioContextClass(){
-
-    return (
-      window.AudioContext ||
-      window.webkitAudioContext ||
-      null
-    );
-
-  }
+  try{
+    enabled =
+      localStorage.getItem(STORAGE_KEY) !== 'false';
+  }catch(e){}
 
 
   function getCtx(){
 
-    const AudioCtx =
-      AudioContextClass();
+    if(ctx){
+      return ctx;
+    }
 
-    /*
-      Audio unsupported?
-      Do nothing rather than breaking the game.
-    */
+    const AudioCtx =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
     if(!AudioCtx){
       return null;
     }
 
-
-    /*
-      Reuse ONE AudioContext.
-    */
-    if(
-      ctx &&
-      ctx.state !== 'closed'
-    ){
-      return ctx;
-    }
-
-
-    try{
-
-      /*
-        latencyHint improves responsiveness for
-        tiny UI sounds such as letter taps.
-      */
-      ctx =
-        new AudioCtx({
-          latencyHint:'interactive'
-        });
-
-    }catch(error){
-
-      /*
-        Older Safari versions may not like
-        constructor options.
-      */
-      try{
-
-        ctx =
-          new AudioCtx();
-
-      }catch(secondError){
-
-        console.warn(
-          'AudioContext could not be created.',
-          secondError
-        );
-
-        ctx = null;
-
-      }
-
-    }
-
+    ctx = new AudioCtx();
 
     return ctx;
-
   }
 
 
-  async function ensureRunning(){
+  function unlock(){
 
-    if(!isEnabled()){
-      return null;
+    if(!enabled){
+      return;
     }
 
-
-    const c =
-      getCtx();
+    const c = getCtx();
 
     if(!c){
-      return null;
+      return;
     }
 
+    if(c.state === 'suspended'){
 
-    if(
-      c.state === 'running'
-    ){
-
-      return c;
-
-    }
-
-
-    /*
-      This is the important fix.
-
-      The old version called resume(), but then
-      immediately tried to play.
-
-      We now WAIT until the browser confirms that
-      audio is running.
-    */
-    try{
-
-      if(!resumePromise){
-
-        resumePromise =
-          c.resume()
-            .catch(
-              error => {
-
-                console.warn(
-                  'Audio resume was blocked:',
-                  error
-                );
-
-              }
-            )
-            .finally(
-              () => {
-
-                resumePromise =
-                  null;
-
-              }
-            );
-
-      }
-
-
-      await resumePromise;
-
-    }catch(error){
-
-      return null;
+      c.resume().catch(
+        () => {}
+      );
 
     }
-
-
-    return (
-      c.state === 'running'
-        ? c
-        : null
-    );
 
   }
 
 
-  /*
-    Every sound passes through this function.
-
-    If the browser suspended audio while the
-    phone/tab was inactive, it recovers before
-    playing.
-  */
   function playWhenReady(callback){
 
-    ensureRunning()
-      .then(
-        c => {
+    if(!enabled){
+      return;
+    }
 
-          if(
-            !c ||
-            !isEnabled()
-          ){
-            return;
+    const c = getCtx();
+
+    if(!c){
+      return;
+    }
+
+    if(c.state === 'running'){
+
+      callback(c);
+      return;
+
+    }
+
+    if(c.state === 'suspended'){
+
+      c.resume()
+        .then(
+          () => {
+
+            if(
+              enabled &&
+              c.state === 'running'
+            ){
+              callback(c);
+            }
+
           }
+        )
+        .catch(
+          () => {}
+        );
 
-          try{
-
-            callback(c);
-
-          }catch(error){
-
-            /*
-              Sound failure must NEVER break
-              game play.
-            */
-            console.warn(
-              'Game sound failed:',
-              error
-            );
-
-          }
-
-        }
-      )
-      .catch(
-        () => {}
-      );
+    }
 
   }
 
@@ -35299,33 +32492,25 @@ const SOUND = (function(){
     c,
     freq,
     start,
-    duration,
+    dur,
     type,
     peak
   ){
 
-    const oscillator =
+    const osc =
       c.createOscillator();
 
     const gain =
       c.createGain();
 
+    osc.type = type;
 
-    oscillator.type =
-      type;
-
-
-    oscillator.frequency
+    osc.frequency
       .setValueAtTime(
         freq,
         start
       );
 
-
-    /*
-      Never start an exponential audio ramp
-      at absolute zero.
-    */
     gain.gain
       .setValueAtTime(
         0.0001,
@@ -35341,251 +32526,249 @@ const SOUND = (function(){
     gain.gain
       .exponentialRampToValueAtTime(
         0.0001,
-        start + duration
+        start + dur
       );
 
-
-    oscillator.connect(
-      gain
-    );
-
-    gain.connect(
-      c.destination
-    );
-
-
-    /*
-      Disconnect nodes after playback so rapid
-      tapping does not leave old audio nodes
-      hanging around.
-    */
-    oscillator.onended =
-      () => {
-
-        try{
-          oscillator.disconnect();
-        }catch(error){}
-
-        try{
-          gain.disconnect();
-        }catch(error){}
-
-      };
-
-
-    oscillator.start(
-      start
-    );
-
-    oscillator.stop(
-      start +
-      duration +
-      0.02
-    );
-
-  }
-
-
-  function popTone(c, startFreq, endFreq, start, duration, peak){
-    const oscillator = c.createOscillator();
-    const gain = c.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(startFreq, start);
-    oscillator.frequency.exponentialRampToValueAtTime(endFreq, start + duration * 0.8);
-    gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.linearRampToValueAtTime(peak, start + 0.008);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-    oscillator.connect(gain);
+    osc.connect(gain);
     gain.connect(c.destination);
-    oscillator.onended = () => {
-      try{ oscillator.disconnect(); }catch(e){}
-      try{ gain.disconnect(); }catch(e){}
-    };
-    oscillator.start(start);
-    oscillator.stop(start + duration + 0.02);
+
+    osc.start(start);
+    osc.stop(
+      start + dur + 0.02
+    );
+
   }
+
 
   function tap(){
-    playWhenReady(c=>{
-      const t = c.currentTime + 0.002;
-      const wobble = 1 + (Math.random() * 0.06 - 0.03);
-      tone(c, 640 * wobble, t, 0.028, 'sine', 0.014);
-    });
-  }
 
-  function deleteSound(){
-    playWhenReady(c=>{
-      const t = c.currentTime + 0.002;
-      popTone(c, 320, 150, t, 0.07, 0.02);
-    });
-  }
+    playWhenReady(
+      c => {
 
-  /*
-    Keep these for backward compatibility.
+        const t =
+          c.currentTime;
 
-    If any existing part of the game still calls
-    SOUND.word() or SOUND.pangram(), the website
-    will not break.
-  */
-
-    function word(){
-    playWhenReady(c=>{
-      const t=c.currentTime+0.002;
-      tone(c,523.25,t,0.125,'sine',0.040);
-      tone(c,659.25,t+0.065,0.155,'sine',0.046);
-    });
-  }
-
-  function pangram(){
-    playWhenReady(c=>{
-      const t=c.currentTime+0.002;
-      [523.25,659.25,783.99,1046.50].forEach((f,i)=>{
-        tone(c,f,t+i*0.070,0.165,'triangle',0.034);
-        tone(c,f*2,t+i*0.070+0.008,0.095,'sine',0.007);
-      });
-    });
-  }
-
-  function hunga(){
-    playWhenReady(c=>{
-      const t = c.currentTime + 0.002;
-      popTone(c, 320, 140, t, 0.16, 0.05);
-    });
-  }
-
-  function invalid(){
-    playWhenReady(c=>{
-      const t=c.currentTime+0.002;
-
-      /* Soft muted "tok" — noticeable but not punishing */
-      tone(c,175,t,0.085,'triangle',0.020);
-      tone(c,130,t+0.018,0.070,'sine',0.008);
-    });
-  }
-
-  function complete(){
-    playWhenReady(c=>{
-      const t=c.currentTime+0.002;
-
-      [523.25,659.25,783.99,1046.50].forEach((f,i)=>{
-        tone(c,f,t+i*0.075,0.195,'triangle',0.035);
-      });
-
-      const finish=t+0.315;
-      tone(c,523.25,finish,0.320,'sine',0.021);
-      tone(c,783.99,finish,0.320,'sine',0.024);
-      tone(c,1046.50,finish,0.320,'sine',0.027);
-    });
-  }
-
-  /*
-    Used by pointerdown/keydown listeners.
-  */
-  function unlock(){
-
-    if(!isEnabled()){
-      return;
-    }
-
-    const c = getCtx();
-
-    if(!c){
-      return;
-    }
-
-    /*
-      Prime Web Audio INSIDE the user's tap/click.
-      The sound is effectively silent.
-    */
-    try{
-
-      const oscillator =
-        c.createOscillator();
-
-      const gain =
-        c.createGain();
-
-      gain.gain.setValueAtTime(
-        0.000001,
-        c.currentTime
-      );
-
-      oscillator.connect(gain);
-      gain.connect(c.destination);
-
-      oscillator.start();
-      oscillator.stop(
-        c.currentTime + 0.01
-      );
-
-    }catch(error){}
-
-
-    /*
-      Resume directly inside the user gesture.
-    */
-    if(c.state !== 'running'){
-
-      try{
-
-        const result =
-          c.resume();
-
-        if(
-          result &&
-          typeof result.catch === 'function'
-        ){
-          result.catch(
-            error => {
-              console.warn(
-                'Audio resume blocked:',
-                error
-              );
-            }
-          );
-        }
-
-      }catch(error){
-
-        console.warn(
-          'Audio resume failed:',
-          error
+        tone(
+          c,
+          660,
+          t,
+          0.045,
+          'sine',
+          0.08
         );
 
       }
-
-    }
-
-  }
-
-  function setEnabled(value){
-
-    try{
-
-      localStorage.setItem(
-        STORAGE_KEY,
-        String(Boolean(value))
-      );
-
-    }catch(error){}
-
-
-    if(value){
-
-      unlock();
-
-    }
-
-
-    syncToggle();
+    );
 
   }
 
 
-  function toggle(){
+  function deleteSound(){
 
-    setEnabled(
-      !isEnabled()
+    playWhenReady(
+      c => {
+
+        const t =
+          c.currentTime;
+
+        const osc =
+          c.createOscillator();
+
+        const gain =
+          c.createGain();
+
+        osc.type = 'sine';
+
+        osc.frequency
+          .setValueAtTime(
+            520,
+            t
+          );
+
+        osc.frequency
+          .exponentialRampToValueAtTime(
+            280,
+            t + 0.09
+          );
+
+        gain.gain
+          .setValueAtTime(
+            0.0001,
+            t
+          );
+
+        gain.gain
+          .linearRampToValueAtTime(
+            0.07,
+            t + 0.006
+          );
+
+        gain.gain
+          .exponentialRampToValueAtTime(
+            0.0001,
+            t + 0.09
+          );
+
+        osc.connect(gain);
+        gain.connect(c.destination);
+
+        osc.start(t);
+        osc.stop(t + 0.11);
+
+      }
+    );
+
+  }
+
+
+  function word(){
+
+    playWhenReady(
+      c => {
+
+        const t =
+          c.currentTime;
+
+        tone(
+          c,
+          523.25,
+          t,
+          0.13,
+          'sine',
+          0.16
+        );
+
+        tone(
+          c,
+          659.25,
+          t + 0.06,
+          0.17,
+          'sine',
+          0.19
+        );
+
+      }
+    );
+
+  }
+
+
+  function pangram(){
+
+    playWhenReady(
+      c => {
+
+        const t =
+          c.currentTime;
+
+        const notes = [
+          523.25,
+          659.25,
+          783.99,
+          1046.50
+        ];
+
+        notes.forEach(
+          (freq,index) => {
+
+            tone(
+              c,
+              freq,
+              t + index * 0.085,
+              0.24,
+              'triangle',
+              0.17
+            );
+
+            tone(
+              c,
+              freq * 2,
+              t + index * 0.085,
+              0.16,
+              'sine',
+              0.05
+            );
+
+          }
+        );
+
+        tone(
+          c,
+          2093,
+          t + notes.length * 0.085,
+          0.4,
+          'sine',
+          0.09
+        );
+
+        tone(
+          c,
+          3135.5,
+          t + notes.length * 0.085 + 0.02,
+          0.35,
+          'sine',
+          0.05
+        );
+
+      }
+    );
+
+  }
+
+
+  function pop(){
+
+    playWhenReady(
+      c => {
+
+        const t =
+          c.currentTime;
+
+        const osc =
+          c.createOscillator();
+
+        const gain =
+          c.createGain();
+
+        osc.type = 'sine';
+
+        osc.frequency
+          .setValueAtTime(
+            500,
+            t
+          );
+
+        osc.frequency
+          .exponentialRampToValueAtTime(
+            900,
+            t + 0.12
+          );
+
+        gain.gain
+          .setValueAtTime(
+            0.0001,
+            t
+          );
+
+        gain.gain
+          .exponentialRampToValueAtTime(
+            0.25,
+            t + 0.01
+          );
+
+        gain.gain
+          .exponentialRampToValueAtTime(
+            0.0001,
+            t + 0.12
+          );
+
+        osc.connect(gain);
+        gain.connect(c.destination);
+
+        osc.start(t);
+        osc.stop(t + 0.14);
+
+      }
     );
 
   }
@@ -35602,16 +32785,10 @@ const SOUND = (function(){
       return;
     }
 
-
-    const enabled =
-      isEnabled();
-
-
     button.textContent =
       enabled
         ? '🔊'
         : '🔇';
-
 
     button.setAttribute(
       'aria-pressed',
@@ -35620,50 +32797,26 @@ const SOUND = (function(){
         : 'true'
     );
 
-
-    /*
-      Tell the user what clicking the button will do.
-    */
-    const label =
-      enabled
-        ? 'Apagá zonido'
-        : 'Prendé zonido';
-
-    button.setAttribute(
-      'aria-label',
-      label
-    );
-
-    button.setAttribute(
-      'title',
-      label
-    );
-
   }
 
 
-  /*
-    Useful for checking audio from the browser
-    console without changing the game.
-  */
-  function status(){
+  function toggle(){
 
-    return {
+    enabled =
+      !enabled;
 
-      supported:
-        Boolean(
-          AudioContextClass()
-        ),
+    try{
+      localStorage.setItem(
+        STORAGE_KEY,
+        String(enabled)
+      );
+    }catch(e){}
 
-      enabled:
-        isEnabled(),
+    syncToggle();
 
-      state:
-        ctx
-          ? ctx.state
-          : 'not-created'
-
-    };
+    if(enabled){
+      unlock();
+    }
 
   }
 
@@ -35672,28 +32825,19 @@ const SOUND = (function(){
 
     tap,
 
-    delete:
-      deleteSound,
-
-    hunga,
+    delete: deleteSound,
 
     word,
 
     pangram,
 
-    invalid,
-
-    complete,
+    pop,
 
     unlock,
 
     toggle,
 
-    setEnabled,
-
-    syncToggle,
-
-    status
+    syncToggle
 
   };
 
@@ -35701,77 +32845,30 @@ const SOUND = (function(){
 
 
 /*
-  MOBILE AUDIO UNLOCK
+  Unlock Web Audio as early as possible during a
+  genuine user interaction.
 
-  Keep several real user gestures because Safari,
-  Chrome and embedded mobile browsers do not all
-  behave identically.
-
-  capture:true makes this run BEFORE the game's
-  normal button handler.
+  pointerdown happens before click, which means the
+  AudioContext normally has time to resume before the
+  letter's click handler calls SOUND.tap().
 */
-
 document.addEventListener(
   'pointerdown',
-  SOUND.unlock,
+  () => SOUND.unlock(),
   {
-    capture:true,
     passive:true
-  }
-);
-
-document.addEventListener(
-  'touchend',
-  SOUND.unlock,
-  {
-    capture:true,
-    passive:true
-  }
-);
-
-document.addEventListener(
-  'click',
-  SOUND.unlock,
-  {
-    capture:true
   }
 );
 
 document.addEventListener(
   'keydown',
-  SOUND.unlock,
-  {
-    capture:true
-  }
+  () => SOUND.unlock()
 );
 
 
 /*
-  Safari can suspend/interupt Web Audio after
-  switching apps or locking the phone.
-  The next interaction will unlock it again.
+  One mute control for ALL game sounds.
 */
-document.addEventListener(
-  'visibilitychange',
-  () => {
-
-    if(
-      document.visibilityState === 'visible'
-    ){
-      /*
-        Don't force playback here.
-        The next tap/click will call SOUND.unlock().
-      */
-    }
-
-  }
-);
-
-
-/* SOUND_TOGGLE_FIX_V1
-   Connect the header sound button to the SOUND controller.
-========================================================= */
-
 const soundToggleButton =
   document.getElementById(
     'sound-toggle'
@@ -35779,26 +32876,37 @@ const soundToggleButton =
 
 if(soundToggleButton){
 
-  soundToggleButton.addEventListener(
-    'click',
-    event => {
+  SOUND.syncToggle();
 
-      event.preventDefault();
-
-      SOUND.toggle();
-
-    }
-  );
+  soundToggleButton
+    .addEventListener(
+      'click',
+      () => {
+        SOUND.toggle();
+      }
+    );
 
 }
 
 
 /*
-  Set the correct icon immediately:
-  🔊 = sounds on
-  🔇 = sounds off
+  Keep the existing Hunga button pop sound,
+  but use the same AudioContext.
 */
-SOUND.syncToggle();
+const playSoundButton =
+  document.getElementById(
+    'playBtn'
+  );
+
+if(playSoundButton){
+
+  playSoundButton
+    .addEventListener(
+      'click',
+      () => SOUND.pop()
+    );
+
+}
 
 
 function typeLetter(letter){
@@ -37439,14 +34547,6 @@ function openAmiga(){
       'is-hidden'
     );
 
-
-
-  document.body
-    .classList
-    .add(
-      'amiga-progress-open'
-    );
-
 }
 
 
@@ -37457,14 +34557,6 @@ function closeAmiga(){
     .classList
     .add(
       'is-hidden'
-    );
-
-
-
-  document.body
-    .classList
-    .remove(
-      'amiga-progress-open'
     );
 
 }
@@ -38095,13 +35187,114 @@ function openMissingWordSuggestion(word){
 ========================================================= */
 
 const ACTION_SOUND = (() => {
-  return {
-    correct(){ SOUND.word(); },
-    special(){ SOUND.pangram(); },
-    invalid(){ SOUND.invalid(); },
-    complete(){ SOUND.complete(); }
+
+  const sounds = {
+
+    correct:
+      new Audio(
+        '/sounds/word-correct.wav'
+      ),
+
+    special:
+      new Audio(
+        '/sounds/word-special.wav'
+      ),
+
+    invalid:
+      new Audio(
+        '/sounds/word-invalid.wav'
+      ),
+
+    complete:
+      new Audio(
+        '/sounds/puzzle-complete.wav'
+      )
+
   };
+
+
+  /*
+    Ask the browser to prepare all four sounds
+    before the player needs them.
+  */
+  Object.values(sounds)
+    .forEach(audio => {
+
+      audio.preload = 'auto';
+
+    });
+
+
+  function play(name){
+
+    const audio =
+      sounds[name];
+
+    if(!audio){
+      return;
+    }
+
+    /*
+      Start from the beginning every time.
+      This also makes repeated submissions
+      feel immediate.
+    */
+    try{
+
+      audio.pause();
+      audio.currentTime = 0;
+
+      const promise =
+        audio.play();
+
+      if(
+        promise &&
+        typeof promise.catch === 'function'
+      ){
+
+        promise.catch(
+          () => {}
+        );
+
+      }
+
+    }catch(error){
+
+      console.warn(
+        'Could not play action sound:',
+        name,
+        error
+      );
+
+    }
+
+  }
+
+
+  return {
+
+    correct(){
+      play('correct');
+    },
+
+    special(){
+      play('special');
+    },
+
+    invalid(){
+      play('invalid');
+    },
+
+    complete(){
+      play('complete');
+    }
+
+  };
+
 })();
+
+
+
 
 /* === RANK UP CELEBRATION JS === */
 
@@ -41020,22 +38213,6 @@ $('playBtn').onclick =
       both enter the game immediately.
     */
 
-    /*
-      Immediate feedback when Hunga is pressed.
-
-      Uses its own warm pop sound rather than
-      reusing the letter tick.
-    */
-    if(
-      typeof SOUND !== 'undefined' &&
-      SOUND &&
-      typeof SOUND.hunga === 'function'
-    ){
-      SOUND.hunga();
-    }
-
-
-
     enterApp(
       'gamePage'
     );
@@ -42179,7 +39356,7 @@ addEventListener(
         '</span>' +
         (
           group.prefix === recommended
-            ? ''
+            ? '<small>Sigui</small>'
             : ''
         );
 
