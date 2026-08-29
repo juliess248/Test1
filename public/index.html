@@ -6671,6 +6671,134 @@ body.amiga-progress-open{
 
 }
 
+
+
+/* ===== LANDING MOVING STARS ===== */
+
+.landing-stars{
+  position:relative;
+  z-index:1;
+
+  width:100%;
+  height:42px;
+
+  margin-bottom:-7px;
+
+  pointer-events:none;
+}
+
+
+.landing-star{
+  position:absolute;
+
+  display:block;
+
+  color:var(--ink);
+
+  line-height:1;
+
+  transform-origin:center;
+
+  will-change:
+    transform,
+    opacity;
+}
+
+
+.landing-star-main{
+  left:49%;
+  top:10px;
+
+  font-size:23px;
+
+  animation:
+    landingStarFloatMain
+    3.6s
+    ease-in-out
+    infinite;
+}
+
+
+.landing-star-small{
+  left:55%;
+  top:0;
+
+  font-size:14px;
+
+  opacity:.82;
+
+  animation:
+    landingStarFloatSmall
+    4.3s
+    ease-in-out
+    infinite;
+}
+
+
+@keyframes landingStarFloatMain{
+
+  0%,
+  100%{
+    transform:
+      translate(-50%,0)
+      rotate(-2deg)
+      scale(1);
+
+    opacity:.78;
+  }
+
+  50%{
+    transform:
+      translate(-50%,-6px)
+      rotate(5deg)
+      scale(1.08);
+
+    opacity:1;
+  }
+
+}
+
+
+@keyframes landingStarFloatSmall{
+
+  0%,
+  100%{
+    transform:
+      translate(0,0)
+      rotate(4deg)
+      scale(.92);
+
+    opacity:.55;
+  }
+
+  50%{
+    transform:
+      translate(3px,-5px)
+      rotate(-6deg)
+      scale(1.08);
+
+    opacity:.95;
+  }
+
+}
+
+
+/*
+  Accessibility:
+  users who explicitly disable motion
+  still see the stars, but static.
+*/
+@media(prefers-reduced-motion:reduce){
+
+  .landing-star{
+    animation:none;
+  }
+
+}
+
+/* ===== END LANDING MOVING STARS ===== */
+
+
 </style>
   <link rel="icon" type="image/svg+xml" href="/logo.svg">
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -6695,6 +6823,20 @@ body.amiga-progress-open{
     <svg class="curacao-star curacao-star-small" viewBox="0 0 24 24">
       <path d="M12 2.5l2.83 5.73 6.32.92-4.57 4.46 1.08 6.3L12 16.94 6.34 19.9l1.08-6.3L2.85 9.15l6.32-.92L12 2.5z"/>
     </svg>
+  </div>
+
+  <div
+    class="landing-stars"
+    aria-hidden="true">
+
+    <span class="landing-star landing-star-main">
+      ★
+    </span>
+
+    <span class="landing-star landing-star-small">
+      ★
+    </span>
+
   </div>
 
   <div class="landing-title">
