@@ -6335,6 +6335,342 @@ button:focus-visible{
 /* ===== END LANDING UX REDESIGN 2026 ===== */
 
 
+
+
+/* FULLSCREEN_PROGRESS_WINDOW_V2
+   Tabla di lèternan
+========================================================= */
+
+body.amiga-progress-open{
+  overflow:hidden !important;
+}
+
+
+/* Entire viewport */
+
+#amigaOverlay{
+  position:fixed !important;
+  inset:0 !important;
+
+  width:100vw !important;
+  height:100dvh !important;
+
+  z-index:10000 !important;
+
+  display:flex !important;
+  align-items:stretch !important;
+  justify-content:stretch !important;
+
+  padding:0 !important;
+}
+
+#amigaOverlay.is-hidden{
+  display:none !important;
+}
+
+
+/* Background */
+
+#amigaOverlay > .amiga-backdrop{
+  position:fixed !important;
+  inset:0 !important;
+
+  background:rgba(var(--overlay),.88) !important;
+
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+
+
+/* Main progress screen */
+
+#amigaOverlay > .amiga-sheet,
+#amigaOverlay > .amiga-progress-sheet{
+  position:relative !important;
+  z-index:1;
+
+  width:100% !important;
+  max-width:none !important;
+
+  height:100dvh !important;
+  max-height:none !important;
+
+  margin:0 !important;
+
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+
+  border:0 !important;
+  border-radius:0 !important;
+
+  padding:
+    max(34px,env(safe-area-inset-top))
+    clamp(22px,6vw,64px)
+    max(40px,env(safe-area-inset-bottom))
+    !important;
+
+  background:
+    radial-gradient(
+      circle at 84% 6%,
+      rgba(249,227,0,.09),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 8% 92%,
+      rgba(15,159,224,.07),
+      transparent 30%
+    ),
+    var(--bg) !important;
+
+  box-shadow:none !important;
+
+  animation:
+    progressScreenIn
+    .24s
+    cubic-bezier(.2,.8,.2,1);
+}
+
+
+@keyframes progressScreenIn{
+  from{
+    opacity:0;
+    transform:scale(.99);
+  }
+
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
+}
+
+
+/* Reward line */
+
+#amigaOverlay > .amiga-sheet::before,
+#amigaOverlay > .amiga-progress-sheet::before{
+  content:"";
+
+  position:fixed;
+
+  top:0;
+  left:0;
+  right:0;
+
+  height:4px;
+
+  z-index:10;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--flag) 30%,
+      #fff38a 50%,
+      var(--flag) 70%,
+      transparent
+    );
+
+  pointer-events:none;
+}
+
+
+/* Keep content readable */
+
+#amigaOverlay .amiga-head,
+#amigaOverlay #amigaMsg,
+#amigaOverlay .amiga-table-wrap,
+#amigaOverlay #hintTableWrap,
+#amigaOverlay #hintEmpty,
+#amigaOverlay .amiga-progress-hero{
+  width:100%;
+  max-width:760px;
+
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+
+
+/* Header */
+
+#amigaOverlay .amiga-head{
+  padding-top:clamp(14px,4vh,40px);
+
+  margin-bottom:18px !important;
+
+  gap:22px;
+}
+
+
+/* Main title */
+
+#amigaOverlay .amiga-title{
+  font-size:
+    clamp(31px,5vw,44px)
+    !important;
+
+  line-height:1.04;
+
+  letter-spacing:-.035em;
+
+  font-weight:800;
+}
+
+
+/* Close */
+
+#amigaOverlay .amiga-close{
+  flex:0 0 auto;
+
+  width:46px !important;
+  height:46px !important;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50% !important;
+
+  background:
+    rgba(var(--overlay),.05)
+    !important;
+
+  border:
+    1px solid
+    var(--line)
+    !important;
+
+  font-size:18px;
+}
+
+
+/* Intro */
+
+#amigaOverlay #amigaMsg{
+  padding:0 !important;
+
+  margin-top:0 !important;
+  margin-bottom:28px !important;
+
+  border:0 !important;
+
+  background:transparent !important;
+
+  color:var(--dim);
+
+  font-size:16px;
+  line-height:1.55;
+}
+
+
+/* Table wrapper */
+
+#amigaOverlay .amiga-table-wrap{
+  margin-top:0 !important;
+
+  border:0 !important;
+  border-radius:0 !important;
+
+  background:transparent !important;
+}
+
+
+/* Remove visually heavy grid */
+
+#amigaOverlay .amiga-table th,
+#amigaOverlay .amiga-table td{
+  padding:15px 8px !important;
+
+  border-right:0 !important;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,.055)
+    !important;
+}
+
+
+/* Column headings */
+
+#amigaOverlay .amiga-table thead th{
+  color:var(--dim2);
+
+  font-size:11px;
+
+  letter-spacing:.08em;
+
+  font-weight:700;
+
+  text-transform:uppercase;
+}
+
+
+/* Prefix */
+
+#amigaOverlay .amiga-prefix{
+  color:var(--ink);
+
+  font-weight:800;
+}
+
+
+/* Reward totals */
+
+#amigaOverlay .amiga-total{
+  color:var(--flag-ink);
+
+  font-weight:800;
+}
+
+
+/* Final row */
+
+#amigaOverlay .amiga-footer td{
+  background:transparent !important;
+
+  padding-top:18px !important;
+
+  border-bottom:0 !important;
+}
+
+
+/* Mobile */
+
+@media(max-width:600px){
+
+  #amigaOverlay > .amiga-sheet,
+  #amigaOverlay > .amiga-progress-sheet{
+
+    padding:
+      max(26px,env(safe-area-inset-top))
+      20px
+      max(32px,env(safe-area-inset-bottom))
+      !important;
+
+  }
+
+
+  #amigaOverlay .amiga-head{
+    padding-top:18px;
+  }
+
+
+  #amigaOverlay .amiga-title{
+    font-size:32px !important;
+  }
+
+
+  #amigaOverlay #amigaMsg{
+    font-size:15px;
+    margin-bottom:22px !important;
+  }
+
+
+  #amigaOverlay .amiga-table th,
+  #amigaOverlay .amiga-table td{
+    padding:13px 6px !important;
+  }
+
+}
+
 </style>
   <link rel="icon" type="image/svg+xml" href="/logo.svg">
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -35247,6 +35583,14 @@ function openAmiga(){
       'is-hidden'
     );
 
+
+
+  document.body
+    .classList
+    .add(
+      'amiga-progress-open'
+    );
+
 }
 
 
@@ -35257,6 +35601,14 @@ function closeAmiga(){
     .classList
     .add(
       'is-hidden'
+    );
+
+
+
+  document.body
+    .classList
+    .remove(
+      'amiga-progress-open'
     );
 
 }
