@@ -35386,11 +35386,30 @@ const SOUND = (function(){
   }
 
 
+  function popTone(c, startFreq, endFreq, start, duration, peak){
+    const oscillator = c.createOscillator();
+    const gain = c.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(startFreq, start);
+    oscillator.frequency.exponentialRampToValueAtTime(endFreq, start + duration * 0.8);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.linearRampToValueAtTime(peak, start + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    oscillator.connect(gain);
+    gain.connect(c.destination);
+    oscillator.onended = () => {
+      try{ oscillator.disconnect(); }catch(e){}
+      try{ gain.disconnect(); }catch(e){}
+    };
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.02);
+  }
+
   function tap(){
     playWhenReady(c=>{
-      const t=c.currentTime+0.002;
-      tone(c,1180,t,0.038,'triangle',0.018);
-      tone(c,1800,t,0.022,'sine',0.004);
+      const t = c.currentTime + 0.002;
+      const wobble = 1 + (Math.random() * 0.06 - 0.03);
+      tone(c, 640 * wobble, t, 0.028, 'sine', 0.014);
     });
   }
 
@@ -35430,9 +35449,8 @@ const SOUND = (function(){
 
   function hunga(){
     playWhenReady(c=>{
-      const t=c.currentTime+0.002;
-      tone(c,190,t,0.120,'sine',0.038);
-      tone(c,380,t,0.080,'sine',0.010);
+      const t = c.currentTime + 0.002;
+      popTone(c, 320, 140, t, 0.16, 0.05);
     });
   }
 
