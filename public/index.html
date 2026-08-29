@@ -8239,6 +8239,253 @@ tbody tr + tr td{
 /* END DESKTOP_LETTER_TABLE_FIX_V2 */
 
 
+
+
+/* LETTER_TABLE_STACKED_LAYOUT_V1
+   ---------------------------------------------------------
+   Keep both progress sections underneath each other
+   on desktop as well as mobile.
+--------------------------------------------------------- */
+
+
+/* Slightly narrower dialog now that we no longer
+   need two desktop columns */
+
+html body #amigaOverlay >
+.amiga-sheet.amiga-progress-sheet{
+
+  width:
+    min(
+      760px,
+      calc(100vw - 48px)
+    )
+    !important;
+
+  max-width:
+    760px
+    !important;
+}
+
+
+/* =========================================================
+   STACK TABLE SECTIONS
+========================================================= */
+
+#letterProgressTableArea{
+
+  display:block
+    !important;
+
+  width:100%
+    !important;
+
+  max-width:none
+    !important;
+
+  margin-top:
+    16px
+    !important;
+}
+
+
+/* Both sections use the full width */
+
+#letterProgressTableArea
+.reward-table-section{
+
+  display:block
+    !important;
+
+  width:100%
+    !important;
+
+  max-width:none
+    !important;
+
+  grid-column:auto
+    !important;
+}
+
+
+/* =========================================================
+   LARGURA GOES UNDER PROGRESO
+========================================================= */
+
+#letterProgressTableArea
+.reward-length-section{
+
+  display:block
+    !important;
+
+  width:100%
+    !important;
+
+  margin-top:
+    34px
+    !important;
+
+  padding:
+    28px
+    0
+    0
+    !important;
+
+  border-left:
+    0
+    !important;
+
+  border-top:
+    1px solid
+    rgba(var(--overlay),.09)
+    !important;
+
+  grid-column:auto
+    !important;
+}
+
+
+/* =========================================================
+   TABLE WIDTHS
+========================================================= */
+
+.reward-progress-table,
+.reward-length-table{
+
+  width:100%
+    !important;
+
+  table-layout:
+    fixed
+    !important;
+
+  border-collapse:
+    collapse
+    !important;
+}
+
+
+/* Progress table */
+
+.reward-progress-table
+th:first-child,
+
+.reward-progress-table
+td:first-child{
+
+  width:24%
+    !important;
+}
+
+
+.reward-progress-table
+th:last-child,
+
+.reward-progress-table
+td:last-child{
+
+  width:76%
+    !important;
+}
+
+
+/* Word-length table */
+
+.reward-length-table
+th:first-child,
+
+.reward-length-table
+td:first-child{
+
+  width:24%
+    !important;
+}
+
+
+.reward-length-table
+th:last-child,
+
+.reward-length-table
+td:last-child{
+
+  width:76%
+    !important;
+}
+
+
+/* =========================================================
+   CLEANER LENGTH ROWS
+========================================================= */
+
+.reward-length-table
+tbody td{
+
+  padding:
+    10px
+    5px
+    !important;
+}
+
+
+.reward-length-table
+tbody tr + tr td{
+
+  border-top:
+    1px solid
+    rgba(var(--overlay),.035)
+    !important;
+}
+
+
+/* Give the second section a little breathing room */
+
+.reward-length-section
+.reward-table-title,
+.reward-length-section
+.reward-section-title{
+
+  margin-bottom:
+    10px
+    !important;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:760px){
+
+  html body #amigaOverlay >
+  .amiga-sheet.amiga-progress-sheet{
+
+    width:
+      calc(100vw - 24px)
+      !important;
+
+    max-width:
+      calc(100vw - 24px)
+      !important;
+  }
+
+
+  #letterProgressTableArea
+  .reward-length-section{
+
+    margin-top:
+      28px
+      !important;
+
+    padding-top:
+      24px
+      !important;
+  }
+
+}
+
+
+/* END LETTER_TABLE_STACKED_LAYOUT_V1 */
+
+
 </style>
   <link rel="icon" type="image/svg+xml" href="/logo.svg">
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
