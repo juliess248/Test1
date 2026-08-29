@@ -6673,29 +6673,38 @@ body.amiga-progress-open{
 
 
 
-/* ===== LANDING MOVING STARS ===== */
 
-.landing-stars{
+
+
+
+
+/* ===== LANDING FINAL FIX ===== */
+
+
+/* =========================================================
+   TWO CURAÇAO STARS ONLY
+========================================================= */
+
+.curacao-stars{
   position:relative;
-  z-index:1;
+  z-index:2;
 
-  width:100%;
-  height:42px;
+  width:52px;
+  height:32px;
 
-  margin-bottom:-7px;
+  margin:
+    0 auto 7px;
 
   pointer-events:none;
 }
 
 
-.landing-star{
+.curacao-star{
   position:absolute;
 
   display:block;
 
-  color:var(--ink);
-
-  line-height:1;
+  fill:var(--ink);
 
   transform-origin:center;
 
@@ -6705,52 +6714,85 @@ body.amiga-progress-open{
 }
 
 
-.landing-star-main{
-  left:49%;
-  top:10px;
+/*
+  Large lower-left star
+*/
 
-  font-size:23px;
+.curacao-star-large{
+  width:22px;
+  height:22px;
+
+  left:5px;
+  bottom:0;
 
   animation:
-    landingStarFloatMain
-    3.6s
+    curacaoStarLargeFloat
+    3.5s
     ease-in-out
     infinite;
 }
 
 
-.landing-star-small{
-  left:55%;
+/*
+  Small upper-right star
+*/
+
+.curacao-star-small{
+  width:13px;
+  height:13px;
+
+  right:6px;
   top:0;
 
-  font-size:14px;
-
-  opacity:.82;
-
   animation:
-    landingStarFloatSmall
-    4.3s
+    curacaoStarSmallFloat
+    4.1s
     ease-in-out
+    -1s
     infinite;
 }
 
 
-@keyframes landingStarFloatMain{
+@keyframes curacaoStarLargeFloat{
 
   0%,
   100%{
     transform:
-      translate(-50%,0)
+      translateY(0)
       rotate(-2deg)
-      scale(1);
+      scale(.97);
 
     opacity:.78;
   }
 
   50%{
     transform:
-      translate(-50%,-6px)
-      rotate(5deg)
+      translateY(-6px)
+      rotate(4deg)
+      scale(1.07);
+
+    opacity:1;
+  }
+
+}
+
+
+@keyframes curacaoStarSmallFloat{
+
+  0%,
+  100%{
+    transform:
+      translate(0,0)
+      rotate(3deg)
+      scale(.94);
+
+    opacity:.62;
+  }
+
+  50%{
+    transform:
+      translate(2px,-5px)
+      rotate(-5deg)
       scale(1.08);
 
     opacity:1;
@@ -6759,44 +6801,114 @@ body.amiga-progress-open{
 }
 
 
-@keyframes landingStarFloatSmall{
+/* =========================================================
+   SMALLER, BETTER-PROPORTIONED HUNGA CTA
+========================================================= */
 
-  0%,
-  100%{
-    transform:
-      translate(0,0)
-      rotate(4deg)
-      scale(.92);
+.landing-actions{
+  width:100%;
 
-    opacity:.55;
+  max-width:330px;
+}
+
+
+.landing-btn.primary{
+  width:100%;
+
+  min-height:56px;
+
+  padding:
+    13px 24px;
+
+  font-size:17px;
+
+  font-weight:700;
+
+  letter-spacing:.025em;
+
+  border-radius:999px;
+
+  background:var(--flag);
+
+  color:var(--ink-fixed);
+
+  border-color:var(--flag);
+
+  box-shadow:
+    0 6px 20px
+    rgba(249,227,0,.08);
+}
+
+
+.landing-btn.primary:hover{
+  background:var(--flag);
+
+  border-color:var(--flag);
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 8px 24px
+    rgba(249,227,0,.12);
+}
+
+
+.landing-btn.primary:active,
+.landing-btn.primary.is-launching{
+  transform:
+    scale(.98);
+}
+
+
+/* Supporting hierarchy */
+
+.landing-daily{
+  margin-top:13px;
+}
+
+
+.landing-about-link{
+  margin-top:10px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:520px){
+
+  .landing-actions{
+    max-width:300px;
   }
 
-  50%{
-    transform:
-      translate(3px,-5px)
-      rotate(-6deg)
-      scale(1.08);
 
-    opacity:.95;
+  .landing-btn.primary{
+    min-height:54px;
+
+    padding:
+      12px 21px;
+
+    font-size:16.5px;
   }
 
 }
 
 
-/*
-  Accessibility:
-  users who explicitly disable motion
-  still see the stars, but static.
-*/
+/* Accessibility */
+
 @media(prefers-reduced-motion:reduce){
 
-  .landing-star{
+  .curacao-star-large,
+  .curacao-star-small{
     animation:none;
   }
 
 }
 
-/* ===== END LANDING MOVING STARS ===== */
+
+/* ===== END LANDING FINAL FIX ===== */
 
 
 </style>
@@ -6824,22 +6936,7 @@ body.amiga-progress-open{
       <path d="M12 2.5l2.83 5.73 6.32.92-4.57 4.46 1.08 6.3L12 16.94 6.34 19.9l1.08-6.3L2.85 9.15l6.32-.92L12 2.5z"/>
     </svg>
   </div>
-
-  <div
-    class="landing-stars"
-    aria-hidden="true">
-
-    <span class="landing-star landing-star-main">
-      ★
-    </span>
-
-    <span class="landing-star landing-star-small">
-      ★
-    </span>
-
-  </div>
-
-  <div class="landing-title">
+<div class="landing-title">
     Palabra di <span>Kòrsou</span>
   </div>
 
@@ -39483,6 +39580,22 @@ $('playBtn').onclick =
       Guests and signed-in players can
       both enter the game immediately.
     */
+
+    /*
+      Immediate feedback when Hunga is pressed.
+
+      Use the SAME reliable audio system as
+      the hive letters.
+    */
+    if(
+      typeof SOUND !== 'undefined' &&
+      SOUND &&
+      typeof SOUND.tap === 'function'
+    ){
+      SOUND.tap();
+    }
+
+
 
     enterApp(
       'gamePage'
