@@ -5847,6 +5847,494 @@ button:focus-visible{
 
 }
 
+
+
+/* ===== LANDING UX REDESIGN 2026 ===== */
+
+/*
+  Cleaner game-entry hierarchy:
+  Brand -> Challenge -> Hunga -> Daily promise -> About -> Footer
+*/
+
+.landing{
+  padding:
+    max(30px,env(safe-area-inset-top))
+    28px
+    max(26px,env(safe-area-inset-bottom));
+
+  background:
+    radial-gradient(
+      circle at 50% 37%,
+      rgba(var(--overlay),.028),
+      transparent 34%
+    ),
+    var(--bg);
+}
+
+
+/* Softer background texture */
+
+.landing::before{
+  background-image:
+    radial-gradient(
+      rgba(var(--overlay),.065) 1.45px,
+      transparent 1.55px
+    );
+
+  background-size:
+    34px 34px;
+
+  opacity:.62;
+}
+
+
+/* =========================================================
+   BRAND
+========================================================= */
+
+.landing-title{
+  position:relative;
+  z-index:1;
+
+  margin:
+    0 0 18px;
+
+  font-family:
+    'Bricolage Grotesque',
+    sans-serif;
+
+  font-size:
+    clamp(
+      42px,
+      6vw,
+      58px
+    );
+
+  font-weight:800;
+
+  letter-spacing:-.045em;
+
+  line-height:1;
+}
+
+
+.landing-title span{
+  display:inline-block;
+
+  padding:
+    .07em
+    .13em
+    .10em;
+
+  margin-left:.025em;
+
+  border-radius:6px;
+
+  background:var(--flag);
+
+  color:var(--ink-fixed);
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================================================
+   CHALLENGE QUESTION
+========================================================= */
+
+.landing-sub{
+  position:relative;
+  z-index:1;
+
+  max-width:360px;
+
+  margin:
+    0 auto 38px;
+
+  color:
+    rgba(var(--overlay),.82);
+
+  font-family:
+    'Bricolage Grotesque',
+    sans-serif;
+
+  font-size:
+    clamp(
+      17px,
+      2.2vw,
+      19px
+    );
+
+  font-weight:650;
+
+  line-height:1.4;
+
+  letter-spacing:-.01em;
+}
+
+
+/* =========================================================
+   ACTION AREA
+========================================================= */
+
+.landing-actions{
+  position:relative;
+  z-index:1;
+
+  width:
+    min(
+      100%,
+      445px
+    );
+
+  max-width:none;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  gap:0;
+}
+
+
+/* =========================================================
+   PRIMARY CTA — HUNGA
+========================================================= */
+
+.landing-btn.primary{
+  width:100%;
+
+  min-height:66px;
+
+  padding:
+    16px 28px;
+
+  border:
+    1.5px solid
+    var(--flag);
+
+  border-radius:999px;
+
+  background:
+    var(--flag);
+
+  color:
+    var(--ink-fixed);
+
+  font-family:
+    'Karla',
+    sans-serif;
+
+  font-size:19px;
+
+  font-weight:700;
+
+  letter-spacing:.035em;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 0 0
+    rgba(249,227,0,0);
+
+  transition:
+    transform .14s ease,
+    box-shadow .18s ease,
+    filter .18s ease;
+}
+
+
+.landing-btn.primary:hover{
+  background:
+    var(--flag);
+
+  border-color:
+    var(--flag);
+
+  filter:
+    brightness(1.035);
+
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 10px 30px
+    rgba(249,227,0,.11);
+}
+
+
+.landing-btn.primary:active{
+  transform:
+    translateY(0)
+    scale(.985);
+
+  box-shadow:none;
+}
+
+
+.landing-btn.primary:focus-visible{
+  outline:
+    3px solid
+    rgba(var(--overlay),.55);
+
+  outline-offset:4px;
+}
+
+
+/* =========================================================
+   DAILY PROMISE
+========================================================= */
+
+.landing-daily{
+  margin-top:15px;
+
+  color:
+    rgba(var(--overlay),.70);
+
+  font-size:13.5px;
+
+  font-weight:600;
+
+  line-height:1.4;
+}
+
+
+/* =========================================================
+   SECONDARY ACTION
+
+   No second giant pill.
+   It should never compete with Hunga.
+========================================================= */
+
+.landing-about-link{
+  appearance:none;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:6px;
+
+  width:auto;
+
+  margin-top:13px;
+
+  padding:
+    6px 8px;
+
+  border:0;
+
+  background:transparent;
+
+  color:
+    rgba(var(--overlay),.73);
+
+  font-family:
+    'Karla',
+    sans-serif;
+
+  font-size:14px;
+
+  font-weight:700;
+
+  line-height:1.3;
+
+  cursor:pointer;
+
+  transition:
+    color .15s ease,
+    transform .15s ease;
+}
+
+
+.landing-about-link span{
+  display:inline-block;
+
+  transition:
+    transform .15s ease;
+}
+
+
+.landing-about-link:hover{
+  color:
+    var(--ink);
+}
+
+
+.landing-about-link:hover span{
+  transform:
+    translateX(3px);
+}
+
+
+.landing-about-link:active{
+  transform:
+    scale(.98);
+}
+
+
+.landing-about-link:focus-visible{
+  outline:
+    2px solid
+    var(--flag);
+
+  outline-offset:3px;
+
+  border-radius:6px;
+}
+
+
+/* Old ghost style should no longer affect anything */
+
+.landing-btn.ghost{
+  display:none;
+}
+
+
+/* =========================================================
+   DATE / LEGAL
+========================================================= */
+
+.landing-foot{
+  position:relative;
+  z-index:1;
+
+  margin-top:38px;
+}
+
+
+.landing-date{
+  color:
+    rgba(var(--overlay),.60);
+
+  font-family:
+    'Karla',
+    sans-serif;
+
+  font-size:12.5px;
+
+  font-weight:650;
+
+  letter-spacing:.01em;
+}
+
+
+/*
+  Old location removed from HTML.
+  Defensive fallback in case an old cached version remains.
+*/
+
+.landing-tag{
+  display:none;
+}
+
+
+.landing-legal{
+  margin-top:16px;
+
+  gap:10px;
+}
+
+
+.landing-legal-link{
+  color:
+    rgba(var(--overlay),.43);
+
+  font-size:11.5px;
+
+  font-weight:600;
+
+  text-underline-offset:3px;
+
+  transition:
+    color .15s ease;
+}
+
+
+.landing-legal-link:hover{
+  color:
+    rgba(var(--overlay),.70);
+}
+
+
+.landing-legal-dot{
+  color:
+    rgba(var(--overlay),.28);
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:520px){
+
+  .landing{
+    padding-left:22px;
+    padding-right:22px;
+  }
+
+
+  .landing-title{
+    font-size:
+      clamp(
+        38px,
+        11vw,
+        50px
+      );
+
+    margin-bottom:17px;
+  }
+
+
+  .landing-sub{
+    margin-bottom:32px;
+
+    font-size:17px;
+  }
+
+
+  .landing-actions{
+    width:
+      min(
+        100%,
+        390px
+      );
+  }
+
+
+  .landing-btn.primary{
+    min-height:62px;
+
+    font-size:18px;
+  }
+
+
+  .landing-foot{
+    margin-top:34px;
+  }
+
+}
+
+
+/*
+  Respect users who prefer reduced motion.
+*/
+
+@media(prefers-reduced-motion:reduce){
+
+  .landing-btn.primary,
+  .landing-about-link,
+  .landing-about-link span{
+    transition:none;
+  }
+
+}
+
+/* ===== END LANDING UX REDESIGN 2026 ===== */
+
+
 </style>
   <link rel="icon" type="image/svg+xml" href="/logo.svg">
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
@@ -5885,14 +6373,21 @@ button:focus-visible{
 
     <button
       class="landing-btn primary"
-      id="playBtn">
+      id="playBtn"
+      type="button">
       Hunga
     </button>
 
+    <div class="landing-daily">
+      Un wega nobo tur dia
+    </div>
+
     <button
-      class="landing-btn ghost"
-      id="aboutBtn">
+      class="landing-about-link"
+      id="aboutBtn"
+      type="button">
       Tokante e wega
+      <span aria-hidden="true">→</span>
     </button>
 
   </div>
@@ -5902,10 +6397,6 @@ button:focus-visible{
     <div
       class="landing-date"
       id="landingDate">
-    </div>
-
-    <div class="landing-tag">
-      Un wega nobo tur dia
     </div>
 
     <div class="landing-legal">
