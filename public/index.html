@@ -6911,6 +6911,586 @@ body.amiga-progress-open{
 /* ===== END LANDING FINAL FIX ===== */
 
 
+
+
+
+/* PROGRESS_WINDOW_RESTORE_V1
+   Restore Tabla di lèternan as a proper modal window.
+   This intentionally overrides earlier fullscreen patches.
+========================================================= */
+
+
+/* Keep background locked while modal is open */
+
+body.amiga-progress-open{
+  overflow:hidden !important;
+}
+
+
+/* =========================================================
+   OVERLAY
+   The overlay covers the page, but the CARD does not.
+========================================================= */
+
+html body #amigaOverlay{
+  position:fixed !important;
+
+  inset:0 !important;
+
+  width:100vw !important;
+  height:100dvh !important;
+
+  z-index:10000 !important;
+
+  display:flex !important;
+
+  align-items:center !important;
+  justify-content:center !important;
+
+  padding:
+    max(18px,env(safe-area-inset-top))
+    18px
+    max(18px,env(safe-area-inset-bottom))
+    !important;
+}
+
+
+html body #amigaOverlay.is-hidden{
+  display:none !important;
+}
+
+
+/* =========================================================
+   BACKDROP
+========================================================= */
+
+html body #amigaOverlay > .amiga-backdrop{
+  position:absolute !important;
+
+  inset:0 !important;
+
+  background:
+    rgba(var(--overlay),.68)
+    !important;
+
+  backdrop-filter:
+    blur(5px)
+    !important;
+
+  -webkit-backdrop-filter:
+    blur(5px)
+    !important;
+}
+
+
+/* =========================================================
+   THE ACTUAL WINDOW
+========================================================= */
+
+html body #amigaOverlay >
+.amiga-sheet.amiga-progress-sheet{
+
+  position:relative !important;
+
+  z-index:2 !important;
+
+  width:
+    min(
+      620px,
+      calc(100vw - 36px)
+    )
+    !important;
+
+  max-width:
+    620px
+    !important;
+
+  height:auto !important;
+
+  min-height:0 !important;
+
+  max-height:
+    min(
+      86dvh,
+      780px
+    )
+    !important;
+
+  margin:auto !important;
+
+  padding:
+    24px
+    26px
+    28px
+    !important;
+
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+
+  overscroll-behavior:contain;
+
+  border:
+    1px solid
+    rgba(255,255,255,.08)
+    !important;
+
+  border-radius:
+    26px
+    !important;
+
+  background:
+    var(--bg)
+    !important;
+
+  box-shadow:
+    0 24px 80px
+    rgba(0,0,0,.34)
+    !important;
+
+  transform:none !important;
+
+  animation:
+    progressWindowIn
+    .22s
+    cubic-bezier(.2,.8,.2,1)
+    !important;
+}
+
+
+/* Remove fullscreen yellow line */
+
+html body #amigaOverlay >
+.amiga-sheet.amiga-progress-sheet::before{
+
+  content:none !important;
+
+  display:none !important;
+}
+
+
+@keyframes progressWindowIn{
+
+  from{
+    opacity:0;
+    transform:
+      translateY(10px)
+      scale(.985);
+  }
+
+  to{
+    opacity:1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+}
+
+
+/* =========================================================
+   RESET OLD FULLSCREEN CONTENT WIDTH RULES
+========================================================= */
+
+html body #amigaOverlay
+.amiga-progress-sheet > *{
+
+  width:auto !important;
+
+  max-width:none !important;
+
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+html body #amigaOverlay
+.amiga-progress-sheet
+.amiga-head{
+
+  position:sticky !important;
+
+  top:-24px !important;
+
+  z-index:5 !important;
+
+  display:flex !important;
+
+  align-items:flex-start !important;
+  justify-content:space-between !important;
+
+  gap:18px !important;
+
+  width:auto !important;
+
+  max-width:none !important;
+
+  margin:
+    -24px
+    -2px
+    14px
+    !important;
+
+  padding:
+    24px
+    2px
+    12px
+    !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      var(--bg) 82%,
+      transparent
+    )
+    !important;
+}
+
+
+/* Kicker */
+
+html body #amigaOverlay
+.amiga-kicker{
+
+  margin-bottom:3px !important;
+
+  color:var(--dim2);
+
+  font-size:10px !important;
+
+  font-weight:800;
+
+  letter-spacing:.11em;
+
+  text-transform:uppercase;
+}
+
+
+/* Heading */
+
+html body #amigaOverlay
+.amiga-progress-sheet
+.amiga-title{
+
+  font-size:
+    27px
+    !important;
+
+  line-height:1.08 !important;
+
+  letter-spacing:
+    -.03em
+    !important;
+}
+
+
+/* Intro */
+
+html body #amigaOverlay
+.letter-tab-intro{
+
+  max-width:470px !important;
+
+  margin-top:7px !important;
+
+  color:var(--dim);
+
+  font-size:13.5px !important;
+
+  line-height:1.45 !important;
+}
+
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+html body #amigaOverlay
+.amiga-close{
+
+  flex:0 0 auto !important;
+
+  width:40px !important;
+  height:40px !important;
+
+  display:grid !important;
+  place-items:center !important;
+
+  border-radius:50% !important;
+
+  border:
+    1px solid
+    var(--line)
+    !important;
+
+  background:
+    rgba(var(--overlay),.045)
+    !important;
+
+  color:var(--ink);
+
+  font-size:16px !important;
+
+  cursor:pointer;
+}
+
+
+/* =========================================================
+   OVERALL PROGRESS
+========================================================= */
+
+html body #amigaOverlay
+.amiga-progress-hero{
+
+  width:auto !important;
+
+  max-width:none !important;
+
+  margin:
+    4px
+    0
+    20px
+    !important;
+
+  padding:
+    0
+    !important;
+
+  border:0 !important;
+
+  background:
+    transparent
+    !important;
+}
+
+
+html body #amigaOverlay
+.amiga-progress-number strong{
+
+  font-size:
+    28px
+    !important;
+}
+
+
+html body #amigaOverlay
+.amiga-progress-track{
+
+  height:
+    6px
+    !important;
+
+  margin-top:
+    9px
+    !important;
+}
+
+
+/* =========================================================
+   TABLE SECTION
+========================================================= */
+
+html body #amigaOverlay
+.letter-progress-table-wrap,
+
+html body #amigaOverlay
+.amiga-table-wrap{
+
+  width:100% !important;
+
+  max-width:100% !important;
+
+  overflow-x:auto !important;
+
+  margin-left:0 !important;
+  margin-right:0 !important;
+
+  border-radius:
+    14px
+    !important;
+}
+
+
+/* Never allow table to grow beyond modal */
+
+html body #amigaOverlay
+.letter-progress-table,
+
+html body #amigaOverlay
+.amiga-table{
+
+  width:100% !important;
+
+  max-width:100% !important;
+
+  table-layout:fixed;
+}
+
+
+/* Comfortable rows */
+
+html body #amigaOverlay
+.letter-progress-table th,
+
+html body #amigaOverlay
+.letter-progress-table td{
+
+  padding:
+    12px
+    9px
+    !important;
+}
+
+
+/* First column */
+
+html body #amigaOverlay
+.letter-progress-table th:first-child,
+
+html body #amigaOverlay
+.letter-progress-table td:first-child{
+
+  width:48% !important;
+
+  text-align:left !important;
+}
+
+
+/* Second column */
+
+html body #amigaOverlay
+.letter-progress-table th:last-child,
+
+html body #amigaOverlay
+.letter-progress-table td:last-child{
+
+  width:52% !important;
+
+  text-align:left !important;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:600px){
+
+  html body #amigaOverlay{
+
+    align-items:center !important;
+
+    padding:
+      max(12px,env(safe-area-inset-top))
+      12px
+      max(12px,env(safe-area-inset-bottom))
+      !important;
+
+  }
+
+
+  html body #amigaOverlay >
+  .amiga-sheet.amiga-progress-sheet{
+
+    width:
+      calc(100vw - 24px)
+      !important;
+
+    max-width:
+      calc(100vw - 24px)
+      !important;
+
+    max-height:
+      calc(100dvh - 24px)
+      !important;
+
+    padding:
+      20px
+      18px
+      24px
+      !important;
+
+    border-radius:
+      22px
+      !important;
+
+  }
+
+
+  html body #amigaOverlay
+  .amiga-progress-sheet
+  .amiga-head{
+
+    top:-20px !important;
+
+    margin:
+      -20px
+      0
+      12px
+      !important;
+
+    padding:
+      20px
+      0
+      11px
+      !important;
+
+  }
+
+
+  html body #amigaOverlay
+  .amiga-progress-sheet
+  .amiga-title{
+
+    font-size:
+      25px
+      !important;
+
+  }
+
+
+  html body #amigaOverlay
+  .letter-tab-intro{
+
+    font-size:
+      13px
+      !important;
+
+  }
+
+
+  html body #amigaOverlay
+  .amiga-close{
+
+    width:38px !important;
+    height:38px !important;
+
+  }
+
+
+  html body #amigaOverlay
+  .letter-progress-table th,
+
+  html body #amigaOverlay
+  .letter-progress-table td{
+
+    padding:
+      11px
+      7px
+      !important;
+
+    font-size:
+      12px
+      !important;
+
+  }
+
+}
+
+
 </style>
   <link rel="icon" type="image/svg+xml" href="/logo.svg">
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
