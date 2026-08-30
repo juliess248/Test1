@@ -16,6 +16,9 @@ export default class extends WorkerEntrypoint {
     if (url.pathname === "/api/auth/signout" && request.method === "POST") {
       return this.handleSignout(request);
     }
+    if (url.pathname === "/api/account/username" && request.method === "PATCH") {
+      return this.handleUsernameChange(request);
+    }
     if (url.pathname === "/api/leaderboard" && request.method === "GET") {
       return this.handleLeaderboardGet(request);
     }
@@ -2560,6 +2563,142 @@ export default class extends WorkerEntrypoint {
     } catch (e) {
       console.error(
         "Signout error:",
+        e
+      );
+
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
+    }
+  }
+
+  async handleUsernameChange(request) {
+    try {
+      const user =
+        await this.getAuthenticatedUser(
+          request
+        );
+
+      if (!user) {
+        return json(
+          {
+            error: "Not signed in"
+          },
+          401
+        );
+      }
+
+      await this.ensureUsersTable();
+
+      const body =
+        await request.json();
+
+      const username =
+        String(body.username || "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 20);
+
+      if (!username) {
+        return json(
+          {
+            error:
+              "Username required"
+          },
+          400
+        );
+      }
+
+      if (username.length < 3) {
+        return json(
+          {
+            error:
+              "Username must be at least 3 characters"
+          },
+          400
+        );
+      }
+
+      if (
+        username.toLowerCase() ===
+        String(user.username || "")
+          .toLowerCase()
+      ) {
+        return json(
+          {
+            id: user.id,
+            username: user.username
+          },
+          200
+        );
+      }
+
+      const existing =
+        await this.env.GAME_HISTORY
+          .prepare(
+            `SELECT id
+             FROM users
+             WHERE lower(trim(username))
+                   = lower(trim(?))
+               AND id != ?
+             LIMIT 1`
+          )
+          .bind(username, user.id)
+          .first();
+
+      if (existing) {
+        return json(
+          {
+            error:
+              "Username already taken"
+          },
+          409
+        );
+      }
+
+      try {
+        await this.env.GAME_HISTORY
+          .prepare(
+            `UPDATE users
+             SET username = ?
+             WHERE id = ?`
+          )
+          .bind(username, user.id)
+          .run();
+
+      } catch (e) {
+
+        if (
+          String(e)
+            .toLowerCase()
+            .includes("unique")
+        ) {
+          return json(
+            {
+              error:
+                "Username already taken"
+            },
+            409
+          );
+        }
+
+        throw e;
+      }
+
+      return json(
+        {
+          id: user.id,
+          username: username
+        },
+        200
+      );
+
+    } catch (e) {
+      console.error(
+        "Username change error:",
         e
       );
 

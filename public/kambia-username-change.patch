@@ -1,0 +1,318 @@
+diff --git a/public/index.html b/public/index.html
+index 3884dbd..c8c4f09 100644
+--- a/public/index.html
++++ b/public/index.html
+@@ -9865,6 +9865,11 @@ tbody tr + tr td{
+ 
+       </div>
+ 
++      <div
++        id="nameError"
++        style="display:none;color:#ff9c9c;font-size:12px;margin-top:8px;">
++      </div>
++
+     </div>
+ 
+ 
+@@ -39583,7 +39588,7 @@ function renderName(){
+     account ? '' : 'none';
+ 
+   $('nameEdit').style.display =
+-    account ? 'none' : '';
++    '';
+ 
+   $('accountBadge').textContent =
+     'Kuenta';
+@@ -39654,16 +39659,29 @@ function updateAcctNudge(){
+ }
+ 
+ 
+-function setName(){
++function showNameError(text){
+ 
+-  /*
+-    While signed in, the account's username IS the display
+-    name — there's no separate rename on the server.
+-  */
++  const box =
++    $('nameError');
++
++  if(!text){
++
++    box.style.display = 'none';
++
++    box.textContent = '';
+ 
+-  if(account)
+     return;
+ 
++  }
++
++  box.textContent = text;
++
++  box.style.display = '';
++
++}
++
++
++async function setName(){
+ 
+   const name =
+     cleanName(
+@@ -39680,6 +39698,90 @@ function setName(){
+   }
+ 
+ 
++  showNameError('');
++
++
++  /*
++    Signed-in users: the username IS the display name, so
++    renaming here changes it on the account itself via the
++    Worker/D1, not just this browser.
++  */
++
++  if(account){
++
++    if(name === account.username){
++
++      editingName = false;
++
++      renderName();
++
++      return;
++
++    }
++
++    const saveBtn =
++      $('nameSave');
++
++    saveBtn.disabled = true;
++
++    try{
++
++      const res =
++        await fetch(
++          '/api/account/username',
++          {
++            method:'PATCH',
++            headers:{
++              'Content-Type':'application/json'
++            },
++            body:JSON.stringify({
++              username:name
++            })
++          }
++        );
++
++      const data =
++        await res.json();
++
++      if(!res.ok){
++
++        showNameError(
++          data.error ||
++          'No por a kambia e nòmber.'
++        );
++
++        return;
++
++      }
++
++      account.username =
++        data.username;
++
++      saveAccountLocal();
++
++      editingName = false;
++
++      renderName();
++
++      syncScore();
++
++    }catch(e){
++
++      showNameError(
++        'Error di konekshon.'
++      );
++
++    }finally{
++
++      saveBtn.disabled = false;
++
++    }
++
++    return;
++
++  }
++
++
+   editingName = false;
+ 
+ 
+@@ -40415,6 +40517,8 @@ $('nameEdit').onclick =
+     $('nameInput').value =
+       activeName();
+ 
++    showNameError('');
++
+     editingName = true;
+ 
+     renderName();
+diff --git a/src/index.js b/src/index.js
+index 604de54..845ae17 100644
+--- a/src/index.js
++++ b/src/index.js
+@@ -16,6 +16,9 @@ export default class extends WorkerEntrypoint {
+     if (url.pathname === "/api/auth/signout" && request.method === "POST") {
+       return this.handleSignout(request);
+     }
++    if (url.pathname === "/api/account/username" && request.method === "PATCH") {
++      return this.handleUsernameChange(request);
++    }
+     if (url.pathname === "/api/leaderboard" && request.method === "GET") {
+       return this.handleLeaderboardGet(request);
+     }
+@@ -2572,6 +2575,142 @@ export default class extends WorkerEntrypoint {
+     }
+   }
+ 
++  async handleUsernameChange(request) {
++    try {
++      const user =
++        await this.getAuthenticatedUser(
++          request
++        );
++
++      if (!user) {
++        return json(
++          {
++            error: "Not signed in"
++          },
++          401
++        );
++      }
++
++      await this.ensureUsersTable();
++
++      const body =
++        await request.json();
++
++      const username =
++        String(body.username || "")
++          .replace(/\s+/g, " ")
++          .trim()
++          .slice(0, 20);
++
++      if (!username) {
++        return json(
++          {
++            error:
++              "Username required"
++          },
++          400
++        );
++      }
++
++      if (username.length < 3) {
++        return json(
++          {
++            error:
++              "Username must be at least 3 characters"
++          },
++          400
++        );
++      }
++
++      if (
++        username.toLowerCase() ===
++        String(user.username || "")
++          .toLowerCase()
++      ) {
++        return json(
++          {
++            id: user.id,
++            username: user.username
++          },
++          200
++        );
++      }
++
++      const existing =
++        await this.env.GAME_HISTORY
++          .prepare(
++            `SELECT id
++             FROM users
++             WHERE lower(trim(username))
++                   = lower(trim(?))
++               AND id != ?
++             LIMIT 1`
++          )
++          .bind(username, user.id)
++          .first();
++
++      if (existing) {
++        return json(
++          {
++            error:
++              "Username already taken"
++          },
++          409
++        );
++      }
++
++      try {
++        await this.env.GAME_HISTORY
++          .prepare(
++            `UPDATE users
++             SET username = ?
++             WHERE id = ?`
++          )
++          .bind(username, user.id)
++          .run();
++
++      } catch (e) {
++
++        if (
++          String(e)
++            .toLowerCase()
++            .includes("unique")
++        ) {
++          return json(
++            {
++              error:
++                "Username already taken"
++            },
++            409
++          );
++        }
++
++        throw e;
++      }
++
++      return json(
++        {
++          id: user.id,
++          username: username
++        },
++        200
++      );
++
++    } catch (e) {
++      console.error(
++        "Username change error:",
++        e
++      );
++
++      return json(
++        {
++          error: "Server error"
++        },
++        500
++      );
++    }
++  }
++
+   async ensureUsersTable() {
+     await this.env.GAME_HISTORY
+       .prepare(

@@ -9865,6 +9865,11 @@ tbody tr + tr td{
 
       </div>
 
+      <div
+        id="nameError"
+        style="display:none;color:#ff9c9c;font-size:12px;margin-top:8px;">
+      </div>
+
     </div>
 
 
@@ -39583,7 +39588,7 @@ function renderName(){
     account ? '' : 'none';
 
   $('nameEdit').style.display =
-    account ? 'none' : '';
+    '';
 
   $('accountBadge').textContent =
     'Kuenta';
@@ -39654,16 +39659,29 @@ function updateAcctNudge(){
 }
 
 
-function setName(){
+function showNameError(text){
 
-  /*
-    While signed in, the account's username IS the display
-    name — there's no separate rename on the server.
-  */
+  const box =
+    $('nameError');
 
-  if(account)
+  if(!text){
+
+    box.style.display = 'none';
+
+    box.textContent = '';
+
     return;
 
+  }
+
+  box.textContent = text;
+
+  box.style.display = '';
+
+}
+
+
+async function setName(){
 
   const name =
     cleanName(
@@ -39674,6 +39692,90 @@ function setName(){
   if(!name){
 
     $('nameInput').focus();
+
+    return;
+
+  }
+
+
+  showNameError('');
+
+
+  /*
+    Signed-in users: the username IS the display name, so
+    renaming here changes it on the account itself via the
+    Worker/D1, not just this browser.
+  */
+
+  if(account){
+
+    if(name === account.username){
+
+      editingName = false;
+
+      renderName();
+
+      return;
+
+    }
+
+    const saveBtn =
+      $('nameSave');
+
+    saveBtn.disabled = true;
+
+    try{
+
+      const res =
+        await fetch(
+          '/api/account/username',
+          {
+            method:'PATCH',
+            headers:{
+              'Content-Type':'application/json'
+            },
+            body:JSON.stringify({
+              username:name
+            })
+          }
+        );
+
+      const data =
+        await res.json();
+
+      if(!res.ok){
+
+        showNameError(
+          data.error ||
+          'No por a kambia e nòmber.'
+        );
+
+        return;
+
+      }
+
+      account.username =
+        data.username;
+
+      saveAccountLocal();
+
+      editingName = false;
+
+      renderName();
+
+      syncScore();
+
+    }catch(e){
+
+      showNameError(
+        'Error di konekshon.'
+      );
+
+    }finally{
+
+      saveBtn.disabled = false;
+
+    }
 
     return;
 
@@ -40414,6 +40516,8 @@ $('nameEdit').onclick =
 
     $('nameInput').value =
       activeName();
+
+    showNameError('');
 
     editingName = true;
 
