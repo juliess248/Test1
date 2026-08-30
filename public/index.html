@@ -1740,19 +1740,31 @@ header{
 .report-word-btn,
 .thumbs-up-btn{
   appearance:none;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
   font-family:'Karla',sans-serif;
   font-size:12.5px;
   font-weight:700;
   padding:9px 14px;
   min-height:40px;
   border-radius:10px;
-  background:rgba(249,227,0,.1);
-  border:1px solid rgba(249,227,0,.35);
-  color:var(--ink);
   cursor:pointer;
 }
 
-.report-word-btn:hover,
+.report-word-btn svg,
+.thumbs-up-btn svg{
+  width:16px;
+  height:16px;
+  flex-shrink:0;
+}
+
+.thumbs-up-btn{
+  background:rgba(249,227,0,.1);
+  border:1px solid rgba(249,227,0,.35);
+  color:var(--ink);
+}
+
 .thumbs-up-btn:hover{
   background:rgba(249,227,0,.2);
 }
@@ -1760,6 +1772,18 @@ header{
 .thumbs-up-btn:disabled{
   opacity:.75;
   cursor:default;
+}
+
+.report-word-btn{
+  background:transparent;
+  border:1px solid rgba(255,255,255,.2);
+  color:var(--ink);
+  opacity:.75;
+}
+
+.report-word-btn:hover{
+  background:rgba(255,255,255,.08);
+  opacity:1;
 }
 
 .glossary-source{
@@ -36173,8 +36197,8 @@ function buildReportButton(word,info){
 
   btn.type = 'button';
 
-  btn.textContent =
-    '✏️ Reportá un eror';
+  btn.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg><span>Reportá un eror</span>';
 
   btn.onclick =
     () =>
@@ -36205,8 +36229,8 @@ function buildThumbsUpButton(word,info){
 
   btn.type = 'button';
 
-  btn.textContent =
-    '👍 Ta korekto';
+  btn.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path></svg><span>Ta korekto</span>';
 
   btn.onclick =
     async () => {
@@ -36255,8 +36279,8 @@ function buildThumbsUpButton(word,info){
 
         );
 
-        btn.textContent =
-          '👍 Danki!';
+        btn.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span>Danki!</span>';
 
       }catch{
 
