@@ -8632,6 +8632,19 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
         Tokante nos
       </button>
 
+      <span class="landing-legal-dot">·</span>
+
+      <select
+        class="landing-legal-link"
+        id="langSelect"
+        aria-label="Language"
+        style="background:transparent;border:0;cursor:pointer;font-family:'Karla',sans-serif;font-size:11.5px;font-weight:600;text-decoration:underline;color:rgba(8,31,54,.45);padding:0;">
+        <option value="pap">Papiamentu</option>
+        <option value="en">English</option>
+        <option value="nl">Nederlands</option>
+        <option value="es">Español</option>
+      </select>
+
     </div>
 
   </div>
@@ -41283,6 +41296,168 @@ function formatLongDate(dateString){
 
 $('landingDate').textContent =
   formatLongDate(GAME_DATE);
+
+/* =========================================================
+   28c. LANGUAGE (UI CHROME TRANSLATION)
+========================================================= */
+
+const LANG_KEY = 'palabraDiKorsouLang';
+
+const TRANSLATIONS = {
+  pap: {
+    landingSub: 'Kon bon bo Papiamentu ta?',
+    playBtn: 'Hunga',
+    landingDaily: 'Un wega nobo tur dia',
+    aboutLink: 'Tokante e wega ',
+    privacyLink: 'Privasidat',
+    aboutLinkFooter: 'Tokante nos',
+    navGame: ' Wega ',
+    navScore: ' Puntu ',
+    navRanking: ' Klasifikashon ',
+    btnDelete: 'Bora',
+    btnEnter: 'Manda',
+    shuffleLabel: 'Bolbe ordena e leternan',
+    infoLabel: 'Informashon',
+    hintLabel: 'Pidi un tip',
+    soundLabel: 'Zonido',
+    feedbackLabel: 'Duna feedback',
+    todayLabel: 'PALABRA DI AWE',
+    scoreboardTitle: 'Scorebord',
+    rankingTitle: 'Klasifikashon'
+  },
+  en: {
+    landingSub: 'How good is your Papiamentu?',
+    playBtn: 'Play',
+    landingDaily: 'A new puzzle every day',
+    aboutLink: 'About the game ',
+    privacyLink: 'Privacy',
+    aboutLinkFooter: 'About us',
+    navGame: ' Play ',
+    navScore: ' Score ',
+    navRanking: ' Ranking ',
+    btnDelete: 'Delete',
+    btnEnter: 'Enter',
+    shuffleLabel: 'Shuffle the letters',
+    infoLabel: 'Info',
+    hintLabel: 'Get a hint',
+    soundLabel: 'Sound',
+    feedbackLabel: 'Give feedback',
+    todayLabel: "TODAY'S WORD",
+    scoreboardTitle: 'Scoreboard',
+    rankingTitle: 'Ranking'
+  },
+  nl: {
+    landingSub: 'Hoe goed is jouw Papiaments?',
+    playBtn: 'Spelen',
+    landingDaily: 'Elke dag een nieuwe puzzel',
+    aboutLink: 'Over dit spel ',
+    privacyLink: 'Privacy',
+    aboutLinkFooter: 'Over ons',
+    navGame: ' Spel ',
+    navScore: ' Score ',
+    navRanking: ' Ranglijst ',
+    btnDelete: 'Wissen',
+    btnEnter: 'Enter',
+    shuffleLabel: 'Letters husselen',
+    infoLabel: 'Info',
+    hintLabel: 'Vraag een hint',
+    soundLabel: 'Geluid',
+    feedbackLabel: 'Geef feedback',
+    todayLabel: 'WOORD VAN VANDAAG',
+    scoreboardTitle: 'Scorebord',
+    rankingTitle: 'Ranglijst'
+  },
+  es: {
+    landingSub: '¿Qué tan bueno es tu papiamento?',
+    playBtn: 'Jugar',
+    landingDaily: 'Un nuevo juego cada día',
+    aboutLink: 'Sobre el juego ',
+    privacyLink: 'Privacidad',
+    aboutLinkFooter: 'Sobre nosotros',
+    navGame: ' Jugar ',
+    navScore: ' Puntaje ',
+    navRanking: ' Clasificación ',
+    btnDelete: 'Borrar',
+    btnEnter: 'Enviar',
+    shuffleLabel: 'Mezclar las letras',
+    infoLabel: 'Información',
+    hintLabel: 'Pedir una pista',
+    soundLabel: 'Sonido',
+    feedbackLabel: 'Dar comentarios',
+    todayLabel: 'PALABRA DE HOY',
+    scoreboardTitle: 'Marcador',
+    rankingTitle: 'Clasificación'
+  }
+};
+
+function getLang(){
+  try{
+    return localStorage.getItem(LANG_KEY) || 'pap';
+  }catch{
+    return 'pap';
+  }
+}
+
+function applyLanguage(lang){
+
+  const dict =
+    TRANSLATIONS[lang] || TRANSLATIONS.pap;
+
+  const select = $('langSelect');
+  if(select) select.value = lang;
+
+  $('landingSub').textContent = dict.landingSub;
+  $('playBtn').textContent = dict.playBtn;
+  $('landingDaily').textContent = dict.landingDaily;
+
+  if($('aboutBtn').firstChild){
+    $('aboutBtn').firstChild.textContent = dict.aboutLink;
+  }
+
+  $('privacyLinkBtn').textContent = dict.privacyLink;
+  $('aboutLinkBtn').textContent = dict.aboutLinkFooter;
+
+  const gameNav = document.querySelector('[data-page="gamePage"]');
+  const scoreNav = document.querySelector('[data-page="scorePage"]');
+  const rankNav = document.querySelector('[data-page="rankingPage"]');
+
+  if(gameNav && gameNav.lastChild) gameNav.lastChild.textContent = dict.navGame;
+  if(scoreNav && scoreNav.lastChild) scoreNav.lastChild.textContent = dict.navScore;
+  if(rankNav && rankNav.lastChild) rankNav.lastChild.textContent = dict.navRanking;
+
+  $('del').textContent = dict.btnDelete;
+  $('enter').textContent = dict.btnEnter;
+  $('shuffle').setAttribute('aria-label', dict.shuffleLabel);
+
+  $('infoBtn').setAttribute('aria-label', dict.infoLabel);
+  $('amigaBtn').setAttribute('aria-label', dict.hintLabel);
+  $('sound-toggle').setAttribute('title', dict.soundLabel);
+  $('feedbackHeaderBtn').setAttribute('aria-label', dict.feedbackLabel);
+
+  const scoreTitle = document.querySelector('#scorePage .panel-title');
+  const rankTitle = document.querySelector('#rankingPage .panel-title');
+
+  if(scoreTitle) scoreTitle.textContent = dict.scoreboardTitle;
+  if(rankTitle) rankTitle.textContent = dict.rankingTitle;
+
+  $('todayDate').textContent =
+    dict.todayLabel + ' · ' + formatDate(GAME_DATE);
+
+  try{
+    localStorage.setItem(LANG_KEY, lang);
+  }catch{}
+
+}
+
+const langSelectEl = $('langSelect');
+if(langSelectEl){
+  langSelectEl.addEventListener('change', event => {
+    applyLanguage(event.target.value);
+  });
+}
+
+applyLanguage(getLang());
+
 
 
 function enterApp(pageId){
