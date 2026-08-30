@@ -41390,12 +41390,30 @@ const TRANSLATIONS = {
   }
 };
 
+function detectBrowserLang(){
+  try{
+    const raw =
+      (navigator.language ||
+       navigator.userLanguage ||
+       '').toLowerCase();
+
+    if(raw.startsWith('nl')) return 'nl';
+    if(raw.startsWith('es')) return 'es';
+    if(raw.startsWith('en')) return 'en';
+  }catch{}
+
+  return 'pap';
+}
+
 function getLang(){
   try{
-    return localStorage.getItem(LANG_KEY) || 'pap';
-  }catch{
-    return 'pap';
-  }
+    const saved =
+      localStorage.getItem(LANG_KEY);
+
+    if(saved) return saved;
+  }catch{}
+
+  return detectBrowserLang();
 }
 
 function applyLanguage(lang){
