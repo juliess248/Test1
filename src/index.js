@@ -3274,20 +3274,22 @@ const AUTH_MODAL_HTML = `
     });
   });
 
-  fetch('/api/auth/me',{
-    method:'GET',
-    cache:'no-store'
-  })
-  .then(function(r){
-    if(!r.ok){
-      throw new Error('signed out');
-    }
-    return r.json();
-  })
-  .then(function(d){
-    setSignedIn(d.username);
-  })
-  .catch(function(){
-    setSignedOut();
+  window.addEventListener('load', function(){
+    fetch('/api/auth/me',{
+      method:'GET',
+      cache:'no-store'
+    })
+    .then(function(r){
+      if(!r.ok){
+        throw new Error('signed out');
+      }
+      return r.json();
+    })
+    .then(function(d){
+      setSignedIn(d.username);
+    })
+    .catch(function(){
+      setSignedOut();
+    });
   });
 })();</script>`;
