@@ -30,7 +30,7 @@
     }
   ],
   "send_email": [
-    { "name": "NOTIFY", "destination_address": "juliettesjakshie@gmail.com" }
+    { "name": "NOTIFY", "destination_address": "juliettesjakshie248@gmail.com" }
   ],
   "triggers": {
     "crons": ["0 13 * * 1"]

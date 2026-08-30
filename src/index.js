@@ -1253,10 +1253,10 @@ export default class extends WorkerEntrypoint {
 
     Setup required (one-time, in the Cloudflare dashboard):
     1. Email > Email Routing on your domain — enable it and
-      verify juliettesjakshie@gmail.com as a destination.
+      verify juliettesjakshie248@gmail.com as a destination.
     2. In wrangler.jsonc, add:
          "send_email": [
-           { "name": "NOTIFY", "destination_address": "juliettesjakshie@gmail.com" }
+           { "name": "NOTIFY", "destination_address": "juliettesjakshie248@gmail.com" }
          ]
     3. The FROM address below must be a mailbox on a domain
        YOU control through Email Routing (not gmail.com) —
@@ -1278,15 +1278,15 @@ export default class extends WorkerEntrypoint {
       const { EmailMessage } = await import("cloudflare:email");
       const messageId = `<${crypto.randomUUID()}@palabradikorsou.com>`;
       const raw = html
-        ? `From: Palabra di Korsou <notify@palabradikorsou.com>\r\nTo: juliettesjakshie@gmail.com\r\nSubject: ${subject.replace(/[^\x00-\x7F]/g, "-")}\r\nMessage-ID: ${messageId}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary="palabra-boundary"\r\n\r\n--palabra-boundary\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${text}\r\n--palabra-boundary\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${html}\r\n--palabra-boundary--`
+        ? `From: Palabra di Korsou <notify@palabradikorsou.com>\r\nTo: juliettesjakshie248@gmail.com\r\nSubject: ${subject.replace(/[^\x00-\x7F]/g, "-")}\r\nMessage-ID: ${messageId}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary="palabra-boundary"\r\n\r\n--palabra-boundary\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${text}\r\n--palabra-boundary\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${html}\r\n--palabra-boundary--`
         : `From: Palabra di Korsou <notify@palabradikorsou.com>\r\n` +
-          `To: juliettesjakshie@gmail.com\r\n` +
+          `To: juliettesjakshie248@gmail.com\r\n` +
           `Subject: ${subject}\r\n` +
           `Message-ID: ${messageId}\r\n` +
           `Content-Type: text/plain; charset=utf-8\r\n\r\n${text}`;
       const message = new EmailMessage(
         "notify@palabradikorsou.com",
-        "juliettesjakshie@gmail.com",
+        "juliettesjakshie248@gmail.com",
         raw
       );
       await this.env.NOTIFY.send(message);
