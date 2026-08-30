@@ -1726,20 +1726,43 @@ header{
 
 .report-word-btn{
   appearance:none;
-  background:none;
-  border:0;
-  color:var(--dim);
+  background:rgba(255,140,0,.08);
+  border:1px solid rgba(255,140,0,.3);
+  border-radius:10px;
+  color:var(--ink);
   cursor:pointer;
   font-family:'Karla',sans-serif;
-  font-size:12px;
+  font-size:13px;
   font-weight:700;
-  padding:4px 0;
-  text-decoration:underline;
-  text-underline-offset:3px;
+  padding:9px 14px;
+  min-height:40px;
 }
 
 .report-word-btn:hover{
+  background:rgba(255,140,0,.16);
+}
+
+.thumbs-up-btn{
+  appearance:none;
+  background:rgba(46,160,90,.1);
+  border:1px solid rgba(46,160,90,.35);
+  border-radius:10px;
   color:var(--ink);
+  cursor:pointer;
+  font-family:'Karla',sans-serif;
+  font-size:13px;
+  font-weight:700;
+  padding:9px 14px;
+  min-height:40px;
+}
+
+.thumbs-up-btn:hover{
+  background:rgba(46,160,90,.18);
+}
+
+.thumbs-up-btn:disabled{
+  opacity:.75;
+  cursor:default;
 }
 
 .glossary-source{
@@ -8967,6 +8990,14 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
       🔊
     </button>
 
+    <button
+      class="header-btn"
+      id="feedbackHeaderBtn"
+      type="button"
+      aria-label="Duna feedback">
+      💬
+    </button>
+
   </div>
 
 </header>
@@ -9068,22 +9099,22 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
     class="missing-word-cta is-hidden"
     id="missingWordCta">
 
-    <span>
-      E palabra aki falta?
+    <span id="missingWordQuestion">
+      Bo ta kere e palabra aki ta eksistí?
     </span>
 
     <button
       class="missing-word-link"
       id="missingWordSuggestBtn"
       type="button">
-      Sugeri'é
+      Sí, manda e palabra
     </button>
 
     <button
       class="missing-word-dismiss"
       id="missingWordDismissBtn"
       type="button"
-      aria-label="No mustra esaki atrobe">
+      aria-label="Sera">
       ×
     </button>
 
@@ -36140,11 +36171,97 @@ function buildReportButton(word,info){
   btn.type = 'button';
 
   btn.textContent =
-    'Rapòrtá un fout';
+    '✏️ Reportá un eror';
 
   btn.onclick =
     () =>
       openReportWord(word,info);
+
+  return btn;
+
+}
+
+
+/*
+  Thumbs-up confirmation — the lowest-friction feedback
+  moment there is: the player is already looking at the
+  definition, so one tap logs "this is correct" with no
+  form at all. Reuses the general /api/feedback endpoint
+  (no new backend needed) with a distinct category so
+  these are easy to filter from free-text feedback later.
+*/
+function buildThumbsUpButton(word,info){
+
+  const btn =
+    document.createElement(
+      'button'
+    );
+
+  btn.className =
+    'thumbs-up-btn';
+
+  btn.type = 'button';
+
+  btn.textContent =
+    '👍 Ta korekto';
+
+  btn.onclick =
+    async () => {
+
+      if(btn.disabled) return;
+
+      btn.disabled = true;
+
+      try{
+
+        await fetch(
+
+          '/api/feedback',
+
+          {
+            method:'POST',
+
+            headers:{
+              'content-type':
+                'application/json'
+            },
+
+            body:JSON.stringify({
+
+              playerId:
+                activePlayerId(),
+
+              name:
+                activeName(),
+
+              category:
+                'word_confirmed',
+
+              message:
+                'Konfirmá korekto: "' +
+                word +
+                '" — ' +
+                (info && info.definition
+                  ? info.definition
+                  : ''),
+
+              date:GAME_DATE
+
+            })
+          }
+
+        );
+
+        btn.textContent =
+          '👍 Danki!';
+
+      }catch{
+
+        btn.disabled = false;
+
+      }
+
+    };
 
   return btn;
 
@@ -37845,6 +37962,10 @@ function renderGlossaryInfo(
     }
 
     actionsEl.appendChild(
+      buildThumbsUpButton(word,info)
+    );
+
+    actionsEl.appendChild(
       buildReportButton(word,info)
     );
 
@@ -37966,36 +38087,45 @@ function showMissingWordCta(word){
   const cta =
     $('missingWordCta');
 
-
   /*
-    E palabra aki falta? Sugeri'é
-    is onboarding only.
-
-    Once the player has used or dismissed
-    it, don't automatically show it again.
+    Shown on every rejected word, not just once —
+    every rejection is a chance the player knows a
+    real word we're missing, and Meta ad spend is
+    bringing in exactly the people likely to know it.
   */
-
-  if(
-    quickSuggestionSeen()
-  ){
-
-    cta.classList.add(
-      'is-hidden'
-    );
-
-    delete cta.dataset.word;
-
-    return;
-
-  }
-
 
   cta.dataset.word =
     word;
 
+  /*
+    A prior rejection may have left the CTA showing
+    its "Danki!" state — restore the question + button
+    so this rejection gets the normal prompt.
+  */
+
+  resetMissingWordCta();
+
   cta.classList.remove(
     'is-hidden'
   );
+
+}
+
+
+function resetMissingWordCta(){
+
+  $('missingWordQuestion').textContent =
+    'Bo ta kere e palabra aki ta eksistí?';
+
+  const btn =
+    $('missingWordSuggestBtn');
+
+  btn.textContent =
+    'Sí, manda e palabra';
+
+  btn.disabled = false;
+
+  btn.style.display = '';
 
 }
 
@@ -38010,6 +38140,109 @@ function hideMissingWordCta(){
   );
 
   delete cta.dataset.word;
+
+}
+
+
+/*
+  One-tap submission for a rejected word. No modal, no
+  extra fields — the word is already known (it's the one
+  that was just typed and rejected), so this just needs
+  a single confirmation tap. Reuses the existing
+  /api/submit-word endpoint with a fixed note, since the
+  backend requires one but the player shouldn't have to
+  type it.
+*/
+async function quickSubmitMissingWord(word){
+
+  if(!word)
+    return;
+
+  const btn =
+    $('missingWordSuggestBtn');
+
+  if(btn.disabled)
+    return;
+
+  btn.disabled = true;
+
+  btn.textContent =
+    'Mandando...';
+
+  try{
+
+    const response =
+      await fetch(
+
+        '/api/submit-word',
+
+        {
+          method:'POST',
+
+          headers:{
+            'content-type':
+              'application/json'
+          },
+
+          body:JSON.stringify({
+
+            type:'add',
+
+            word,
+
+            note:
+              'Sugerí despues di palabra rechasá den e wega.',
+
+            playerId:
+              activePlayerId(),
+
+            date:GAME_DATE
+
+          })
+        }
+
+      );
+
+    const data =
+      await response.json();
+
+    if(!response.ok || data.error){
+
+      throw new Error(
+        data.error ||
+        'No a logra manda.'
+      );
+
+    }
+
+    $('missingWordQuestion').textContent =
+      'Danki! 💙 Nos ta wak "' +
+      P.displayForm(word) +
+      '".';
+
+    btn.textContent = '';
+
+    btn.style.display = 'none';
+
+    setTimeout(
+      () => {
+
+        hideMissingWordCta();
+
+        btn.style.display = '';
+
+      },
+      2600
+    );
+
+  }catch(err){
+
+    btn.disabled = false;
+
+    btn.textContent =
+      'No a logra — purba atrobe';
+
+  }
 
 }
 
@@ -41547,6 +41780,10 @@ $('feedbackForm').onsubmit =
   };
 
 
+$('feedbackHeaderBtn').onclick =
+  openFeedback;
+
+
 $('reportClose').onclick =
   closeReportWord;
 
@@ -41564,41 +41801,14 @@ $('reportForm').onsubmit =
 
 
 $('missingWordSuggestBtn').onclick =
-  () => {
-
-    const word =
-      $('missingWordCta')
-        .dataset.word;
-
-    if(!word)
-      return;
-
-
-    /*
-      Tapping Sugeri'é counts as having
-      used the onboarding.
-    */
-
-    markQuickSuggestionSeen();
-
-    hideMissingWordCta();
-
-
-    openMissingWordSuggestion(
-      word
+  () =>
+    quickSubmitMissingWord(
+      $('missingWordCta').dataset.word
     );
-
-  };
 
 
 $('missingWordDismissBtn').onclick =
-  () => {
-
-    markQuickSuggestionSeen();
-
-    hideMissingWordCta();
-
-  };
+  hideMissingWordCta;
 
 
 $('suggestClose').onclick =
