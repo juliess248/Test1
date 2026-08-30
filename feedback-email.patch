@@ -1,0 +1,48 @@
+diff --git a/src/index.js b/src/index.js
+index 845ae17..291d0c7 100644
+--- a/src/index.js
++++ b/src/index.js
+@@ -919,6 +919,14 @@ export default class extends WorkerEntrypoint {
+         )
+         .run();
+ 
++      await this.sendFeedbackEmail({
++        playerId: playerId || null,
++        name: name || null,
++        category: category || null,
++        message: text,
++        date: date || null,
++      });
++
+       return json({ ok: true }, 200);
+     } catch (e) {
+       if (e.message && e.message.includes("no such table")) {
+@@ -1287,6 +1295,28 @@ export default class extends WorkerEntrypoint {
+     }
+   }
+ 
++  async sendFeedbackEmail(feedback) {
++    const receivedAt = new Date().toISOString();
++    const category = feedback.category || "Not provided";
++    const name = feedback.name || "Anonymous";
++    const text = [
++      `From: ${name}`,
++      `Category: ${category}`,
++      `Message: ${feedback.message}`,
++      `Player ID: ${feedback.playerId || "Not provided"}`,
++      `In-game date: ${feedback.date || "Not provided"}`,
++      `Received at: ${receivedAt}`,
++    ].join("\n");
++    const field = (label, value) =>
++      `<tr><th style="padding:8px 12px;text-align:left;vertical-align:top;color:#52606d">${escapeHtmlServer(label)}</th><td style="padding:8px 12px;vertical-align:top">${escapeHtmlServer(value)}</td></tr>`;
++    const html = `<!doctype html><html><body style="margin:0;background:#f4f1ea;font-family:Arial,sans-serif;color:#081f36"><main style="max-width:600px;margin:24px auto;padding:24px;background:#fff;border:1px solid #ddd6c9"><h1 style="font-size:22px;margin:0 0 18px">Palabra di Kòrsou feedback</h1><table style="width:100%;border-collapse:collapse">${field("From", name)}${field("Category", category)}${field("Message", feedback.message)}${field("Player ID", feedback.playerId || "Not provided")}${field("In-game date", feedback.date || "Not provided")}${field("Received at", receivedAt)}</table></main></body></html>`;
++    await this.sendNotificationEmail(
++      `[Palabra di Kòrsou] Feedback: ${category}`,
++      text,
++      html
++    );
++  }
++
+   async sendReportEmail(report, token, origin) {
+     const approveUrl = `${origin}/moderate/approve?action=approve&token=${encodeURIComponent(token)}`;
+     const editUrl = `${origin}/moderate/approve?token=${encodeURIComponent(token)}`;
