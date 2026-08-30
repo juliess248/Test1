@@ -8597,14 +8597,6 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
       Un wega nobo tur dia
     </div>
 
-    <button
-      class="landing-about-link"
-      id="aboutBtn"
-      type="button">
-      Tokante e wega
-      <span aria-hidden="true">→</span>
-    </button>
-
   </div>
 
   <div class="landing-foot">
@@ -41427,10 +41419,6 @@ function applyLanguage(lang){
   $('landingSub').textContent = dict.landingSub;
   $('playBtn').textContent = dict.playBtn;
 
-  if($('aboutBtn').firstChild){
-    $('aboutBtn').firstChild.textContent = dict.aboutLink;
-  }
-
   $('privacyLinkBtn').textContent = dict.privacyLink;
   $('aboutLinkBtn').textContent = dict.aboutLinkFooter;
 
@@ -41615,10 +41603,6 @@ $('playBtn').onclick =
     );
 
   };
-
-
-$('aboutBtn').onclick =
-  openInfoOverlay;
 
 
 /* =========================================================
