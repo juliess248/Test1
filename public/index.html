@@ -1669,6 +1669,29 @@ header{
   cursor:pointer;
 }
 
+.settings-options{
+  display:grid;
+  gap:16px;
+}
+
+.settings-option{
+  display:grid;
+  gap:6px;
+}
+
+.settings-option select{
+  width:100%;
+  padding:10px 12px;
+
+  border:1px solid var(--line);
+  border-radius:10px;
+
+  background:rgba(var(--overlay),.05);
+  color:var(--ink);
+
+  font:inherit;
+}
+
 .amiga-example{
   font-size:13px;
   line-height:1.5;
@@ -8633,8 +8656,6 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
         style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background:transparent;background-image:none;">
         <option value="pap">Papiamentu</option>
         <option value="en">English</option>
-        <option value="nl">Nederlands</option>
-        <option value="es">Español</option>
       </select>
 
     </div>
@@ -8905,6 +8926,13 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
 
     </div>
 
+    <button
+      class="dictionary-help-btn secondary"
+      id="helpHintBtn"
+      type="button">
+      Pidi un tip
+    </button>
+
     <div class="dictionary-help-card">
 
       <div class="dictionary-help-eyebrow">
@@ -8968,6 +8996,65 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
 </div>
 
 
+<!-- SETTINGS -->
+
+<div
+  class="amiga-overlay is-hidden"
+  id="settingsOverlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="settingsTitle">
+
+  <div
+    class="amiga-backdrop"
+    id="settingsBackdrop">
+  </div>
+
+  <div class="amiga-sheet">
+
+    <div class="amiga-head">
+
+      <div
+        class="amiga-title"
+        id="settingsTitle">
+        Setingan
+      </div>
+
+      <button
+        class="amiga-close"
+        id="settingsClose"
+        type="button"
+        aria-label="Sera">
+        ✕
+      </button>
+
+    </div>
+
+    <div class="settings-options">
+
+      <label class="settings-option">
+        <span id="settingsLanguageLabel">Idioma</span>
+        <select id="settingsLangSelect">
+          <option value="pap">Papiamentu</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+
+      <label class="settings-option">
+        <span id="settingsSoundLabel">Zonido</span>
+        <select id="settingsSoundSelect">
+          <option value="on">Prendé</option>
+          <option value="off">Pagá</option>
+        </select>
+      </label>
+
+    </div>
+
+  </div>
+
+</div>
+
+
 <div class="app is-hidden" id="appRoot">
 
 
@@ -8997,26 +9084,12 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
 
     <button
       class="header-btn"
-      id="amigaBtn"
-      aria-label="Pidi un tip">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
-        <path d="M9 18h6"></path>
-        <path d="M10 21h4"></path>
-        <path d="M12 3a6 6 0 0 0-4 10.5c.6.55 1 1.4 1 2.25v.25h6v-.25c0-.85.4-1.7 1-2.25A6 6 0 0 0 12 3z"></path>
-      </svg>
-    </button>
-
-  
-
-    <button
-      class="header-btn"
-      id="sound-toggle"
+      id="settingsBtn"
       type="button"
-      aria-label="Zonido">
+      aria-label="Setingan">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
-        <polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9"></polygon>
-        <path d="M16.5 8.5a5 5 0 0 1 0 7"></path>
-        <path d="M19 6a8.5 8.5 0 0 1 0 12"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-2.83 2.83-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21h-4v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06-2.83-2.83.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3v-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06 2.83-2.83.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3h4v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06 2.83 2.83-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21v4h-.09A1.65 1.65 0 0 0 19.4 15z"></path>
       </svg>
     </button>
 
@@ -41207,6 +41280,33 @@ $('infoClose').onclick =
 $('infoBackdrop').onclick =
   closeInfoOverlay;
 
+$('helpHintBtn').onclick =
+  () => {
+    closeInfoOverlay();
+    openAmiga();
+  };
+
+function openSettings(){
+  $('settingsLangSelect').value = getLang();
+  $('settingsSoundSelect').value =
+    SOUND.status().enabled ? 'on' : 'off';
+  $('settingsOverlay').classList.remove('is-hidden');
+  requestAnimationFrame(() => $('settingsClose').focus());
+}
+
+function closeSettings(){
+  $('settingsOverlay').classList.add('is-hidden');
+}
+
+$('settingsBtn').onclick =
+  openSettings;
+
+$('settingsClose').onclick =
+  closeSettings;
+
+$('settingsBackdrop').onclick =
+  closeSettings;
+
 
 window.addEventListener(
   'popstate',
@@ -41311,7 +41411,11 @@ const TRANSLATIONS = {
     shuffleLabel: 'Bolbe ordena e leternan',
     infoLabel: 'Informashon',
     hintLabel: 'Pidi un tip',
+    settingsLabel: 'Setingan',
+    languageLabel: 'Idioma',
     soundLabel: 'Zonido',
+    soundOnLabel: 'Prendé',
+    soundOffLabel: 'Pagá',
     feedbackLabel: 'Duna feedback',
     todayLabel: 'PALABRA DI AWE',
     scoreboardTitle: 'Scorebord',
@@ -41332,53 +41436,15 @@ const TRANSLATIONS = {
     shuffleLabel: 'Shuffle the letters',
     infoLabel: 'Info',
     hintLabel: 'Get a hint',
+    settingsLabel: 'Settings',
+    languageLabel: 'Language',
     soundLabel: 'Sound',
+    soundOnLabel: 'On',
+    soundOffLabel: 'Off',
     feedbackLabel: 'Give feedback',
     todayLabel: "TODAY'S WORD",
     scoreboardTitle: 'Scoreboard',
     rankingTitle: 'Ranking'
-  },
-  nl: {
-    landingSub: 'Hoe goed is jouw Papiaments?',
-    playBtn: 'Spelen',
-    landingDaily: 'Elke dag een nieuwe puzzel',
-    aboutLink: 'Over dit spel ',
-    privacyLink: 'Privacy',
-    aboutLinkFooter: 'Over ons',
-    navGame: ' Spel ',
-    navScore: ' Score ',
-    navRanking: ' Ranglijst ',
-    btnDelete: 'Wissen',
-    btnEnter: 'Enter',
-    shuffleLabel: 'Letters husselen',
-    infoLabel: 'Info',
-    hintLabel: 'Vraag een hint',
-    soundLabel: 'Geluid',
-    feedbackLabel: 'Geef feedback',
-    todayLabel: 'WOORD VAN VANDAAG',
-    scoreboardTitle: 'Scorebord',
-    rankingTitle: 'Ranglijst'
-  },
-  es: {
-    landingSub: '¿Qué tan bueno es tu papiamento?',
-    playBtn: 'Jugar',
-    landingDaily: 'Un nuevo juego cada día',
-    aboutLink: 'Sobre el juego ',
-    privacyLink: 'Privacidad',
-    aboutLinkFooter: 'Sobre nosotros',
-    navGame: ' Jugar ',
-    navScore: ' Puntaje ',
-    navRanking: ' Clasificación ',
-    btnDelete: 'Borrar',
-    btnEnter: 'Enviar',
-    shuffleLabel: 'Mezclar las letras',
-    infoLabel: 'Información',
-    hintLabel: 'Pedir una pista',
-    soundLabel: 'Sonido',
-    feedbackLabel: 'Dar comentarios',
-    todayLabel: 'PALABRA DE HOY',
-    scoreboardTitle: 'Marcador',
-    rankingTitle: 'Clasificación'
   }
 };
 
@@ -41389,8 +41455,6 @@ function detectBrowserLang(){
        navigator.userLanguage ||
        '').toLowerCase();
 
-    if(raw.startsWith('nl')) return 'nl';
-    if(raw.startsWith('es')) return 'es';
     if(raw.startsWith('en')) return 'en';
   }catch{}
 
@@ -41402,7 +41466,7 @@ function getLang(){
     const saved =
       localStorage.getItem(LANG_KEY);
 
-    if(saved) return saved;
+    if(saved === 'pap' || saved === 'en') return saved;
   }catch{}
 
   return detectBrowserLang();
@@ -41410,11 +41474,15 @@ function getLang(){
 
 function applyLanguage(lang){
 
-  const dict =
-    TRANSLATIONS[lang] || TRANSLATIONS.pap;
+  const selectedLang =
+    TRANSLATIONS[lang] ? lang : detectBrowserLang();
+  const dict = TRANSLATIONS[selectedLang];
 
   const select = $('langSelect');
-  if(select) select.value = lang;
+  if(select) select.value = selectedLang;
+
+  const settingsSelect = $('settingsLangSelect');
+  if(settingsSelect) settingsSelect.value = selectedLang;
 
   $('landingSub').textContent = dict.landingSub;
   $('playBtn').textContent = dict.playBtn;
@@ -41435,8 +41503,13 @@ function applyLanguage(lang){
   $('shuffle').setAttribute('aria-label', dict.shuffleLabel);
 
   $('infoBtn').setAttribute('aria-label', dict.infoLabel);
-  $('amigaBtn').setAttribute('aria-label', dict.hintLabel);
-  $('sound-toggle').setAttribute('title', dict.soundLabel);
+  $('helpHintBtn').textContent = dict.hintLabel;
+  $('settingsBtn').setAttribute('aria-label', dict.settingsLabel);
+  $('settingsTitle').textContent = dict.settingsLabel;
+  $('settingsLanguageLabel').textContent = dict.languageLabel;
+  $('settingsSoundLabel').textContent = dict.soundLabel;
+  $('settingsSoundSelect').options[0].textContent = dict.soundOnLabel;
+  $('settingsSoundSelect').options[1].textContent = dict.soundOffLabel;
   $('feedbackHeaderBtn').setAttribute('aria-label', dict.feedbackLabel);
 
   const scoreTitle = document.querySelector('#scorePage .panel-title');
@@ -41449,7 +41522,7 @@ function applyLanguage(lang){
     dict.todayLabel + ' · ' + formatDate(GAME_DATE);
 
   try{
-    localStorage.setItem(LANG_KEY, lang);
+    localStorage.setItem(LANG_KEY, selectedLang);
   }catch{}
 
 }
@@ -41458,6 +41531,20 @@ const langSelectEl = $('langSelect');
 if(langSelectEl){
   langSelectEl.addEventListener('change', event => {
     applyLanguage(event.target.value);
+  });
+}
+
+const settingsLangSelectEl = $('settingsLangSelect');
+if(settingsLangSelectEl){
+  settingsLangSelectEl.addEventListener('change', event => {
+    applyLanguage(event.target.value);
+  });
+}
+
+const settingsSoundSelectEl = $('settingsSoundSelect');
+if(settingsSoundSelectEl){
+  settingsSoundSelectEl.addEventListener('change', event => {
+    SOUND.setEnabled(event.target.value === 'on');
   });
 }
 
@@ -41626,9 +41713,6 @@ $('shuffle').onclick =
 
   };
 
-
-$('amigaBtn').onclick =
-  openAmiga;
 
 $('amigaClose').onclick =
   closeAmiga;
