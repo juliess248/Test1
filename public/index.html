@@ -10204,13 +10204,7 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
         Bo tin kuenta kaba? Drenta
       </button>
 
-      <button
-        class="auth-link"
-        id="authForgot"
-        type="button"
-        style="display:none;">
-        A lubidá bo kontraseña?
-      </button>
+
 
     </div>
 
@@ -40335,8 +40329,6 @@ function renderAuth(){
     authMode === 'signup';
   const login =
     authMode === 'login';
-  const forgot =
-    authMode === 'forgot';
   const reset =
     authMode === 'reset';
   $('authPassword').setAttribute(
@@ -40348,44 +40340,38 @@ function renderAuth(){
         : 'current-password'
   );
   $('authUsername').style.display =
-    forgot || reset ? 'none' : '';
+    reset ? 'none' : '';
   $('authEmail').style.display =
-    signup || forgot
+    signup
       ? ''
       : 'none';
-  $('authPassword').style.display =
-    forgot ? 'none' : '';
+  $('authPassword').style.display = '';
   $('authPasswordConfirm').style.display =
     reset ? '' : 'none';
   $('authEmailHint').style.display =
     'none';
-  if(!signup && !forgot){
+  if(!signup){
     $('authEmail').value = '';
   }
   $('authTitle').textContent =
-    forgot
-      ? 'Rekuperá bo kuenta'
-      : reset
-        ? 'Krea un kontraseña nobo'
-        : signup
+    reset
+      ? 'Krea un kontraseña nobo'
+      : signup
       ? 'Krea bo kuenta'
       : 'Drenta bo kuenta';
   $('authSubmit').textContent =
-    forgot
-      ? 'Manda link di rekuperashon'
-      : reset
-        ? 'Kambia contraseña'
-        : signup
+    reset
+      ? 'Kambia contraseña'
+      : signup
       ? 'Krea kuenta'
       : 'Drenta';
   $('authToggle').textContent =
-    forgot || reset
+    reset
       ? 'Bolbe na drenta'
       : signup
       ? 'Bo tin kuenta kaba? Drenta'
       : 'No tin kuenta ainda? Krea un';
-  $('authForgot').style.display =
-    login ? '' : 'none';
+
   $('authPasswordHint').style.display =
     signup || reset
       ? ''
@@ -41100,22 +41086,7 @@ $('authForm').onsubmit =
       $('authUsername').focus();
       return;
     }
-    if(authMode === 'forgot'){
-      setAuthBusy(true);
-      showAuthMessage('');
-      try{
-        await submitAuthRequest('forgot-password', { email });
-        showAuthMessage(
-          'Si bo email ta konektá ku un kuenta, nos a manda un link di rekuperashon.',
-          'ok'
-        );
-      }catch(error){
-        showAuthMessage(error.message, 'err');
-      }finally{
-        setAuthBusy(false);
-      }
-      return;
-    }
+
     if(authMode === 'reset'){
       setAuthBusy(true);
       showAuthMessage('');
@@ -41230,13 +41201,7 @@ $('authToggle').onclick =
   };
 
 
-$('authForgot').onclick =
-  () => {
-    authMode = 'forgot';
-    showAuthMessage('');
-    renderAuth();
-    $('authEmail').focus();
-  };
+
 
 
 $('authLogout').onclick =
