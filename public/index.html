@@ -37991,13 +37991,10 @@ function renderGlossaryInfo(
     $('glossaryActions');
 
 
-  if(info && info.definition){
+  if(info && info.english){
 
-    defEl.textContent =
-      info.definition;
-
-    defEl.classList.remove(
-      'is-missing'
+    defEl.classList.add(
+      'is-hidden'
     );
 
 
@@ -38076,11 +38073,8 @@ function renderGlossaryInfo(
 
   }else{
 
-    defEl.textContent =
-      'Ainda nos no tin un definishon pa e palabra aki.';
-
     defEl.classList.add(
-      'is-missing'
+      'is-hidden'
     );
 
     exampleEl.classList.add(
