@@ -10170,6 +10170,13 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
         type="password"
         autocomplete="new-password"
         placeholder="Kontraseña">
+      <input
+        class="name-input"
+        id="authPasswordConfirm"
+        type="password"
+        autocomplete="new-password"
+        placeholder="Konfirmá bo kontraseña"
+        style="display:none;">
       <div
         class="auth-hint"
         id="authPasswordHint">
@@ -10195,6 +10202,14 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
         id="authToggle"
         type="button">
         Bo tin kuenta kaba? Drenta
+      </button>
+
+      <button
+        class="auth-link"
+        id="authForgot"
+        type="button"
+        style="display:none;">
+        A lubidá bo kontraseña?
       </button>
 
     </div>
@@ -39898,7 +39913,12 @@ const ACCOUNT_KEY =
 
 let account = null;
 
-let authMode = 'signup';
+const RESET_TOKEN =
+  new URLSearchParams(window.location.search)
+    .get('reset_token');
+
+let authMode =
+  RESET_TOKEN ? 'reset' : 'signup';
 
 let authBusy = false;
 
@@ -40286,11 +40306,18 @@ function updateAuthSubmitState(){
   const passwordOk =
     authMode === 'signup'
       ? password.length >= 6
-      : password.length > 0;
+      : authMode === 'reset'
+        ? password.length >= 6 &&
+          password === $('authPasswordConfirm').value
+        : authMode === 'forgot'
+          ? EMAIL_PATTERN_AUTH.test(
+            $('authEmail').value.trim()
+          )
+          : password.length > 0;
 
   $('authSubmit').disabled =
     authBusy ||
-    !username ||
+    (authMode === 'login' || authMode === 'signup') && !username ||
     !passwordOk;
 
 }
@@ -40299,42 +40326,68 @@ function updateAuthSubmitState(){
 function renderAuth(){
   const card =
     $('authCard');
-  if(account){
+  if(account && authMode !== 'reset'){
     card.style.display = 'none';
     return;
   }
   card.style.display = '';
   const signup =
     authMode === 'signup';
+  const login =
+    authMode === 'login';
+  const forgot =
+    authMode === 'forgot';
+  const reset =
+    authMode === 'reset';
   $('authPassword').setAttribute(
     'autocomplete',
     signup
       ? 'new-password'
-      : 'current-password'
+      : reset
+        ? 'new-password'
+        : 'current-password'
   );
+  $('authUsername').style.display =
+    forgot || reset ? 'none' : '';
   $('authEmail').style.display =
-    signup
+    signup || forgot
       ? ''
       : 'none';
+  $('authPassword').style.display =
+    forgot ? 'none' : '';
+  $('authPasswordConfirm').style.display =
+    reset ? '' : 'none';
   $('authEmailHint').style.display =
     'none';
-  if(!signup){
+  if(!signup && !forgot){
     $('authEmail').value = '';
   }
   $('authTitle').textContent =
-    signup
+    forgot
+      ? 'Rekuperá bo kuenta'
+      : reset
+        ? 'Krea un kontraseña nobo'
+        : signup
       ? 'Krea bo kuenta'
       : 'Drenta bo kuenta';
   $('authSubmit').textContent =
-    signup
+    forgot
+      ? 'Manda link di rekuperashon'
+      : reset
+        ? 'Kambia contraseña'
+        : signup
       ? 'Krea kuenta'
       : 'Drenta';
   $('authToggle').textContent =
-    signup
+    forgot || reset
+      ? 'Bolbe na drenta'
+      : signup
       ? 'Bo tin kuenta kaba? Drenta'
       : 'No tin kuenta ainda? Krea un';
+  $('authForgot').style.display =
+    login ? '' : 'none';
   $('authPasswordHint').style.display =
-    signup
+    signup || reset
       ? ''
       : 'none';
   updateAuthSubmitState();
@@ -40392,6 +40445,18 @@ if($('authUsername')){
 }
 if($('authPassword')){
   $('authPassword').addEventListener(
+    'input',
+    updateAuthSubmitState
+  );
+}
+if($('authPasswordConfirm')){
+  $('authPasswordConfirm').addEventListener(
+    'input',
+    updateAuthSubmitState
+  );
+}
+if($('authEmail')){
+  $('authEmail').addEventListener(
     'input',
     updateAuthSubmitState
   );
@@ -41021,7 +41086,7 @@ $('authForm').onsubmit =
       return;
 
 
-        const username =
+    const username =
       cleanName(
         $('authUsername').value
       );
@@ -41031,8 +41096,45 @@ $('authForm').onsubmit =
       $('authEmail') ?
         $('authEmail').value.trim() :
         '';
-    if(!username){
+    if((authMode === 'signup' || authMode === 'login') && !username){
       $('authUsername').focus();
+      return;
+    }
+    if(authMode === 'forgot'){
+      setAuthBusy(true);
+      showAuthMessage('');
+      try{
+        await submitAuthRequest('forgot-password', { email });
+        showAuthMessage(
+          'Si bo email ta konektá ku un kuenta, nos a manda un link di rekuperashon.',
+          'ok'
+        );
+      }catch(error){
+        showAuthMessage(error.message, 'err');
+      }finally{
+        setAuthBusy(false);
+      }
+      return;
+    }
+    if(authMode === 'reset'){
+      setAuthBusy(true);
+      showAuthMessage('');
+      try{
+        await submitAuthRequest('reset-password', {
+          token: RESET_TOKEN,
+          password
+        });
+        $('authPassword').value = '';
+        $('authPasswordConfirm').value = '';
+        window.history.replaceState({}, '', window.location.pathname);
+        authMode = 'login';
+        renderAuth();
+        showAuthMessage('Bo contraseña a kambia. Bo por drenta awor.', 'ok');
+      }catch(error){
+        showAuthMessage(error.message, 'err');
+      }finally{
+        setAuthBusy(false);
+      }
       return;
     }
     if(!password){
@@ -41094,6 +41196,22 @@ $('authForm').onsubmit =
     }
   };
 
+async function submitAuthRequest(endpoint, payload){
+  const response = await fetch(
+    AUTH_ENDPOINT + endpoint,
+    {
+      method:'POST',
+      headers:{ 'content-type':'application/json' },
+      body:JSON.stringify(payload)
+    }
+  );
+  const data = await response.json();
+  if(!response.ok || data.error){
+    throw new Error(data.error || 'Algu a bai robes. Purba atrobe.');
+  }
+  return data;
+}
+
 
 $('authToggle').onclick =
   () => {
@@ -41101,12 +41219,23 @@ $('authToggle').onclick =
     authMode =
       authMode === 'signup'
         ? 'login'
-        : 'signup';
+        : authMode === 'login'
+          ? 'signup'
+          : 'login';
 
     showAuthMessage('');
 
     renderAuth();
 
+  };
+
+
+$('authForgot').onclick =
+  () => {
+    authMode = 'forgot';
+    showAuthMessage('');
+    renderAuth();
+    $('authEmail').focus();
   };
 
 
