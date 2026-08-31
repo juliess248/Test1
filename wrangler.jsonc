@@ -33,7 +33,7 @@
     { "name": "NOTIFY", "destination_address": "juliettesjakshie248@gmail.com" }
   ],
   "triggers": {
-    "crons": ["0 13 * * 1"]
+    "crons": ["0 0 * * *", "0 13 * * 1"]
   },
   "observability": {
     "enabled": true,

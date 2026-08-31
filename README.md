@@ -11,3 +11,5 @@ pnpm preview:tomorrow
 
 Fill in the empty values, paste them into `DEFINITIONS` in `public/index.html`,
 then deploy with `pnpm deploy`.
+
+Cloudflare also emails this template nightly at 8:00 PM Curaçao time.

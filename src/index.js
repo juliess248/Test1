@@ -1345,6 +1345,123 @@ export default class extends WorkerEntrypoint {
     );
   }
 
+  async getPuzzlePreview(dateString) {
+    const assetResponse = await this.env.ASSETS.fetch(
+      new Request("https://assets.local/index.html")
+    );
+    if (!assetResponse.ok) {
+      throw new Error("Could not load the game dictionary");
+    }
+
+    const page = await assetResponse.text();
+    const listStart = page.indexOf("const PALABRANAN = [");
+    const arrayStart = page.indexOf("[", listStart);
+    const arrayEnd = page.indexOf("\n];", arrayStart);
+    if (listStart < 0 || arrayStart < 0 || arrayEnd < 0) {
+      throw new Error("Could not find the game dictionary");
+    }
+
+    const words = JSON.parse(page.slice(arrayStart, arrayEnd + 2));
+    const fold = {
+      "á": "a", "à": "a", "é": "e", "è": "e", "í": "i", "ì": "i",
+      "ó": "o", "ò": "o", "ú": "u", "ù": "u", "ü": "u", "ç": "c",
+    };
+    const normalise = (value) => [...String(value).normalize("NFC").toLowerCase().trim()]
+      .map((letter) => fold[letter] || letter)
+      .join("");
+    const letterBit = (letter) => letter === "ñ"
+      ? 1 << 26
+      : 1 << (letter.charCodeAt(0) - 97);
+    const countBits = (mask) => {
+      let count = 0;
+      while (mask) {
+        mask &= mask - 1;
+        count++;
+      }
+      return count;
+    };
+    const display = {};
+    const entries = words.reduce((all, spelling) => {
+      const word = normalise(spelling);
+      if ([...word].length < 4 || !/^[a-zñ]+$/.test(word) || display[word]) {
+        return all;
+      }
+      display[word] = spelling;
+      let mask = 0;
+      for (const letter of word) mask |= letterBit(letter);
+      all.push({ word, mask, distinct: countBits(mask) });
+      return all;
+    }, []);
+    const hives = new Set(entries.filter((entry) => entry.distinct === 7).map((entry) => entry.mask));
+    const pool = [];
+    for (const mask of hives) {
+      const fitting = entries.filter((entry) => (entry.mask & ~mask) === 0);
+      const letters = [];
+      for (let index = 0; index < 26; index++) {
+        if (mask & (1 << index)) letters.push(String.fromCharCode(97 + index));
+      }
+      if (mask & (1 << 26)) letters.push("ñ");
+      for (const centre of letters) {
+        const answers = fitting.filter((entry) => entry.mask & letterBit(centre));
+        if (answers.length < 14 || answers.length > 55) continue;
+        const pangrams = answers.filter((entry) => entry.mask === mask);
+        if (!pangrams.length) continue;
+        pool.push({
+          mask,
+          centre,
+          letters,
+          answers: answers.map((entry) => entry.word).sort(),
+          pangrams: pangrams.map((entry) => entry.word).sort(),
+        });
+      }
+    }
+    pool.sort((left, right) => left.mask - right.mask || (left.centre < right.centre ? -1 : 1));
+    let seed = 0x9e3779b9;
+    const random = () => {
+      seed = (seed + 0x6d2b79f5) | 0;
+      let value = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+      return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+    };
+    for (let index = pool.length - 1; index > 0; index--) {
+      const swapIndex = Math.floor(random() * (index + 1));
+      [pool[index], pool[swapIndex]] = [pool[swapIndex], pool[index]];
+    }
+
+    const epoch = Date.UTC(2026, 7, 20);
+    const number = Math.round((Date.parse(`${dateString}T00:00:00Z`) - epoch) / 86400000);
+    const puzzle = pool[(number % pool.length + pool.length) % pool.length];
+    return {
+      centre: puzzle.centre,
+      letters: [puzzle.centre, ...puzzle.letters.filter((letter) => letter !== puzzle.centre)],
+      words: puzzle.answers.map((word) => display[word]),
+      pangrams: puzzle.pangrams.map((word) => display[word]),
+      definitions: Object.fromEntries(puzzle.answers.map((word) => [word, ""])),
+    };
+  }
+
+  async sendTomorrowPuzzleEmail() {
+    const date = new Date().toISOString().slice(0, 10);
+    const puzzle = await this.getPuzzlePreview(date);
+    const definitionTemplate = JSON.stringify(puzzle.definitions, null, 2);
+    const text = [
+      `Tomorrow's puzzle: ${date}`,
+      `Letters: ${puzzle.letters.join(" ").toUpperCase()}`,
+      `Center letter: ${puzzle.centre.toUpperCase()}`,
+      `Pangrams: ${puzzle.pangrams.join(", ")}`,
+      "",
+      "Write the Papiamento definitions below, then paste the completed entries into DEFINITIONS in public/index.html and deploy.",
+      "",
+      definitionTemplate,
+    ].join("\n");
+    const html = `<!doctype html><html><body style="margin:0;background:#f4f1ea;font-family:Arial,sans-serif;color:#081f36"><main style="max-width:700px;margin:24px auto;padding:24px;background:#fff;border:1px solid #ddd6c9"><h1 style="font-size:22px;margin:0 0 18px">Tomorrow's Palabra di Kòrsou puzzle</h1><p><strong>Date:</strong> ${date}<br><strong>Letters:</strong> ${puzzle.letters.join(" ").toUpperCase()}<br><strong>Center:</strong> ${puzzle.centre.toUpperCase()}<br><strong>Pangram:</strong> ${escapeHtmlServer(puzzle.pangrams.join(", "))}</p><p>Write the Papiamento definitions, paste them into <code>DEFINITIONS</code> in <code>public/index.html</code>, then deploy.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere;padding:16px;background:#f4f1ea;border:1px solid #ddd6c9">${escapeHtmlServer(definitionTemplate)}</pre></main></body></html>`;
+    await this.sendNotificationEmail(
+      `[Palabra di Kòrsou] Definitions for ${date}`,
+      text,
+      html
+    );
+  }
+
   /*
     WEEKLY DIGEST — Cron Trigger, not called by any request.
 
@@ -1360,6 +1477,11 @@ export default class extends WorkerEntrypoint {
   */
   async scheduled(controller) {
     try {
+      if (controller.cron === "0 0 * * *") {
+        await this.sendTomorrowPuzzleEmail();
+        return;
+      }
+
       await this.ensureReportsTable();
       await this.ensureSubmissionsTable();
 
