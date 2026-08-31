@@ -2963,7 +2963,7 @@ button:focus-visible{
 }
 
 .name-input::placeholder{
-  color:rgba(var(--overlay),.55);
+  color:var(--dim2);
 }
 
 .name-input:focus{
@@ -3380,53 +3380,25 @@ button:focus-visible{
 .auth-link{
   background:transparent;
 
-  border:1px solid var(--line);
+  border:0;
 
-  border-radius:12px;
-
-  color:var(--ink);
+  color:var(--dim);
 
   cursor:pointer;
 
-  display:block;
-
   font-family:'Karla',sans-serif;
-
-  font-size:13px;
-
-  font-weight:700;
-
-  padding:11px 18px;
-
-  text-align:center;
-
-  text-decoration:none;
-
-  width:100%;
-}
-
-.auth-link:hover{
-  border-color:rgba(var(--overlay),.3);
-
-  color:var(--ink);
-}
-
-.auth-hint{
-  color:var(--dim);
 
   font-size:12px;
 
-  line-height:1.4;
+  font-weight:600;
 
-  margin-top:-6px;
+  padding:0;
+
+  text-decoration:underline;
 }
 
-.auth-input-optional{
-  opacity:.72;
-}
-
-.auth-input-optional:focus{
-  opacity:1;
+.auth-link:hover{
+  color:var(--ink);
 }
 
 .auth-msg{
@@ -3443,15 +3415,8 @@ button:focus-visible{
 
 .auth-msg.ok{
   background:rgba(249,227,0,.12);
+
   color:var(--flag-ink);
-}
-.auth-msg.celebrate{
-  animation:authCelebratePop .5s ease;
-}
-@keyframes authCelebratePop{
-  0%{ transform:scale(.92); opacity:0; }
-  60%{ transform:scale(1.03); opacity:1; }
-  100%{ transform:scale(1); opacity:1; }
 }
 
 .auth-msg.err{
@@ -10095,7 +10060,7 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
           <button
             class="name-edit"
             id="nameEdit">
-            Kambia nòmber
+            Kambia
           </button>
 
           <button
@@ -10157,7 +10122,7 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
         </button>
       </div>
       <input
-        class="name-input auth-input-optional"
+        class="name-input"
         id="authEmail"
         type="email"
         autocomplete="email"
@@ -10170,17 +10135,11 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
         type="password"
         autocomplete="new-password"
         placeholder="Kontraseña">
-      <div
-        class="auth-hint"
-        id="authPasswordHint">
-        Mínimo 6 karakter.
-      </div>
 
       <button
         class="auth-submit"
         id="authSubmit"
-        type="submit"
-        disabled>
+        type="submit">
         Krea kuenta
       </button>
 
@@ -35672,15 +35631,6 @@ const SOUND = (function(){
     });
   }
 
-function signupSuccess(){
-    playWhenReady(c=>{
-      const t=c.currentTime+0.002;
-      tone(c,523.25,t,0.10,'sine',0.035);
-      tone(c,659.25,t+0.06,0.10,'sine',0.035);
-      tone(c,783.99,t+0.12,0.16,'sine',0.04);
-    });
-  }
-
   function invalid(){
     playWhenReady(c=>{
       const t=c.currentTime+0.002;
@@ -35904,11 +35854,15 @@ function signupSuccess(){
       deleteSound,
 
     hunga,
+
     word,
+
     pangram,
+
     invalid,
+
     complete,
-    signupSuccess,
+
     unlock,
 
     toggle,
@@ -40260,38 +40214,7 @@ function setAuthBusy(busy){
 
   authBusy = busy;
 
-  if(busy){
-    $('authSubmit').disabled = true;
-  }else{
-    updateAuthSubmitState();
-  }
-
-}
-
-
-/*
-  Keeps the submit button visibly inactive until the form can
-  actually succeed, instead of looking clickable while it will
-  just bounce back with a validation error.
-*/
-
-function updateAuthSubmitState(){
-
-  const username =
-    $('authUsername').value.trim();
-
-  const password =
-    $('authPassword').value;
-
-  const passwordOk =
-    authMode === 'signup'
-      ? password.length >= 6
-      : password.length > 0;
-
-  $('authSubmit').disabled =
-    authBusy ||
-    !username ||
-    !passwordOk;
+  $('authSubmit').disabled = busy;
 
 }
 
@@ -40333,11 +40256,6 @@ function renderAuth(){
     signup
       ? 'Bo tin kuenta kaba? Drenta'
       : 'No tin kuenta ainda? Krea un';
-  $('authPasswordHint').style.display =
-    signup
-      ? ''
-      : 'none';
-  updateAuthSubmitState();
 }
 
 
@@ -40384,18 +40302,6 @@ async function submitAuth(username,password,email){
 }
 const EMAIL_PATTERN_AUTH =
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-if($('authUsername')){
-  $('authUsername').addEventListener(
-    'input',
-    updateAuthSubmitState
-  );
-}
-if($('authPassword')){
-  $('authPassword').addEventListener(
-    'input',
-    updateAuthSubmitState
-  );
-}
 if($('authUsername')){
   $('authUsername').addEventListener(
     'blur',
@@ -41049,49 +40955,42 @@ $('authForm').onsubmit =
           email
         );
 
-      const wasSignup =
-        authMode === 'signup';
 
       account = {
         id:data.id,
         username:data.username
       };
+
       saveAccountLocal();
+
+
       $('authPassword').value = '';
+
       editingName = false;
 
-      if(wasSignup){
-        if(window.SOUND && SOUND.signupSuccess){
-          SOUND.signupSuccess();
-        }
-        const msgBox = $('authMsg');
-        showAuthMessage('Kuenta kreá! 🎉','ok');
-        if(msgBox){
-          msgBox.classList.add('celebrate');
-        }
-        setTimeout(()=>{
-          renderName();
-          renderAuth();
-          syncScore();
-          loadProgress();
-          loadBoard();
-          setAuthBusy(false);
-        }, 1100);
-      }else{
-        renderName();
-        renderAuth();
-        syncScore();
-        loadProgress();
-        loadBoard();
-        setAuthBusy(false);
-      }
+      renderName();
+
+      renderAuth();
+
+      syncScore();
+
+      loadProgress();
+
+      loadBoard();
+
     }catch(error){
+
       showAuthMessage(
         error.message,
         'err'
       );
+
+    }finally{
+
       setAuthBusy(false);
+
     }
+
   };
 
 

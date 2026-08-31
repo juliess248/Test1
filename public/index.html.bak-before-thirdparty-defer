@@ -26,26 +26,13 @@
   crossorigin="anonymous"></script>
 -->
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Karla:wght@400;500;600;700&display=swap"
+      rel="stylesheet">
 
 <style>
-@font-face {
-  font-family: 'Bricolage Grotesque';
-  font-style: normal;
-  font-weight: 400 800;
-  font-display: swap;
-  src: url('/fonts/bricolage-grotesque-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Karla';
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  src: url('/fonts/karla-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
 
 /* =========================================================
    PALETA — KÒRSOU / HANDELSKADE
@@ -1669,29 +1656,6 @@ header{
   cursor:pointer;
 }
 
-.settings-options{
-  display:grid;
-  gap:16px;
-}
-
-.settings-option{
-  display:grid;
-  gap:6px;
-}
-
-.settings-option select{
-  width:100%;
-  padding:10px 12px;
-
-  border:1px solid var(--line);
-  border-radius:10px;
-
-  background:rgba(var(--overlay),.05);
-  color:var(--ink);
-
-  font:inherit;
-}
-
 .amiga-example{
   font-size:13px;
   line-height:1.5;
@@ -1763,31 +1727,19 @@ header{
 .report-word-btn,
 .thumbs-up-btn{
   appearance:none;
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
   font-family:'Karla',sans-serif;
   font-size:12.5px;
   font-weight:700;
   padding:9px 14px;
   min-height:40px;
   border-radius:10px;
-  cursor:pointer;
-}
-
-.report-word-btn svg,
-.thumbs-up-btn svg{
-  width:16px;
-  height:16px;
-  flex-shrink:0;
-}
-
-.thumbs-up-btn{
   background:rgba(249,227,0,.1);
   border:1px solid rgba(249,227,0,.35);
   color:var(--ink);
+  cursor:pointer;
 }
 
+.report-word-btn:hover,
 .thumbs-up-btn:hover{
   background:rgba(249,227,0,.2);
 }
@@ -1795,18 +1747,6 @@ header{
 .thumbs-up-btn:disabled{
   opacity:.75;
   cursor:default;
-}
-
-.report-word-btn{
-  background:transparent;
-  border:1px solid rgba(var(--overlay),.15);
-  color:var(--ink);
-  opacity:.75;
-}
-
-.report-word-btn:hover{
-  background:rgba(var(--overlay),.06);
-  opacity:1;
 }
 
 .glossary-source{
@@ -2963,7 +2903,7 @@ button:focus-visible{
 }
 
 .name-input::placeholder{
-  color:rgba(var(--overlay),.55);
+  color:var(--dim2);
 }
 
 .name-input:focus{
@@ -3380,53 +3320,25 @@ button:focus-visible{
 .auth-link{
   background:transparent;
 
-  border:1px solid var(--line);
+  border:0;
 
-  border-radius:12px;
-
-  color:var(--ink);
+  color:var(--dim);
 
   cursor:pointer;
 
-  display:block;
-
   font-family:'Karla',sans-serif;
-
-  font-size:13px;
-
-  font-weight:700;
-
-  padding:11px 18px;
-
-  text-align:center;
-
-  text-decoration:none;
-
-  width:100%;
-}
-
-.auth-link:hover{
-  border-color:rgba(var(--overlay),.3);
-
-  color:var(--ink);
-}
-
-.auth-hint{
-  color:var(--dim);
 
   font-size:12px;
 
-  line-height:1.4;
+  font-weight:600;
 
-  margin-top:-6px;
+  padding:0;
+
+  text-decoration:underline;
 }
 
-.auth-input-optional{
-  opacity:.72;
-}
-
-.auth-input-optional:focus{
-  opacity:1;
+.auth-link:hover{
+  color:var(--ink);
 }
 
 .auth-msg{
@@ -3443,15 +3355,8 @@ button:focus-visible{
 
 .auth-msg.ok{
   background:rgba(249,227,0,.12);
+
   color:var(--flag-ink);
-}
-.auth-msg.celebrate{
-  animation:authCelebratePop .5s ease;
-}
-@keyframes authCelebratePop{
-  0%{ transform:scale(.92); opacity:0; }
-  60%{ transform:scale(1.03); opacity:1; }
-  100%{ transform:scale(1); opacity:1; }
 }
 
 .auth-msg.err{
@@ -8596,10 +8501,11 @@ tbody tr + tr td{
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
 
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5675218429622889"
+     crossorigin="anonymous"></script>
 
-<!-- Meta Pixel Code (deferred until after page load) -->
+<!-- Meta Pixel Code -->
 <script>
-window.addEventListener('load', function(){
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -8610,7 +8516,6 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', '4385853084997712');
 fbq('track', 'PageView');
-});
 </script>
 <noscript><img height="1" width="1" style="display:none"
 src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
@@ -8638,7 +8543,7 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
     Palabra di <span>Kòrsou</span>
   </div>
 
-  <div class="landing-sub" id="landingSub">
+  <div class="landing-sub">
     Kon bon bo Papiamentu ta?
   </div>
 
@@ -8651,9 +8556,17 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
       Hunga
     </button>
 
-    <div class="landing-daily" id="landingDaily">
+    <div class="landing-daily">
       Un wega nobo tur dia
     </div>
+
+    <button
+      class="landing-about-link"
+      id="aboutBtn"
+      type="button">
+      Tokante e wega
+      <span aria-hidden="true">→</span>
+    </button>
 
   </div>
 
@@ -8681,17 +8594,6 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
         type="button">
         Tokante nos
       </button>
-
-      <span class="landing-legal-dot">·</span>
-
-      <select
-        class="landing-legal-link"
-        id="langSelect"
-        aria-label="Language"
-        style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background:transparent;background-image:none;">
-        <option value="pap">Papiamentu</option>
-        <option value="en">English</option>
-      </select>
 
     </div>
 
@@ -8961,13 +8863,6 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
 
     </div>
 
-    <button
-      class="dictionary-help-btn secondary"
-      id="helpHintBtn"
-      type="button">
-      Pidi un tip
-    </button>
-
     <div class="dictionary-help-card">
 
       <div class="dictionary-help-eyebrow">
@@ -9031,65 +8926,6 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
 </div>
 
 
-<!-- SETTINGS -->
-
-<div
-  class="amiga-overlay is-hidden"
-  id="settingsOverlay"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="settingsTitle">
-
-  <div
-    class="amiga-backdrop"
-    id="settingsBackdrop">
-  </div>
-
-  <div class="amiga-sheet">
-
-    <div class="amiga-head">
-
-      <div
-        class="amiga-title"
-        id="settingsTitle">
-        Setingan
-      </div>
-
-      <button
-        class="amiga-close"
-        id="settingsClose"
-        type="button"
-        aria-label="Sera">
-        ✕
-      </button>
-
-    </div>
-
-    <div class="settings-options">
-
-      <label class="settings-option">
-        <span id="settingsLanguageLabel">Idioma</span>
-        <select id="settingsLangSelect">
-          <option value="pap">Papiamentu</option>
-          <option value="en">English</option>
-        </select>
-      </label>
-
-      <label class="settings-option">
-        <span id="settingsSoundLabel">Zonido</span>
-        <select id="settingsSoundSelect">
-          <option value="on">Prendé</option>
-          <option value="off">Pagá</option>
-        </select>
-      </label>
-
-    </div>
-
-  </div>
-
-</div>
-
-
 <div class="app is-hidden" id="appRoot">
 
 
@@ -9119,12 +8955,26 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
 
     <button
       class="header-btn"
-      id="settingsBtn"
-      type="button"
-      aria-label="Setingan">
+      id="amigaBtn"
+      aria-label="Pidi un tip">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
-        <circle cx="12" cy="12" r="3"></circle>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-2.83 2.83-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21h-4v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06-2.83-2.83.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3v-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06 2.83-2.83.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3h4v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06 2.83 2.83-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21v4h-.09A1.65 1.65 0 0 0 19.4 15z"></path>
+        <path d="M9 18h6"></path>
+        <path d="M10 21h4"></path>
+        <path d="M12 3a6 6 0 0 0-4 10.5c.6.55 1 1.4 1 2.25v.25h6v-.25c0-.85.4-1.7 1-2.25A6 6 0 0 0 12 3z"></path>
+      </svg>
+    </button>
+
+  
+
+    <button
+      class="header-btn"
+      id="sound-toggle"
+      type="button"
+      aria-label="Zonido">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
+        <polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9"></polygon>
+        <path d="M16.5 8.5a5 5 0 0 1 0 7"></path>
+        <path d="M19 6a8.5 8.5 0 0 1 0 12"></path>
       </svg>
     </button>
 
@@ -10095,7 +9945,7 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
           <button
             class="name-edit"
             id="nameEdit">
-            Kambia nòmber
+            Kambia
           </button>
 
           <button
@@ -10137,50 +9987,25 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
       class="auth-fields"
       id="authForm">
 
-            <input
+      <input
         class="name-input"
         id="authUsername"
         type="text"
         autocomplete="username"
         spellcheck="false"
         placeholder="Bo nòmber di uzuario">
-      <div
-        class="auth-email-hint"
-        id="authEmailHint"
-        style="display:none;padding:10px 12px;background:var(--line);border-radius:8px;font-size:12px;color:var(--dim);line-height:1.4;">
-        Esaki parse un email — bo ke usa "<span id="authEmailHintValue"></span>" komo bo email di rekuperashon i skohe un otro nòmber di uzuario?
-        <button
-          type="button"
-          id="authUseAsEmailBtn"
-          style="display:block;margin-top:6px;background:none;border:none;color:var(--flag);font-weight:700;font-size:12px;cursor:pointer;padding:0;text-decoration:underline;">
-          Sí, usa dje
-        </button>
-      </div>
-      <input
-        class="name-input auth-input-optional"
-        id="authEmail"
-        type="email"
-        autocomplete="email"
-        spellcheck="false"
-        placeholder="Email (opshonal, pa rekuperá bo kuenta)"
-        style="display:none;">
+
       <input
         class="name-input"
         id="authPassword"
         type="password"
         autocomplete="new-password"
         placeholder="Kontraseña">
-      <div
-        class="auth-hint"
-        id="authPasswordHint">
-        Mínimo 6 karakter.
-      </div>
 
       <button
         class="auth-submit"
         id="authSubmit"
-        type="submit"
-        disabled>
+        type="submit">
         Krea kuenta
       </button>
 
@@ -35672,15 +35497,6 @@ const SOUND = (function(){
     });
   }
 
-function signupSuccess(){
-    playWhenReady(c=>{
-      const t=c.currentTime+0.002;
-      tone(c,523.25,t,0.10,'sine',0.035);
-      tone(c,659.25,t+0.06,0.10,'sine',0.035);
-      tone(c,783.99,t+0.12,0.16,'sine',0.04);
-    });
-  }
-
   function invalid(){
     playWhenReady(c=>{
       const t=c.currentTime+0.002;
@@ -35904,11 +35720,15 @@ function signupSuccess(){
       deleteSound,
 
     hunga,
+
     word,
+
     pangram,
+
     invalid,
+
     complete,
-    signupSuccess,
+
     unlock,
 
     toggle,
@@ -36340,8 +36160,8 @@ function buildReportButton(word,info){
 
   btn.type = 'button';
 
-  btn.innerHTML =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg><span>Reportá un eror</span>';
+  btn.textContent =
+    '✏️ Reportá un eror';
 
   btn.onclick =
     () =>
@@ -36372,8 +36192,8 @@ function buildThumbsUpButton(word,info){
 
   btn.type = 'button';
 
-  btn.innerHTML =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path></svg><span>Ta korekto</span>';
+  btn.textContent =
+    '👍 Ta korekto';
 
   btn.onclick =
     async () => {
@@ -36422,8 +36242,8 @@ function buildThumbsUpButton(word,info){
 
         );
 
-        btn.innerHTML =
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span>Danki!</span>';
+        btn.textContent =
+          '👍 Danki!';
 
       }catch{
 
@@ -37850,13 +37670,7 @@ async function fetchWordInfo(word,display,overrideOnly){
         encodeURIComponent(display || glossaryWord) +
       '&tags=' +
         encodeURIComponent(WORD_TAGS[word] || '') +
-      '&date=' +
-        encodeURIComponent(GAME_DATE) +
         (overrideOnly ? '&override=1' : '')
-
-      ,{
-        signal:AbortSignal.timeout(12000)
-      }
 
     );
 
@@ -38062,14 +37876,12 @@ function renderGlossaryInfo(
     $('glossaryActions');
 
 
-  if(info && info.english){
+  if(info && info.definition){
 
     defEl.textContent =
-      info.definition ||
-      'No tin definishon disponibel.';
+      info.definition;
 
     defEl.classList.remove(
-      'is-hidden',
       'is-missing'
     );
 
@@ -38130,7 +37942,7 @@ function renderGlossaryInfo(
 
       warning.textContent =
         info.translationSource === 'google'
-          ? 'Tradukshon: Google'
+          ? 'Tradukshon: Google → definishon asistí pa Anthropic'
           : 'Definishon asistí pa AI — por tin fout';
 
       actionsEl.appendChild(
@@ -38149,8 +37961,11 @@ function renderGlossaryInfo(
 
   }else{
 
+    defEl.textContent =
+      'Ainda nos no tin un definishon pa e palabra aki.';
+
     defEl.classList.add(
-      'is-hidden'
+      'is-missing'
     );
 
     exampleEl.classList.add(
@@ -39013,7 +38828,9 @@ function submit(){
       RESULT.NOT_A_WORD
     ){
 
-      hideMissingWordCta();
+      showMissingWordCta(
+        result.word
+      );
 
     }
 
@@ -40260,84 +40077,59 @@ function setAuthBusy(busy){
 
   authBusy = busy;
 
-  if(busy){
-    $('authSubmit').disabled = true;
-  }else{
-    updateAuthSubmitState();
-  }
-
-}
-
-
-/*
-  Keeps the submit button visibly inactive until the form can
-  actually succeed, instead of looking clickable while it will
-  just bounce back with a validation error.
-*/
-
-function updateAuthSubmitState(){
-
-  const username =
-    $('authUsername').value.trim();
-
-  const password =
-    $('authPassword').value;
-
-  const passwordOk =
-    authMode === 'signup'
-      ? password.length >= 6
-      : password.length > 0;
-
-  $('authSubmit').disabled =
-    authBusy ||
-    !username ||
-    !passwordOk;
+  $('authSubmit').disabled = busy;
 
 }
 
 
 function renderAuth(){
+
   const card =
     $('authCard');
+
+
   if(account){
+
     card.style.display = 'none';
+
     return;
+
   }
+
+
   card.style.display = '';
+
+
   const signup =
     authMode === 'signup';
+
+
   $('authPassword').setAttribute(
+
     'autocomplete',
+
     signup
       ? 'new-password'
       : 'current-password'
+
   );
-  $('authEmail').style.display =
-    signup
-      ? ''
-      : 'none';
-  $('authEmailHint').style.display =
-    'none';
-  if(!signup){
-    $('authEmail').value = '';
-  }
+
+
   $('authTitle').textContent =
     signup
       ? 'Krea bo kuenta'
       : 'Drenta bo kuenta';
+
   $('authSubmit').textContent =
     signup
       ? 'Krea kuenta'
       : 'Drenta';
+
   $('authToggle').textContent =
     signup
       ? 'Bo tin kuenta kaba? Drenta'
       : 'No tin kuenta ainda? Krea un';
-  $('authPasswordHint').style.display =
-    signup
-      ? ''
-      : 'none';
-  updateAuthSubmitState();
+
 }
 
 
@@ -40348,85 +40140,54 @@ function renderAuth(){
   what's remembered locally is the username itself.
 */
 
-async function submitAuth(username,password,email){
+async function submitAuth(username,password){
+
   const endpoint =
     authMode === 'signup'
       ? 'signup'
       : 'signin';
-  const payload = {
-    username,
-    password
-  };
-  if(endpoint === 'signup' && email){
-    payload.email = email;
-  }
+
+
   const response =
     await fetch(
+
       AUTH_ENDPOINT + endpoint,
+
       {
+
         method:'POST',
+
         headers:{
           'content-type':
             'application/json'
         },
-        body:JSON.stringify(payload)
+
+        body:JSON.stringify({
+          username,
+          password
+        })
+
       }
+
     );
+
+
   const data =
     await response.json();
+
+
   if(!response.ok || data.error){
+
     throw new Error(
       data.error ||
       'Algu a bai robes. Purba atrobe.'
     );
+
   }
+
+
   return data;
-}
-const EMAIL_PATTERN_AUTH =
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-if($('authUsername')){
-  $('authUsername').addEventListener(
-    'input',
-    updateAuthSubmitState
-  );
-}
-if($('authPassword')){
-  $('authPassword').addEventListener(
-    'input',
-    updateAuthSubmitState
-  );
-}
-if($('authUsername')){
-  $('authUsername').addEventListener(
-    'blur',
-    () => {
-      if(authMode !== 'signup') return;
-      const value =
-        $('authUsername').value.trim();
-      if(EMAIL_PATTERN_AUTH.test(value)){
-        $('authEmailHintValue').textContent =
-          value;
-        $('authEmailHint').style.display =
-          'block';
-      }else{
-        $('authEmailHint').style.display =
-          'none';
-      }
-    }
-  );
-}
-if($('authUseAsEmailBtn')){
-  $('authUseAsEmailBtn').addEventListener(
-    'click',
-    () => {
-      $('authEmail').value =
-        $('authUsername').value.trim();
-      $('authUsername').value = '';
-      $('authUsername').focus();
-      $('authEmailHint').style.display =
-        'none';
-    }
-  );
+
 }
 
 
@@ -41021,77 +40782,82 @@ $('authForm').onsubmit =
       return;
 
 
-        const username =
+    const username =
       cleanName(
         $('authUsername').value
       );
+
     const password =
       $('authPassword').value;
-    const email =
-      $('authEmail') ?
-        $('authEmail').value.trim() :
-        '';
+
+
     if(!username){
+
       $('authUsername').focus();
+
       return;
+
     }
+
+
     if(!password){
+
       $('authPassword').focus();
+
       return;
+
     }
+
+
     setAuthBusy(true);
+
     showAuthMessage('');
+
+
     try{
+
       const data =
         await submitAuth(
           username,
-          password,
-          email
+          password
         );
 
-      const wasSignup =
-        authMode === 'signup';
 
       account = {
         id:data.id,
         username:data.username
       };
+
       saveAccountLocal();
+
+
       $('authPassword').value = '';
+
       editingName = false;
 
-      if(wasSignup){
-        if(window.SOUND && SOUND.signupSuccess){
-          SOUND.signupSuccess();
-        }
-        const msgBox = $('authMsg');
-        showAuthMessage('Kuenta kreá! 🎉','ok');
-        if(msgBox){
-          msgBox.classList.add('celebrate');
-        }
-        setTimeout(()=>{
-          renderName();
-          renderAuth();
-          syncScore();
-          loadProgress();
-          loadBoard();
-          setAuthBusy(false);
-        }, 1100);
-      }else{
-        renderName();
-        renderAuth();
-        syncScore();
-        loadProgress();
-        loadBoard();
-        setAuthBusy(false);
-      }
+      renderName();
+
+      renderAuth();
+
+      syncScore();
+
+      loadProgress();
+
+      loadBoard();
+
     }catch(error){
+
       showAuthMessage(
         error.message,
         'err'
       );
+
+    }finally{
+
       setAuthBusy(false);
+
     }
+
   };
 
 
@@ -41399,33 +41165,6 @@ $('infoClose').onclick =
 $('infoBackdrop').onclick =
   closeInfoOverlay;
 
-$('helpHintBtn').onclick =
-  () => {
-    closeInfoOverlay();
-    openAmiga();
-  };
-
-function openSettings(){
-  $('settingsLangSelect').value = getLang();
-  $('settingsSoundSelect').value =
-    SOUND.status().enabled ? 'on' : 'off';
-  $('settingsOverlay').classList.remove('is-hidden');
-  requestAnimationFrame(() => $('settingsClose').focus());
-}
-
-function closeSettings(){
-  $('settingsOverlay').classList.add('is-hidden');
-}
-
-$('settingsBtn').onclick =
-  openSettings;
-
-$('settingsClose').onclick =
-  closeSettings;
-
-$('settingsBackdrop').onclick =
-  closeSettings;
-
 
 window.addEventListener(
   'popstate',
@@ -41507,168 +41246,6 @@ function formatLongDate(dateString){
 
 $('landingDate').textContent =
   formatLongDate(GAME_DATE);
-
-/* =========================================================
-   28c. LANGUAGE (UI CHROME TRANSLATION)
-========================================================= */
-
-const LANG_KEY = 'palabraDiKorsouLang';
-
-const TRANSLATIONS = {
-  pap: {
-    landingSub: 'Kon bon bo Papiamentu ta?',
-    playBtn: 'Hunga',
-    landingDaily: 'Un wega nobo tur dia',
-    aboutLink: 'Tokante e wega ',
-    privacyLink: 'Privasidat',
-    aboutLinkFooter: 'Tokante nos',
-    navGame: ' Wega ',
-    navScore: ' Puntu ',
-    navRanking: ' Klasifikashon ',
-    btnDelete: 'Bora',
-    btnEnter: 'Manda',
-    shuffleLabel: 'Bolbe ordena e leternan',
-    infoLabel: 'Informashon',
-    hintLabel: 'Pidi un tip',
-    settingsLabel: 'Setingan',
-    languageLabel: 'Idioma',
-    soundLabel: 'Zonido',
-    soundOnLabel: 'Prendé',
-    soundOffLabel: 'Pagá',
-    feedbackLabel: 'Duna feedback',
-    todayLabel: 'PALABRA DI AWE',
-    scoreboardTitle: 'Scorebord',
-    rankingTitle: 'Klasifikashon'
-  },
-  en: {
-    landingSub: 'How good is your Papiamentu?',
-    playBtn: 'Play',
-    landingDaily: 'A new puzzle every day',
-    aboutLink: 'About the game ',
-    privacyLink: 'Privacy',
-    aboutLinkFooter: 'About us',
-    navGame: ' Play ',
-    navScore: ' Score ',
-    navRanking: ' Ranking ',
-    btnDelete: 'Delete',
-    btnEnter: 'Enter',
-    shuffleLabel: 'Shuffle the letters',
-    infoLabel: 'Info',
-    hintLabel: 'Get a hint',
-    settingsLabel: 'Settings',
-    languageLabel: 'Language',
-    soundLabel: 'Sound',
-    soundOnLabel: 'On',
-    soundOffLabel: 'Off',
-    feedbackLabel: 'Give feedback',
-    todayLabel: "TODAY'S WORD",
-    scoreboardTitle: 'Scoreboard',
-    rankingTitle: 'Ranking'
-  }
-};
-
-function detectBrowserLang(){
-  try{
-    const raw =
-      (navigator.language ||
-       navigator.userLanguage ||
-       '').toLowerCase();
-
-    if(raw.startsWith('en')) return 'en';
-  }catch{}
-
-  return 'en';
-}
-
-function getLang(){
-  try{
-    const saved =
-      localStorage.getItem(LANG_KEY);
-
-    if(saved === 'pap' || saved === 'en') return saved;
-  }catch{}
-
-  return detectBrowserLang();
-}
-
-function applyLanguage(lang){
-
-  const selectedLang =
-    TRANSLATIONS[lang] ? lang : detectBrowserLang();
-  const dict = TRANSLATIONS[selectedLang];
-
-  const select = $('langSelect');
-  if(select) select.value = selectedLang;
-
-  const settingsSelect = $('settingsLangSelect');
-  if(settingsSelect) settingsSelect.value = selectedLang;
-
-  $('landingSub').textContent = dict.landingSub;
-  $('playBtn').textContent = dict.playBtn;
-
-  $('privacyLinkBtn').textContent = dict.privacyLink;
-  $('aboutLinkBtn').textContent = dict.aboutLinkFooter;
-
-  const gameNav = document.querySelector('[data-page="gamePage"]');
-  const scoreNav = document.querySelector('[data-page="scorePage"]');
-  const rankNav = document.querySelector('[data-page="rankingPage"]');
-
-  if(gameNav && gameNav.lastChild) gameNav.lastChild.textContent = dict.navGame;
-  if(scoreNav && scoreNav.lastChild) scoreNav.lastChild.textContent = dict.navScore;
-  if(rankNav && rankNav.lastChild) rankNav.lastChild.textContent = dict.navRanking;
-
-  $('del').textContent = dict.btnDelete;
-  $('enter').textContent = dict.btnEnter;
-  $('shuffle').setAttribute('aria-label', dict.shuffleLabel);
-
-  $('infoBtn').setAttribute('aria-label', dict.infoLabel);
-  $('helpHintBtn').textContent = dict.hintLabel;
-  $('settingsBtn').setAttribute('aria-label', dict.settingsLabel);
-  $('settingsTitle').textContent = dict.settingsLabel;
-  $('settingsLanguageLabel').textContent = dict.languageLabel;
-  $('settingsSoundLabel').textContent = dict.soundLabel;
-  $('settingsSoundSelect').options[0].textContent = dict.soundOnLabel;
-  $('settingsSoundSelect').options[1].textContent = dict.soundOffLabel;
-  $('feedbackHeaderBtn').setAttribute('aria-label', dict.feedbackLabel);
-
-  const scoreTitle = document.querySelector('#scorePage .panel-title');
-  const rankTitle = document.querySelector('#rankingPage .panel-title');
-
-  if(scoreTitle) scoreTitle.textContent = dict.scoreboardTitle;
-  if(rankTitle) rankTitle.textContent = dict.rankingTitle;
-
-  $('todayDate').textContent =
-    dict.todayLabel + ' · ' + formatDate(GAME_DATE);
-
-  try{
-    localStorage.setItem(LANG_KEY, selectedLang);
-  }catch{}
-
-}
-
-const langSelectEl = $('langSelect');
-if(langSelectEl){
-  langSelectEl.addEventListener('change', event => {
-    applyLanguage(event.target.value);
-  });
-}
-
-const settingsLangSelectEl = $('settingsLangSelect');
-if(settingsLangSelectEl){
-  settingsLangSelectEl.addEventListener('change', event => {
-    applyLanguage(event.target.value);
-  });
-}
-
-const settingsSoundSelectEl = $('settingsSoundSelect');
-if(settingsSoundSelectEl){
-  settingsSoundSelectEl.addEventListener('change', event => {
-    SOUND.setEnabled(event.target.value === 'on');
-  });
-}
-
-applyLanguage(getLang());
-
 
 
 function enterApp(pageId){
@@ -41811,6 +41388,10 @@ $('playBtn').onclick =
   };
 
 
+$('aboutBtn').onclick =
+  openInfoOverlay;
+
+
 /* =========================================================
    29. CONTROLS
 ========================================================= */
@@ -41832,6 +41413,9 @@ $('shuffle').onclick =
 
   };
 
+
+$('amigaBtn').onclick =
+  openAmiga;
 
 $('amigaClose').onclick =
   closeAmiga;

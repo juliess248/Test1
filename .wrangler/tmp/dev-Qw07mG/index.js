@@ -15,6 +15,15 @@ var src_default = class extends WorkerEntrypoint {
     if (url.pathname === "/api/auth/signin" && request.method === "POST") {
       return this.handleSignin(request);
     }
+    if (url.pathname === "/api/auth/me" && request.method === "GET") {
+      return this.handleAuthMe(request);
+    }
+    if (url.pathname === "/api/auth/signout" && request.method === "POST") {
+      return this.handleSignout(request);
+    }
+    if (url.pathname === "/api/account/username" && request.method === "PATCH") {
+      return this.handleUsernameChange(request);
+    }
     if (url.pathname === "/api/leaderboard" && request.method === "GET") {
       return this.handleLeaderboardGet(request);
     }
@@ -121,10 +130,34 @@ var src_default = class extends WorkerEntrypoint {
   async handleLeaderboardPost(request) {
     try {
       await this.ensureLeaderboardTable();
-      const { playerId, name, date, score, words, pangrams, maxScore } = await request.json();
-      if (!playerId || !name || !date) {
-        return json({ error: "playerId, name, and date required" }, 400);
+      const user = await this.getAuthenticatedUser(
+        request
+      );
+      if (!user) {
+        return json(
+          {
+            error: "Sign in required to save score"
+          },
+          401
+        );
       }
+      const {
+        date,
+        score,
+        words,
+        pangrams,
+        maxScore
+      } = await request.json();
+      if (!date) {
+        return json(
+          {
+            error: "date required"
+          },
+          400
+        );
+      }
+      const playerId = "acct:" + user.id;
+      const name = user.username;
       await this.env.GAME_HISTORY.prepare(
         `INSERT INTO leaderboard_scores
              (player_id, name, date, score, words, pangrams, max_score)
@@ -146,37 +179,60 @@ var src_default = class extends WorkerEntrypoint {
         maxScore || 0
       ).run();
       const today = await this.env.GAME_HISTORY.prepare(
-        `SELECT player_id AS playerId, name, score, words, pangrams
-           FROM leaderboard_scores
-           WHERE date = ?
-           ORDER BY score DESC
-           LIMIT 100`
+        `SELECT
+               player_id AS playerId,
+               name,
+               score,
+               words,
+               pangrams
+             FROM leaderboard_scores
+             WHERE date = ?
+             ORDER BY score DESC
+             LIMIT 100`
       ).bind(date).all();
       const allTime = await this.env.GAME_HISTORY.prepare(
         `SELECT
-             l1.player_id AS playerId,
-             (SELECT name FROM leaderboard_scores l2
-                WHERE l2.player_id = l1.player_id
-                ORDER BY date DESC LIMIT 1) AS name,
-             SUM(l1.score) AS score,
-             COUNT(DISTINCT l1.date) AS days
-           FROM leaderboard_scores l1
-           GROUP BY l1.player_id
-           ORDER BY score DESC
-           LIMIT 100`
+               l1.player_id AS playerId,
+               (
+                 SELECT name
+                 FROM leaderboard_scores l2
+                 WHERE l2.player_id =
+                       l1.player_id
+                 ORDER BY date DESC
+                 LIMIT 1
+               ) AS name,
+               SUM(l1.score) AS score,
+               COUNT(DISTINCT l1.date)
+                 AS days
+             FROM leaderboard_scores l1
+             GROUP BY l1.player_id
+             ORDER BY score DESC
+             LIMIT 100`
       ).all();
-      let statsResult = null;
-      if (playerId.startsWith("acct:")) {
-        statsResult = await this.recomputeStatsAndBadges(playerId, date);
-      }
-      return json({
-        today: today.results || [],
-        allTime: allTime.results || [],
-        stats: statsResult ? statsResult.stats : null,
-        newBadges: statsResult ? statsResult.newBadges : []
-      }, 200);
+      const statsResult = await this.recomputeStatsAndBadges(
+        playerId,
+        date
+      );
+      return json(
+        {
+          today: today.results || [],
+          allTime: allTime.results || [],
+          stats: statsResult.stats,
+          newBadges: statsResult.newBadges
+        },
+        200
+      );
     } catch (e) {
-      return json({ error: "Server error" }, 500);
+      console.error(
+        "Leaderboard POST error:",
+        e
+      );
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
     }
   }
   async ensureProgressTable() {
@@ -190,88 +246,139 @@ var src_default = class extends WorkerEntrypoint {
         )`
     ).run();
   }
-  /*
-    async handleProgressGet(request) {
-      try {
-        await this.ensureProgressTable();
-        const url = new URL(request.url);
-        const playerId = url.searchParams.get("playerId");
-        const date = url.searchParams.get("date");
-  
-        if (!playerId || !date) {
-          return json({ error: "playerId and date query params required" }, 400);
-        }
-        if (!playerId.startsWith("acct:")) {
-          return json({ found: [] }, 200);
-        }
-  
-        const row = await this.env.GAME_HISTORY
-          .prepare(
-            `SELECT found_words FROM game_progress
-             WHERE player_id = ? AND date = ?`
-          )
-          .bind(playerId, date)
-          .first();
-  
-        let found = [];
-        if (row && row.found_words) {
-          try {
-            const parsed = JSON.parse(row.found_words);
-            if (Array.isArray(parsed)) found = parsed;
-          } catch {
-            found = [];
+  async handleProgressGet(request) {
+    try {
+      await this.ensureProgressTable();
+      const user = await this.getAuthenticatedUser(
+        request
+      );
+      if (!user) {
+        return json(
+          {
+            error: "Sign in required"
+          },
+          401
+        );
+      }
+      const url = new URL(request.url);
+      const date = url.searchParams.get("date");
+      if (!date) {
+        return json(
+          {
+            error: "date query param required"
+          },
+          400
+        );
+      }
+      const playerId = "acct:" + user.id;
+      const row = await this.env.GAME_HISTORY.prepare(
+        `SELECT found_words
+             FROM game_progress
+             WHERE player_id = ?
+               AND date = ?`
+      ).bind(
+        playerId,
+        date
+      ).first();
+      let found = [];
+      if (row && row.found_words) {
+        try {
+          const parsed = JSON.parse(
+            row.found_words
+          );
+          if (Array.isArray(parsed)) {
+            found = parsed;
           }
+        } catch {
+          found = [];
         }
-  
-        return json({ found }, 200);
-      } catch (e) {
-        if (e.message && e.message.includes("no such table")) {
-          await this.ensureProgressTable();
-          return this.handleProgressGet(request);
-        }
-        return json({ error: "Server error" }, 500);
       }
+      return json(
+        {
+          found
+        },
+        200
+      );
+    } catch (e) {
+      console.error(
+        "Progress GET error:",
+        e
+      );
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
     }
-  
-    async handleProgressPost(request) {
-      try {
-        await this.ensureProgressTable();
-        const { playerId, date, found } = await request.json();
-  
-        if (!playerId || !date || !Array.isArray(found)) {
-          return json({ error: "playerId, date, and found[] required" }, 400);
-        }
-        if (!playerId.startsWith("acct:")) {
-          return json({ ok: true, skipped: true }, 200);
-        }
-  
-        const cleaned = found
-          .filter((word) => typeof word === "string")
-          .slice(0, 500)
-          .map((word) => word.slice(0, 40));
-  
-        await this.env.GAME_HISTORY
-          .prepare(
-            `INSERT INTO game_progress (player_id, date, found_words)
-             VALUES (?, ?, ?)
-             ON CONFLICT(player_id, date) DO UPDATE SET
-               found_words = excluded.found_words,
-               updated_at = datetime('now')`
-          )
-          .bind(playerId, date, JSON.stringify(cleaned))
-          .run();
-  
-        return json({ ok: true }, 200);
-      } catch (e) {
-        if (e.message && e.message.includes("no such table")) {
-          await this.ensureProgressTable();
-          return this.handleProgressPost(request);
-        }
-        return json({ error: "Server error" }, 500);
+  }
+  async handleProgressPost(request) {
+    try {
+      await this.ensureProgressTable();
+      const user = await this.getAuthenticatedUser(
+        request
+      );
+      if (!user) {
+        return json(
+          {
+            error: "Sign in required"
+          },
+          401
+        );
       }
+      const {
+        date,
+        found
+      } = await request.json();
+      if (!date || !Array.isArray(found)) {
+        return json(
+          {
+            error: "date and found[] required"
+          },
+          400
+        );
+      }
+      const playerId = "acct:" + user.id;
+      const cleaned = found.filter(
+        (word) => typeof word === "string"
+      ).slice(0, 500).map(
+        (word) => word.slice(0, 40)
+      );
+      await this.env.GAME_HISTORY.prepare(
+        `INSERT INTO game_progress
+             (player_id, date, found_words)
+           VALUES (?, ?, ?)
+           ON CONFLICT(player_id, date)
+           DO UPDATE SET
+             found_words =
+               excluded.found_words,
+             updated_at =
+               datetime('now')`
+      ).bind(
+        playerId,
+        date,
+        JSON.stringify(cleaned)
+      ).run();
+      return json(
+        {
+          ok: true
+        },
+        200
+      );
+    } catch (e) {
+      console.error(
+        "Progress POST error:",
+        e
+      );
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
     }
-  
-    /* ---------------------------------------------------------
+  }
+  /* ---------------------------------------------------------
        STATS & BADGES
   
        player_stats is fully recomputed (never incrementally
@@ -528,32 +635,54 @@ var src_default = class extends WorkerEntrypoint {
   async handleStatsGet(request) {
     try {
       await this.ensureStatsTables();
-      const url = new URL(request.url);
-      const playerId = url.searchParams.get("playerId");
-      if (!playerId) {
-        return json({ error: "playerId query param required" }, 400);
+      const user = await this.getAuthenticatedUser(
+        request
+      );
+      if (!user) {
+        return json(
+          {
+            error: "Sign in required"
+          },
+          401
+        );
       }
-      if (!playerId.startsWith("acct:")) {
-        return json({ stats: null, badges: [] }, 200);
-      }
-      const stats = await this.env.GAME_HISTORY.prepare(`SELECT * FROM player_stats WHERE player_id = ?`).bind(playerId).first();
+      const playerId = "acct:" + user.id;
+      const stats = await this.env.GAME_HISTORY.prepare(
+        `SELECT *
+             FROM player_stats
+             WHERE player_id = ?`
+      ).bind(playerId).first();
       const badges = await this.env.GAME_HISTORY.prepare(
-        `SELECT b.id, b.category, b.name, b.description, pb.earned_at
-           FROM player_badges pb
-           JOIN badge_definitions b ON b.id = pb.badge_id
-           WHERE pb.player_id = ?
-           ORDER BY b.sort_order ASC`
+        `SELECT
+               b.id,
+               b.category,
+               b.name,
+               b.description,
+               pb.earned_at
+             FROM player_badges pb
+             JOIN badge_definitions b
+               ON b.id = pb.badge_id
+             WHERE pb.player_id = ?
+             ORDER BY b.sort_order ASC`
       ).bind(playerId).all();
-      return json({
-        stats: stats || null,
-        badges: badges.results || []
-      }, 200);
+      return json(
+        {
+          stats: stats || null,
+          badges: badges.results || []
+        },
+        200
+      );
     } catch (e) {
-      if (e.message && e.message.includes("no such table")) {
-        await this.ensureStatsTables();
-        return this.handleStatsGet(request);
-      }
-      return json({ error: "Server error" }, 500);
+      console.error(
+        "Stats error:",
+        e
+      );
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
     }
   }
   async ensureFeedbackTable() {
@@ -591,6 +720,13 @@ var src_default = class extends WorkerEntrypoint {
         text,
         date || null
       ).run();
+      await this.sendFeedbackEmail({
+        playerId: playerId || null,
+        name: name || null,
+        category: category || null,
+        message: text,
+        date: date || null
+      });
       return json({ ok: true }, 200);
     } catch (e) {
       if (e.message && e.message.includes("no such table")) {
@@ -864,10 +1000,10 @@ var src_default = class extends WorkerEntrypoint {
   
       Setup required (one-time, in the Cloudflare dashboard):
       1. Email > Email Routing on your domain — enable it and
-        verify juliettesjakshie@gmail.com as a destination.
+        verify juliettesjakshie248@gmail.com as a destination.
       2. In wrangler.jsonc, add:
            "send_email": [
-             { "name": "NOTIFY", "destination_address": "juliettesjakshie@gmail.com" }
+             { "name": "NOTIFY", "destination_address": "juliettesjakshie248@gmail.com" }
            ]
       3. The FROM address below must be a mailbox on a domain
          YOU control through Email Routing (not gmail.com) —
@@ -889,7 +1025,7 @@ var src_default = class extends WorkerEntrypoint {
       const { EmailMessage } = await import("cloudflare:email");
       const messageId = `<${crypto.randomUUID()}@palabradikorsou.com>`;
       const raw = html ? `From: Palabra di Korsou <notify@palabradikorsou.com>\r
-To: juliettesjakshie@gmail.com\r
+To: juliettesjakshie248@gmail.com\r
 Subject: ${subject.replace(/[^\x00-\x7F]/g, "-")}\r
 Message-ID: ${messageId}\r
 MIME-Version: 1.0\r
@@ -904,7 +1040,7 @@ Content-Type: text/html; charset=utf-8\r
 \r
 ${html}\r
 --palabra-boundary--` : `From: Palabra di Korsou <notify@palabradikorsou.com>\r
-To: juliettesjakshie@gmail.com\r
+To: juliettesjakshie248@gmail.com\r
 Subject: ${subject}\r
 Message-ID: ${messageId}\r
 Content-Type: text/plain; charset=utf-8\r
@@ -912,13 +1048,33 @@ Content-Type: text/plain; charset=utf-8\r
 ${text}`;
       const message = new EmailMessage(
         "notify@palabradikorsou.com",
-        "juliettesjakshie@gmail.com",
+        "juliettesjakshie248@gmail.com",
         raw
       );
       await this.env.NOTIFY.send(message);
     } catch (e) {
       console.error("Email send failed:", e);
     }
+  }
+  async sendFeedbackEmail(feedback) {
+    const receivedAt = (/* @__PURE__ */ new Date()).toISOString();
+    const category = feedback.category || "Not provided";
+    const name = feedback.name || "Anonymous";
+    const text = [
+      `From: ${name}`,
+      `Category: ${category}`,
+      `Message: ${feedback.message}`,
+      `Player ID: ${feedback.playerId || "Not provided"}`,
+      `In-game date: ${feedback.date || "Not provided"}`,
+      `Received at: ${receivedAt}`
+    ].join("\n");
+    const field = /* @__PURE__ */ __name((label, value) => `<tr><th style="padding:8px 12px;text-align:left;vertical-align:top;color:#52606d">${escapeHtmlServer(label)}</th><td style="padding:8px 12px;vertical-align:top">${escapeHtmlServer(value)}</td></tr>`, "field");
+    const html = `<!doctype html><html><body style="margin:0;background:#f4f1ea;font-family:Arial,sans-serif;color:#081f36"><main style="max-width:600px;margin:24px auto;padding:24px;background:#fff;border:1px solid #ddd6c9"><h1 style="font-size:22px;margin:0 0 18px">Palabra di K\xF2rsou feedback</h1><table style="width:100%;border-collapse:collapse">${field("From", name)}${field("Category", category)}${field("Message", feedback.message)}${field("Player ID", feedback.playerId || "Not provided")}${field("In-game date", feedback.date || "Not provided")}${field("Received at", receivedAt)}</table></main></body></html>`;
+    await this.sendNotificationEmail(
+      `[Palabra di K\xF2rsou] Feedback: ${category}`,
+      text,
+      html
+    );
   }
   async sendReportEmail(report, token, origin) {
     const approveUrl = `${origin}/moderate/approve?action=approve&token=${encodeURIComponent(token)}`;
@@ -1059,7 +1215,7 @@ ${text}`;
     try {
       await this.ensureGlossaryTable();
       const url = new URL(request.url);
-      const word = (url.searchParams.get("word") || "").trim().toLowerCase();
+      const word = (url.searchParams.get("word") || "").normalize("NFC").trim().toLowerCase();
       const display = url.searchParams.get("display") || word;
       const tags = (url.searchParams.get("tags") || "").slice(0, 40);
       if (!word || !/^[a-zàáèéìíòóùúñ]+$/.test(word)) {
@@ -1302,11 +1458,14 @@ ${text}`;
     }
   }
   async generateDefinition(word, display, tags, englishMeaning) {
+    const grounding = englishMeaning ? `Google Cloud Translation translated this Papiamentu word to English as: "${englishMeaning}".
+Treat this English translation as FIXED grounding. Do NOT replace it with another English meaning.
+` : `Google Cloud Translation did not return a usable English meaning.
+Use your knowledge of Papiamentu cautiously to determine the meaning. If you are not confident, leave the definition empty rather than inventing one.
+`;
     const prompt = `Papiamentu word: "${display}" (normalis\xE1: "${word}").
 
-Google Cloud Translation translated this Papiamentu word to English as: "${englishMeaning || "none; Google returned no usable result"}".
-Treat this English translation as FIXED grounding. Do NOT replace it with another English meaning.
-Grammatical code: ${tags || "none"}.
+` + grounding + `Grammatical code: ${tags || "none"}.
 The grammatical code and translation are separate pieces of information. Do not use the grammatical code to change the meaning supplied by Google.
 
 Duna SOLAMENTE un opheto JSON v\xE1lido, sin markdown ni teksto adishonal, ku exactamente e tres kamponan aki:
@@ -1459,12 +1618,53 @@ If unsure, leave all fields empty ("").`;
       sentence/D1. All the branching complexity is contained right here.
     */
   async resolveDefinition(word, display, tags) {
+    const displayWord = String(display || word).normalize("NFC").trim().toLowerCase();
+    const normalWord = String(word || displayWord).normalize("NFC").trim().toLowerCase();
+    const unaccentedDisplay = displayWord.normalize("NFD").replace(
+      /[\u0300-\u036f]/g,
+      ""
+    ).normalize("NFC");
+    const unaccentedWord = normalWord.normalize("NFD").replace(
+      /[\u0300-\u036f]/g,
+      ""
+    ).normalize("NFC");
     if (this.env.PA_DICTIONARY && this.env.ANTHROPIC_API_KEY) {
       try {
-        const rawDictEntry = await this.env.PA_DICTIONARY.get(word);
-        const dictEntry = rawDictEntry ? JSON.parse(rawDictEntry) : null;
+        const candidateKeys = [...new Set(
+          [
+            displayWord,
+            normalWord,
+            unaccentedDisplay,
+            unaccentedWord
+          ].filter(Boolean)
+        )];
+        console.log(
+          "Dictionary candidates:",
+          candidateKeys
+        );
+        let dictEntry = null;
+        let matchedDictionaryKey = null;
+        for (const candidateKey of candidateKeys) {
+          const rawDictEntry = await this.env.PA_DICTIONARY.get(candidateKey);
+          if (rawDictEntry) {
+            dictEntry = JSON.parse(
+              rawDictEntry
+            );
+            matchedDictionaryKey = candidateKey;
+            break;
+          }
+        }
         if (Array.isArray(dictEntry) && dictEntry.length) {
-          const result = await this.generateDefinitionFromDictionary(word, display, tags, dictEntry);
+          console.log(
+            "Dictionary match:",
+            matchedDictionaryKey
+          );
+          const result = await this.generateDefinitionFromDictionary(
+            normalWord,
+            displayWord,
+            tags,
+            dictEntry
+          );
           if (result?.definition) {
             return {
               ...result,
@@ -1480,13 +1680,23 @@ If unsure, leave all fields empty ("").`;
           }
         }
       } catch (e) {
-        console.error(`Dictionary lookup failed for "${word}", trying Google instead:`, e);
+        console.error(
+          `Dictionary lookup failed for "${displayWord}", trying Google instead:`,
+          e
+        );
       }
     }
     if (this.env.GOOGLE_TRANSLATE_API_KEY && this.env.ANTHROPIC_API_KEY) {
-      const googleMeaning = await this.googleTranslateWord(display || word);
+      const googleMeaning = await this.googleTranslateWord(
+        displayWord
+      );
       if (googleMeaning?.meaning) {
-        const result = await this.generateDefinition(word, display, tags, googleMeaning.meaning);
+        const result = await this.generateDefinition(
+          normalWord,
+          displayWord,
+          tags,
+          googleMeaning.meaning
+        );
         if (result?.definition) {
           return {
             ...result,
@@ -1501,9 +1711,309 @@ If unsure, leave all fields empty ("").`;
             translation_ambiguous: googleMeaning.needsReview ? 1 : 0
           };
         }
+      } else {
+        console.log(
+          `Google returned no usable translation for "${displayWord}".`
+        );
+      }
+    }
+    if (this.env.ANTHROPIC_API_KEY) {
+      try {
+        console.log(
+          `Trying Anthropic-only fallback for "${displayWord}".`
+        );
+        const result = await this.generateDefinition(
+          normalWord,
+          displayWord,
+          tags,
+          null
+        );
+        if (result?.definition) {
+          return {
+            ...result,
+            source: "anthropic-fallback",
+            definition_source: "anthropic",
+            translation_source: "anthropic",
+            source_language: "pap",
+            target_language: "en",
+            verification_status: "unverified",
+            needs_review: 1,
+            translation_ambiguous: 1
+          };
+        }
+      } catch (e) {
+        console.error(
+          `Anthropic fallback failed for "${displayWord}":`,
+          e
+        );
+      }
+    }
+    console.error(
+      `No definition source succeeded for "${displayWord}".`
+    );
+    return null;
+  }
+  async ensureAuthSessionsTable() {
+    await this.env.GAME_HISTORY.prepare(
+      `CREATE TABLE IF NOT EXISTS auth_sessions (
+          token_hash TEXT PRIMARY KEY,
+          user_id INTEGER NOT NULL,
+          created_at TEXT DEFAULT (datetime('now')),
+          expires_at TEXT NOT NULL
+        )`
+    ).run();
+    await this.env.GAME_HISTORY.prepare(
+      `DELETE FROM auth_sessions
+         WHERE expires_at <= datetime('now')`
+    ).run();
+  }
+  getCookie(request, name) {
+    const header = request.headers.get("Cookie") || "";
+    for (const item of header.split(";")) {
+      const parts = item.trim().split("=");
+      const key = parts.shift();
+      if (key === name) {
+        return decodeURIComponent(
+          parts.join("=")
+        );
       }
     }
     return null;
+  }
+  async hashSessionToken(token) {
+    const data = new TextEncoder().encode(token);
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      data
+    );
+    return Array.from(
+      new Uint8Array(digest)
+    ).map(
+      (b) => b.toString(16).padStart(2, "0")
+    ).join("");
+  }
+  async getAuthenticatedUser(request) {
+    await this.ensureUsersTable();
+    await this.ensureAuthSessionsTable();
+    const token = this.getCookie(
+      request,
+      "pdk_session"
+    );
+    if (!token) {
+      return null;
+    }
+    const tokenHash = await this.hashSessionToken(token);
+    return await this.env.GAME_HISTORY.prepare(
+      `SELECT
+           u.id,
+           u.username
+         FROM auth_sessions s
+         JOIN users u
+           ON u.id = s.user_id
+         WHERE s.token_hash = ?
+           AND s.expires_at > datetime('now')
+         LIMIT 1`
+    ).bind(tokenHash).first();
+  }
+  async createSessionResponse(user) {
+    await this.ensureAuthSessionsTable();
+    const token = this.randomHex(32);
+    const tokenHash = await this.hashSessionToken(token);
+    await this.env.GAME_HISTORY.prepare(
+      `INSERT INTO auth_sessions
+           (token_hash, user_id, expires_at)
+         VALUES (
+           ?,
+           ?,
+           datetime('now', '+30 days')
+         )`
+    ).bind(
+      tokenHash,
+      user.id
+    ).run();
+    return new Response(
+      JSON.stringify({
+        authenticated: true,
+        id: user.id,
+        username: user.username
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Set-Cookie": `pdk_session=${encodeURIComponent(token)}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`
+        }
+      }
+    );
+  }
+  async handleAuthMe(request) {
+    try {
+      const user = await this.getAuthenticatedUser(
+        request
+      );
+      if (!user) {
+        return json(
+          {
+            authenticated: false
+          },
+          401
+        );
+      }
+      return json(
+        {
+          authenticated: true,
+          id: user.id,
+          username: user.username
+        },
+        200
+      );
+    } catch (e) {
+      console.error(
+        "Auth me error:",
+        e
+      );
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
+    }
+  }
+  async handleSignout(request) {
+    try {
+      await this.ensureAuthSessionsTable();
+      const token = this.getCookie(
+        request,
+        "pdk_session"
+      );
+      if (token) {
+        const tokenHash = await this.hashSessionToken(
+          token
+        );
+        await this.env.GAME_HISTORY.prepare(
+          `DELETE FROM auth_sessions
+             WHERE token_hash = ?`
+        ).bind(tokenHash).run();
+      }
+      return new Response(
+        JSON.stringify({
+          ok: true
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Set-Cookie": "pdk_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
+          }
+        }
+      );
+    } catch (e) {
+      console.error(
+        "Signout error:",
+        e
+      );
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
+    }
+  }
+  async handleUsernameChange(request) {
+    try {
+      const user = await this.getAuthenticatedUser(
+        request
+      );
+      if (!user) {
+        return json(
+          {
+            error: "Not signed in"
+          },
+          401
+        );
+      }
+      await this.ensureUsersTable();
+      const body = await request.json();
+      const username = String(body.username || "").replace(/\s+/g, " ").trim().slice(0, 20);
+      if (!username) {
+        return json(
+          {
+            error: "Username required"
+          },
+          400
+        );
+      }
+      if (username.length < 3) {
+        return json(
+          {
+            error: "Username must be at least 3 characters"
+          },
+          400
+        );
+      }
+      if (username.toLowerCase() === String(user.username || "").toLowerCase()) {
+        return json(
+          {
+            id: user.id,
+            username: user.username
+          },
+          200
+        );
+      }
+      const existing = await this.env.GAME_HISTORY.prepare(
+        `SELECT id
+             FROM users
+             WHERE lower(trim(username))
+                   = lower(trim(?))
+               AND id != ?
+             LIMIT 1`
+      ).bind(username, user.id).first();
+      if (existing) {
+        return json(
+          {
+            error: "Username already taken"
+          },
+          409
+        );
+      }
+      try {
+        await this.env.GAME_HISTORY.prepare(
+          `UPDATE users
+             SET username = ?
+             WHERE id = ?`
+        ).bind(username, user.id).run();
+      } catch (e) {
+        if (String(e).toLowerCase().includes("unique")) {
+          return json(
+            {
+              error: "Username already taken"
+            },
+            409
+          );
+        }
+        throw e;
+      }
+      return json(
+        {
+          id: user.id,
+          username
+        },
+        200
+      );
+    } catch (e) {
+      console.error(
+        "Username change error:",
+        e
+      );
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
+    }
   }
   async ensureUsersTable() {
     await this.env.GAME_HISTORY.prepare(
@@ -1520,61 +2030,176 @@ If unsure, leave all fields empty ("").`;
     return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
   }
   async hashPassword(password, salt) {
-    const data = new TextEncoder().encode(salt + password);
-    const digest = await crypto.subtle.digest("SHA-256", data);
-    return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    const encoder = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(password),
+      "PBKDF2",
+      false,
+      ["deriveBits"]
+    );
+    const bits = await crypto.subtle.deriveBits(
+      {
+        name: "PBKDF2",
+        hash: "SHA-256",
+        salt: encoder.encode(salt),
+        iterations: 1e5
+      },
+      keyMaterial,
+      256
+    );
+    return Array.from(
+      new Uint8Array(bits)
+    ).map(
+      (b) => b.toString(16).padStart(2, "0")
+    ).join("");
   }
   async handleSignup(request) {
     try {
       await this.ensureUsersTable();
-      const { username, password } = await request.json();
+      const body = await request.json();
+      const username = String(body.username || "").replace(/\s+/g, " ").trim().slice(0, 20);
+      const password = String(body.password || "");
       if (!username || !password) {
-        return json({ error: "Username and password required" }, 400);
+        return json(
+          {
+            error: "Username and password required"
+          },
+          400
+        );
       }
-      if (password.length < 4) {
-        return json({ error: "Password must be at least 4 characters" }, 400);
+      if (password.length < 6) {
+        return json(
+          {
+            error: "Password must be at least 6 characters"
+          },
+          400
+        );
       }
-      const existing = await this.env.GAME_HISTORY.prepare("SELECT username FROM users WHERE username = ?").bind(username).first();
+      const existing = await this.env.GAME_HISTORY.prepare(
+        `SELECT id
+             FROM users
+             WHERE lower(trim(username))
+                   = lower(trim(?))
+             LIMIT 1`
+      ).bind(username).first();
       if (existing) {
-        return json({ error: "Username already taken" }, 409);
+        return json(
+          {
+            error: "Username already taken"
+          },
+          409
+        );
       }
       const salt = this.randomHex(16);
-      const hashed = await this.hashPassword(password, salt);
-      await this.env.GAME_HISTORY.prepare("INSERT INTO users (username, password, salt) VALUES (?, ?, ?)").bind(username, hashed, salt).run();
-      return json({ username }, 200);
+      const hashed = await this.hashPassword(
+        password,
+        salt
+      );
+      try {
+        await this.env.GAME_HISTORY.prepare(
+          `INSERT INTO users
+               (username, password, salt)
+             VALUES (?, ?, ?)`
+        ).bind(
+          username,
+          hashed,
+          salt
+        ).run();
+      } catch (e) {
+        if (String(e).toLowerCase().includes("unique")) {
+          return json(
+            {
+              error: "Username already taken"
+            },
+            409
+          );
+        }
+        throw e;
+      }
+      const user = await this.env.GAME_HISTORY.prepare(
+        `SELECT id, username
+             FROM users
+             WHERE lower(trim(username))
+                   = lower(trim(?))
+             LIMIT 1`
+      ).bind(username).first();
+      return this.createSessionResponse(
+        user
+      );
     } catch (e) {
-      return json({ error: "Server error" }, 500);
+      console.error(
+        "Signup error:",
+        e
+      );
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
     }
   }
   async handleSignin(request) {
     try {
       await this.ensureUsersTable();
-      const { username, password } = await request.json();
+      const body = await request.json();
+      const username = String(body.username || "").replace(/\s+/g, " ").trim();
+      const password = String(body.password || "");
       if (!username || !password) {
-        return json({ error: "Username and password required" }, 400);
+        return json(
+          {
+            error: "Username and password required"
+          },
+          400
+        );
       }
-      const row = await this.env.GAME_HISTORY.prepare("SELECT username, password, salt FROM users WHERE username = ?").bind(username).first();
+      const row = await this.env.GAME_HISTORY.prepare(
+        `SELECT
+               id,
+               username,
+               password,
+               salt
+             FROM users
+             WHERE lower(trim(username))
+                   = lower(trim(?))
+             LIMIT 1`
+      ).bind(username).first();
       if (!row) {
-        return json({ error: "Invalid username or password" }, 401);
+        return json(
+          {
+            error: "Invalid username or password"
+          },
+          401
+        );
       }
-      let valid = false;
-      if (row.salt) {
-        const hashed = await this.hashPassword(password, row.salt);
-        valid = hashed === row.password;
-      } else {
-        valid = password === row.password;
-        if (valid) {
-          const salt = this.randomHex(16);
-          const hashed = await this.hashPassword(password, salt);
-          await this.env.GAME_HISTORY.prepare("UPDATE users SET password = ?, salt = ? WHERE username = ?").bind(hashed, salt, username).run();
-        }
+      const hashed = await this.hashPassword(
+        password,
+        row.salt
+      );
+      if (hashed !== row.password) {
+        return json(
+          {
+            error: "Invalid username or password"
+          },
+          401
+        );
       }
-      if (!valid) {
-        return json({ error: "Invalid username or password" }, 401);
-      }
-      return json({ username: row.username }, 200);
+      return this.createSessionResponse({
+        id: row.id,
+        username: row.username
+      });
     } catch (e) {
-      return json({ error: "Server error" }, 500);
+      console.error(
+        "Signin error:",
+        e
+      );
+      return json(
+        {
+          error: "Server error"
+        },
+        500
+      );
     }
   }
 };
@@ -1784,7 +2409,14 @@ var AUTH_MODAL_HTML = `
       closePopover();
     }
   });
-  logoutBtn.addEventListener('click', setSignedOut);
+  logoutBtn.addEventListener('click', function(){
+    fetch('/api/auth/signout',{
+      method:'POST'
+    }).finally(function(){
+      setSignedOut();
+      location.reload();
+    });
+  });
   closeBtn.addEventListener('click', closeModal);
   overlay.addEventListener('click', function(e){ if(e.target===overlay) closeModal(); });
   toggle.addEventListener('click', function(){ setMode(mode==='signin' ? 'signup' : 'signin'); });
@@ -1803,9 +2435,7 @@ var AUTH_MODAL_HTML = `
         errorEl.textContent=d.error;
         errorEl.style.display='block';
       }else{
-        localStorage.setItem('cf_user', d.username);
-        setSignedIn(d.username);
-        closeModal();
+        location.reload();
       }
     }).catch(function(){
       errorEl.textContent='Error di konekshon';
@@ -1813,10 +2443,24 @@ var AUTH_MODAL_HTML = `
     });
   });
 
-  var saved=localStorage.getItem('cf_user');
-  if(saved){
-    setSignedIn(saved);
-  }
+  window.addEventListener('load', function(){
+    fetch('/api/auth/me',{
+      method:'GET',
+      cache:'no-store'
+    })
+    .then(function(r){
+      if(!r.ok){
+        throw new Error('signed out');
+      }
+      return r.json();
+    })
+    .then(function(d){
+      setSignedIn(d.username);
+    })
+    .catch(function(){
+      setSignedOut();
+    });
+  });
 })();<\/script>`;
 
 // node_modules/.pnpm/wrangler@4.126.0/node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
@@ -1837,9 +2481,39 @@ var drainBody = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "drainBody");
 var middleware_ensure_req_body_drained_default = drainBody;
 
-// .wrangler/tmp/bundle-KYTBk1/middleware-insertion-facade.js
+// node_modules/.pnpm/wrangler@4.126.0/node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts
+function reduceError(e) {
+  return {
+    name: e?.name,
+    message: e?.message ?? String(e),
+    stack: e?.stack,
+    cause: e?.cause === void 0 ? void 0 : reduceError(e.cause)
+  };
+}
+__name(reduceError, "reduceError");
+var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
+  try {
+    return await middlewareCtx.next(request, env);
+  } catch (e) {
+    const error = reduceError(e);
+    const body = JSON.stringify(error);
+    const headers = {
+      "Content-Type": "application/json",
+      "MF-Experimental-Error-Stack": "true"
+    };
+    const encoded = encodeURIComponent(body);
+    if (encoded.length <= 8192) {
+      headers["MF-Experimental-Error-Stack-Payload"] = encoded;
+    }
+    return new Response(body, { status: 500, headers });
+  }
+}, "jsonError");
+var middleware_miniflare3_json_error_default = jsonError;
+
+// .wrangler/tmp/bundle-fByRTB/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
-  middleware_ensure_req_body_drained_default
+  middleware_ensure_req_body_drained_default,
+  middleware_miniflare3_json_error_default
 ];
 var middleware_insertion_facade_default = src_default;
 
@@ -1868,7 +2542,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-KYTBk1/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-fByRTB/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
