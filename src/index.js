@@ -3078,7 +3078,63 @@ export default class extends WorkerEntrypoint {
       .join("");
   }
 
+  async createPasswordResetToken(userId, passwordHash, expiresAt) {
+    const secret = String(this.env.PASSWORD_RESET_SECRET || "");
+    if (secret.length < 32) {
+      throw new Error("PASSWORD_RESET_SECRET must be at least 32 characters");
+    }
+
+    const expiry = expiresAt || Math.floor(Date.now() / 1000) + 30 * 60;
+    const payload = `${userId}.${expiry}.${passwordHash}`;
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+    const signature = await crypto.subtle.sign(
+      "HMAC",
+      key,
+      new TextEncoder().encode(payload)
+    );
+    const encodedSignature = btoa(
+      String.fromCharCode(...new Uint8Array(signature))
+    )
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+
+    return `${userId}.${expiry}.${encodedSignature}`;
+  }
+
+  async verifyPasswordResetToken(token, user) {
+    const match = /^(\d+)\.(\d+)\.([A-Za-z0-9_-]{43})$/.exec(token);
+    if (!match || Number(match[1]) !== user.id || Number(match[2]) <= Date.now() / 1000) {
+      return false;
+    }
+
+    const expectedToken = await this.createPasswordResetToken(
+      user.id,
+      user.password,
+      Number(match[2])
+    );
+    const actualBytes = new TextEncoder().encode(token);
+    const expectedBytes = new TextEncoder().encode(expectedToken);
+    if (actualBytes.length !== expectedBytes.length) {
+      return false;
+    }
+
+    let difference = 0;
+    for (let index = 0; index < actualBytes.length; index += 1) {
+      difference |= actualBytes[index] ^ expectedBytes[index];
+    }
+    return difference === 0;
+  }
+
   async sendPasswordResetEmail(email, resetUrl) {
+    const safeResetUrl = escapeHtmlServer(resetUrl);
+
     await this.env.AUTH_EMAIL.send({
       to: email,
       from: {
@@ -3087,7 +3143,55 @@ export default class extends WorkerEntrypoint {
       },
       subject: "Reset your Palabra di Korsou password",
       text: `Use this link to reset your password: ${resetUrl}\n\nThis link expires in 30 minutes. If you did not request a password reset, you can ignore this email.`,
-      html: `<p>Use this link to reset your password:</p><p><a href="${escapeHtmlServer(resetUrl)}">Reset password</a></p><p>This link expires in 30 minutes. If you did not request a password reset, you can ignore this email.</p>`
+      html: `<!DOCTYPE html>
+<html lang="pap">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>Krea un kontraseña nobo</title>
+<!--[if !mso]><!-->
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<!--<![endif]-->
+<style>
+  .heading-font { font-family: 'Bricolage Grotesque', Georgia, 'Times New Roman', serif; }
+  .body-font { font-family: 'Karla', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+</style>
+</head>
+<body style="margin:0; padding:0; background-color:#0f1420; font-family:'Karla', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f1420; padding:56px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="420" cellpadding="0" cellspacing="0" style="max-width:420px; width:100%;">
+        <tr><td style="padding:0 0 32px 0;" align="center">
+          <span class="heading-font" style="font-size:18px; font-weight:800; color:#ffffff;">Palabra di </span><span class="heading-font" style="font-size:18px; font-weight:800; color:#F9E300;">Kòrsou</span>
+        </td></tr>
+        <tr><td align="center">
+          <p class="heading-font" style="margin:0 0 14px 0; font-size:22px; font-weight:800; color:#ffffff;">Krea un kontraseña nobo</p>
+          <p class="body-font" style="margin:0 0 32px 0; font-size:14px; line-height:1.6; color:#b7bdcc;">No preokupá. Klik riba e boton aki pa krea un kontraseña nobo.</p>
+        </td></tr>
+        <tr><td style="padding:0 0 20px 0;" align="center">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td style="background-color:#F9E300; border-radius:10px;" align="center">
+              <a href="${safeResetUrl}" class="heading-font" style="display:block; padding:14px 40px; font-size:15px; font-weight:700; color:#171d2e; text-decoration:none; border-radius:10px;">Krea kontraseña nobo</a>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td align="center">
+          <p class="body-font" style="margin:0 0 36px 0; font-size:12px; color:#7c8296;">E link ta válido pa 30 minüt.</p>
+        </td></tr>
+        <tr><td align="center">
+          <p class="body-font" style="margin:0 0 6px 0; font-size:12px; line-height:1.5; color:#7c8296;">E boton no ta traha? <a href="${safeResetUrl}" style="color:#b7bdcc; text-decoration:underline;">Klik aki</a>.</p>
+          <p class="body-font" style="margin:0 0 28px 0; font-size:12px; line-height:1.5; color:#7c8296;">No a pidi esaki? Ignorá e email aki.</p>
+        </td></tr>
+        <tr><td align="center">
+          <p class="body-font" style="margin:0; font-size:12px; color:#565c6f;">Palabra di Kòrsou · palabradikorsou.com</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
     });
   }
 
@@ -3107,7 +3211,7 @@ export default class extends WorkerEntrypoint {
 
       const user = await this.env.GAME_HISTORY
         .prepare(
-          `SELECT id, email
+          `SELECT id, email, password
            FROM users
            WHERE email = ?
            LIMIT 1`
@@ -3116,7 +3220,7 @@ export default class extends WorkerEntrypoint {
         .first();
 
       if (user) {
-        const token = this.randomHex(32);
+        const token = await this.createPasswordResetToken(user.id, user.password);
         const tokenHash = await this.hashSessionToken(token);
 
         await this.env.GAME_HISTORY
@@ -3166,7 +3270,7 @@ export default class extends WorkerEntrypoint {
       const token = String(body.token || "");
       const password = String(body.password || "");
 
-      if (!/^[a-f0-9]{64}$/.test(token)) {
+      if (!/^\d+\.\d+\.[A-Za-z0-9_-]{43}$/.test(token)) {
         return json({ error: "Invalid or expired reset link" }, 400);
       }
 
@@ -3177,7 +3281,7 @@ export default class extends WorkerEntrypoint {
       const tokenHash = await this.hashSessionToken(token);
       const user = await this.env.GAME_HISTORY
         .prepare(
-          `SELECT id
+          `SELECT id, password
            FROM users
            WHERE password_reset_token_hash = ?
              AND password_reset_expires_at > datetime('now')
@@ -3187,6 +3291,10 @@ export default class extends WorkerEntrypoint {
         .first();
 
       if (!user) {
+        return json({ error: "Invalid or expired reset link" }, 400);
+      }
+
+      if (!(await this.verifyPasswordResetToken(token, user))) {
         return json({ error: "Invalid or expired reset link" }, 400);
       }
 
