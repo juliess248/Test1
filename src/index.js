@@ -2990,12 +2990,6 @@ export default class extends WorkerEntrypoint {
       )
       .run();
 
-    /*
-      Idempotent: adding a column that already exists throws,
-      which we just swallow. This lets existing deployments
-      (with plaintext-only rows) pick up the new salt column
-      without a manual migration step.
-    */
     try {
       await this.env.GAME_HISTORY
         .prepare("ALTER TABLE users ADD COLUMN salt TEXT")
@@ -3003,6 +2997,20 @@ export default class extends WorkerEntrypoint {
     } catch {
       // column already exists
     }
+
+    try {
+      await this.env.GAME_HISTORY
+        .prepare("ALTER TABLE users ADD COLUMN email TEXT")
+        .run();
+    } catch {
+      // column already exists
+    }
+
+    await this.env.GAME_HISTORY
+      .prepare(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email) WHERE email IS NOT NULL"
+      )
+      .run();
   }
 
   randomHex(byteLength) {
@@ -3064,6 +3072,12 @@ export default class extends WorkerEntrypoint {
       const password =
         String(body.password || "");
 
+      const email =
+        String(body.email || "")
+          .trim()
+          .toLowerCase()
+          .slice(0, 254) || null;
+
       if (!username || !password) {
         return json(
           {
@@ -3079,6 +3093,16 @@ export default class extends WorkerEntrypoint {
           {
             error:
               "Password must be at least 6 characters"
+          },
+          400
+        );
+      }
+
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return json(
+          {
+            error:
+              "Email invalido"
           },
           400
         );
@@ -3119,17 +3143,32 @@ export default class extends WorkerEntrypoint {
         await this.env.GAME_HISTORY
           .prepare(
             `INSERT INTO users
-               (username, password, salt)
-             VALUES (?, ?, ?)`
+               (username, password, salt, email)
+             VALUES (?, ?, ?, ?)`
           )
           .bind(
             username,
             hashed,
-            salt
+            salt,
+            email
           )
           .run();
 
       } catch (e) {
+
+        if (
+          String(e)
+            .toLowerCase()
+            .includes("users.email")
+        ) {
+          return json(
+            {
+              error:
+                "This email is already linked to an account"
+            },
+            409
+          );
+        }
 
         if (
           String(e)
@@ -3422,6 +3461,11 @@ const AUTH_MODAL_HTML = `
     <div class="cf-auth-error" id="cf-auth-error"></div>
     <form id="cf-auth-form" class="cf-auth-fields">
       <input class="name-input" id="cf-auth-username" type="text" autocomplete="username" placeholder="Bo nòmber di uzuario" required>
+      <div id="cf-email-hint" style="display:none;padding:10px 12px;background:var(--line);border-radius:8px;font-size:12px;color:var(--dim);line-height:1.4;">
+        Esaki parse un email — bo ke usa "<span id="cf-email-hint-value"></span>" komo bo email di rekuperashon i skohe un otro nòmber di uzuario?
+        <button type="button" id="cf-use-as-email-btn" style="display:block;margin-top:6px;background:none;border:none;color:var(--flag);font-weight:700;font-size:12px;cursor:pointer;padding:0;text-decoration:underline;">Sí, usa dje</button>
+      </div>
+      <input class="name-input" id="cf-auth-email" type="email" autocomplete="email" placeholder="Email (opshonal, pa rekuperá bo kuenta)" style="display:none;">
       <input class="name-input" id="cf-auth-password" type="password" autocomplete="current-password" placeholder="Kontraseña" required>
       <button class="auth-submit" type="submit">Sigui</button>
     </form>
@@ -3441,6 +3485,12 @@ const AUTH_MODAL_HTML = `
       form=document.getElementById('cf-auth-form'),
       toggle=document.getElementById('cf-auth-toggle'),
       errorEl=document.getElementById('cf-auth-error'),
+      usernameInput=document.getElementById('cf-auth-username'),
+      emailInput=document.getElementById('cf-auth-email'),
+      emailHint=document.getElementById('cf-email-hint'),
+      emailHintValue=document.getElementById('cf-email-hint-value'),
+      useAsEmailBtn=document.getElementById('cf-use-as-email-btn'),
+      EMAIL_PATTERN=/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/,
       mode='signin';
 
   function setMode(m){
@@ -3448,6 +3498,9 @@ const AUTH_MODAL_HTML = `
     title.textContent = m==='signin' ? 'Drenta' : 'Krea kuenta';
     toggle.textContent = m==='signin' ? 'No tin kuenta? Krea un' : 'Bo tin kuenta kaba? Drenta';
     errorEl.style.display='none';
+    emailInput.style.display = m==='signup' ? 'block' : 'none';
+    emailHint.style.display='none';
+    if(m==='signin'){ emailInput.value=''; }
   }
 
   function openModal(){ setMode('signin'); overlay.classList.add('open'); }
@@ -3494,15 +3547,37 @@ const AUTH_MODAL_HTML = `
   overlay.addEventListener('click', function(e){ if(e.target===overlay) closeModal(); });
   toggle.addEventListener('click', function(){ setMode(mode==='signin' ? 'signup' : 'signin'); });
 
+  usernameInput.addEventListener('blur', function(){
+    if(mode!=='signup') return;
+    var value=usernameInput.value.trim();
+    if(EMAIL_PATTERN.test(value)){
+      emailHintValue.textContent=value;
+      emailHint.style.display='block';
+    }else{
+      emailHint.style.display='none';
+    }
+  });
+
+  useAsEmailBtn.addEventListener('click', function(){
+    emailInput.value=usernameInput.value.trim();
+    usernameInput.value='';
+    usernameInput.focus();
+    emailHint.style.display='none';
+  });
+
   form.addEventListener('submit', function(e){
     e.preventDefault();
-    var u=document.getElementById('cf-auth-username').value,
-        p=document.getElementById('cf-auth-password').value;
+    var u=usernameInput.value,
+        p=document.getElementById('cf-auth-password').value,
+        payload={username:u,password:p};
+    if(mode==='signup' && emailInput.value.trim()){
+      payload.email=emailInput.value.trim();
+    }
     errorEl.style.display='none';
     fetch('/api/auth/'+mode,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username:u,password:p})
+      body:JSON.stringify(payload)
     }).then(function(r){return r.json();}).then(function(d){
       if(d.error){
         errorEl.textContent=d.error;
