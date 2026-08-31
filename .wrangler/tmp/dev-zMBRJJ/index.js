@@ -2304,6 +2304,7 @@ If unsure, leave all fields empty ("").`;
     ).join("");
   }
   async sendPasswordResetEmail(email, resetUrl) {
+    const safeResetUrl = escapeHtmlServer(resetUrl);
     await this.env.AUTH_EMAIL.send({
       to: email,
       from: {
@@ -2314,7 +2315,55 @@ If unsure, leave all fields empty ("").`;
       text: `Use this link to reset your password: ${resetUrl}
 
 This link expires in 30 minutes. If you did not request a password reset, you can ignore this email.`,
-      html: `<p>Use this link to reset your password:</p><p><a href="${escapeHtmlServer(resetUrl)}">Reset password</a></p><p>This link expires in 30 minutes. If you did not request a password reset, you can ignore this email.</p>`
+      html: `<!DOCTYPE html>
+<html lang="pap">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>Krea un kontrase\xF1a nobo</title>
+<!--[if !mso]><!-->
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<!--<![endif]-->
+<style>
+  .heading-font { font-family: 'Bricolage Grotesque', Georgia, 'Times New Roman', serif; }
+  .body-font { font-family: 'Karla', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+</style>
+</head>
+<body style="margin:0; padding:0; background-color:#0f1420; font-family:'Karla', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f1420; padding:56px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="420" cellpadding="0" cellspacing="0" style="max-width:420px; width:100%;">
+        <tr><td style="padding:0 0 32px 0;" align="center">
+          <span class="heading-font" style="font-size:18px; font-weight:800; color:#ffffff;">Palabra di </span><span class="heading-font" style="font-size:18px; font-weight:800; color:#F9E300;">K\xF2rsou</span>
+        </td></tr>
+        <tr><td align="center">
+          <p class="heading-font" style="margin:0 0 14px 0; font-size:22px; font-weight:800; color:#ffffff;">Krea un kontrase\xF1a nobo</p>
+          <p class="body-font" style="margin:0 0 32px 0; font-size:14px; line-height:1.6; color:#b7bdcc;">No preokup\xE1. Klik riba e boton aki pa krea un kontrase\xF1a nobo.</p>
+        </td></tr>
+        <tr><td style="padding:0 0 20px 0;" align="center">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td style="background-color:#F9E300; border-radius:10px;" align="center">
+              <a href="${safeResetUrl}" class="heading-font" style="display:block; padding:14px 40px; font-size:15px; font-weight:700; color:#171d2e; text-decoration:none; border-radius:10px;">Krea kontrase\xF1a nobo</a>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td align="center">
+          <p class="body-font" style="margin:0 0 36px 0; font-size:12px; color:#7c8296;">E link ta v\xE1lido pa 30 min\xFCt.</p>
+        </td></tr>
+        <tr><td align="center">
+          <p class="body-font" style="margin:0 0 6px 0; font-size:12px; line-height:1.5; color:#7c8296;">E boton no ta traha? <a href="${safeResetUrl}" style="color:#b7bdcc; text-decoration:underline;">Klik aki</a>.</p>
+          <p class="body-font" style="margin:0 0 28px 0; font-size:12px; line-height:1.5; color:#7c8296;">No a pidi esaki? Ignor\xE1 e email aki.</p>
+        </td></tr>
+        <tr><td align="center">
+          <p class="body-font" style="margin:0; font-size:12px; color:#565c6f;">Palabra di K\xF2rsou \xB7 palabradikorsou.com</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
     });
   }
   async handleForgotPassword(request) {
