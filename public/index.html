@@ -41315,6 +41315,11 @@ document
   );
 
 
+if(RESET_TOKEN){
+  $('landingPage').classList.add('is-hidden');
+  $('appRoot').classList.remove('is-hidden');
+}
+
 renderName();
 
 renderAuth();

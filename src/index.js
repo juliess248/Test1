@@ -112,27 +112,6 @@ export default class extends WorkerEntrypoint {
     }
 
     const assetResponse = await this.env.ASSETS.fetch(request);
-    const contentType = assetResponse.headers.get("content-type") || "";
-    if (contentType.includes("text/html")) {
-      return new HTMLRewriter()
-        .on("head", {
-          element(element) {
-            element.append(AUTH_CSS, { html: true });
-          },
-        })
-        .on(".header-actions", {
-          element(element) {
-            element.append(AUTH_ICON_HTML, { html: true });
-          },
-        })
-        .on("body", {
-          element(element) {
-            element.append(AUTH_MODAL_HTML, { html: true });
-          },
-        })
-        .transform(assetResponse);
-    }
-
     return assetResponse;
   }
 
