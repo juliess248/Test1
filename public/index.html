@@ -10102,14 +10102,33 @@ src="https://www.facebook.com/tr?id=4385853084997712&ev=PageView&noscript=1"
       class="auth-fields"
       id="authForm">
 
-      <input
+            <input
         class="name-input"
         id="authUsername"
         type="text"
         autocomplete="username"
         spellcheck="false"
         placeholder="Bo nòmber di uzuario">
-
+      <div
+        class="auth-email-hint"
+        id="authEmailHint"
+        style="display:none;padding:10px 12px;background:var(--line);border-radius:8px;font-size:12px;color:var(--dim);line-height:1.4;">
+        Esaki parse un email — bo ke usa "<span id="authEmailHintValue"></span>" komo bo email di rekuperashon i skohe un otro nòmber di uzuario?
+        <button
+          type="button"
+          id="authUseAsEmailBtn"
+          style="display:block;margin-top:6px;background:none;border:none;color:var(--flag);font-weight:700;font-size:12px;cursor:pointer;padding:0;text-decoration:underline;">
+          Sí, usa dje
+        </button>
+      </div>
+      <input
+        class="name-input"
+        id="authEmail"
+        type="email"
+        autocomplete="email"
+        spellcheck="false"
+        placeholder="Email (opshonal, pa rekuperá bo kuenta)"
+        style="display:none;">
       <input
         class="name-input"
         id="authPassword"
@@ -37785,7 +37804,13 @@ async function fetchWordInfo(word,display,overrideOnly){
         encodeURIComponent(display || glossaryWord) +
       '&tags=' +
         encodeURIComponent(WORD_TAGS[word] || '') +
+      '&date=' +
+        encodeURIComponent(GAME_DATE) +
         (overrideOnly ? '&override=1' : '')
+
+      ,{
+        signal:AbortSignal.timeout(12000)
+      }
 
     );
 
@@ -37993,8 +38018,13 @@ function renderGlossaryInfo(
 
   if(info && info.english){
 
-    defEl.classList.add(
-      'is-hidden'
+    defEl.textContent =
+      info.definition ||
+      'No tin definishon disponibel.';
+
+    defEl.classList.remove(
+      'is-hidden',
+      'is-missing'
     );
 
 
@@ -38054,7 +38084,7 @@ function renderGlossaryInfo(
 
       warning.textContent =
         info.translationSource === 'google'
-          ? 'Tradukshon: Google → definishon asistí pa Anthropic'
+          ? 'Tradukshon: Google'
           : 'Definishon asistí pa AI — por tin fout';
 
       actionsEl.appendChild(
@@ -40190,53 +40220,42 @@ function setAuthBusy(busy){
 
 
 function renderAuth(){
-
   const card =
     $('authCard');
-
-
   if(account){
-
     card.style.display = 'none';
-
     return;
-
   }
-
-
   card.style.display = '';
-
-
   const signup =
     authMode === 'signup';
-
-
   $('authPassword').setAttribute(
-
     'autocomplete',
-
     signup
       ? 'new-password'
       : 'current-password'
-
   );
-
-
+  $('authEmail').style.display =
+    signup
+      ? ''
+      : 'none';
+  $('authEmailHint').style.display =
+    'none';
+  if(!signup){
+    $('authEmail').value = '';
+  }
   $('authTitle').textContent =
     signup
       ? 'Krea bo kuenta'
       : 'Drenta bo kuenta';
-
   $('authSubmit').textContent =
     signup
       ? 'Krea kuenta'
       : 'Drenta';
-
   $('authToggle').textContent =
     signup
       ? 'Bo tin kuenta kaba? Drenta'
       : 'No tin kuenta ainda? Krea un';
-
 }
 
 
@@ -40247,54 +40266,73 @@ function renderAuth(){
   what's remembered locally is the username itself.
 */
 
-async function submitAuth(username,password){
-
+async function submitAuth(username,password,email){
   const endpoint =
     authMode === 'signup'
       ? 'signup'
       : 'signin';
-
-
+  const payload = {
+    username,
+    password
+  };
+  if(endpoint === 'signup' && email){
+    payload.email = email;
+  }
   const response =
     await fetch(
-
       AUTH_ENDPOINT + endpoint,
-
       {
-
         method:'POST',
-
         headers:{
           'content-type':
             'application/json'
         },
-
-        body:JSON.stringify({
-          username,
-          password
-        })
-
+        body:JSON.stringify(payload)
       }
-
     );
-
-
   const data =
     await response.json();
-
-
   if(!response.ok || data.error){
-
     throw new Error(
       data.error ||
       'Algu a bai robes. Purba atrobe.'
     );
-
   }
-
-
   return data;
-
+}
+const EMAIL_PATTERN_AUTH =
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+if($('authUsername')){
+  $('authUsername').addEventListener(
+    'blur',
+    () => {
+      if(authMode !== 'signup') return;
+      const value =
+        $('authUsername').value.trim();
+      if(EMAIL_PATTERN_AUTH.test(value)){
+        $('authEmailHintValue').textContent =
+          value;
+        $('authEmailHint').style.display =
+          'block';
+      }else{
+        $('authEmailHint').style.display =
+          'none';
+      }
+    }
+  );
+}
+if($('authUseAsEmailBtn')){
+  $('authUseAsEmailBtn').addEventListener(
+    'click',
+    () => {
+      $('authEmail').value =
+        $('authUsername').value.trim();
+      $('authUsername').value = '';
+      $('authUsername').focus();
+      $('authEmailHint').style.display =
+        'none';
+    }
+  );
 }
 
 
@@ -40889,44 +40927,32 @@ $('authForm').onsubmit =
       return;
 
 
-    const username =
+        const username =
       cleanName(
         $('authUsername').value
       );
-
     const password =
       $('authPassword').value;
-
-
+    const email =
+      $('authEmail') ?
+        $('authEmail').value.trim() :
+        '';
     if(!username){
-
       $('authUsername').focus();
-
       return;
-
     }
-
-
     if(!password){
-
       $('authPassword').focus();
-
       return;
-
     }
-
-
     setAuthBusy(true);
-
     showAuthMessage('');
-
-
     try{
-
       const data =
         await submitAuth(
           username,
-          password
+          password,
+          email
         );
 
 
