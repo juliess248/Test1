@@ -39907,12 +39907,11 @@ const ACCOUNT_KEY =
 
 let account = null;
 
-const RESET_TOKEN =
-  new URLSearchParams(window.location.search)
-    .get('reset_token');
+// Password reset is temporarily disabled; ignore any reset_token link until the flow is finished.
+const RESET_TOKEN = null;
 
 let authMode =
-  RESET_TOKEN ? 'reset' : 'signup';
+  'signup';
 
 let authBusy = false;
 

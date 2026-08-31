@@ -42,6 +42,40 @@ const DAILY_GLOSSARIES = {
     "union": { english: "union, unity", explanation: "A joining together, like a group or alliance. \"The union represents all the workers.\"" },
     "unisóno": { english: "unison", explanation: "When everyone sings or plays the same note together. \"The choir sang the last line in unison.\"" },
   },
+  "2026-09-01": {
+    "kikiriki": { english: "Cock-a-doodle-do / Rooster crow", explanation: "Kikiriki is the onomatopoeic word used in Papiamentu to imitate the crowing sound of a rooster." },
+    "kiko": { english: "What", explanation: "Kiko is an interrogative pronoun used to ask questions about things or actions (e.g., 'Kiko bo ke?' means 'What do you want?')." },
+    "kimiko": { english: "Chemical (or Chemistry student)", explanation: "Kimiko describes something related to chemistry, such as a chemical reaction or compound." },
+    "kiosko": { english: "Kiosk / Newsstand", explanation: "A kiosko is a small open hut or booth where drinks, newspapers, or snacks are sold." },
+    "koki": { english: "Cook / Chef", explanation: "Koki refers to a person who prepares and cooks food professionally or at home." },
+    "koko": { english: "Coconut", explanation: "Koko is the tropical palm fruit widely used in Caribbean cuisine and drinks." },
+    "kokoi": { english: "Quail", explanation: "Kokoi is a small wild bird native to the region, often referenced in local folklore and nature." },
+    "kokoyoko": { english: "Crowing / Cock-a-doodle-do", explanation: "Kokoyoko refers specifically to the act or sound of a rooster crowing at dawn." },
+    "komi": { english: "Caraway seed / Cumin", explanation: "Komi is a common aromatic spice used to flavor local stews and dishes." },
+    "komiko": { english: "Comical / Funny / Comic", explanation: "Komiko describes someone or something that causes laughter or amusement." },
+    "komis": { english: "Customs officer / Superintendent", explanation: "Komis refers to a border tax/customs official or high-ranking supervisor." },
+    "komo": { english: "Since / As / Because", explanation: "Komo is a conjunction used to introduce a reason or cause for an event." },
+    "korki": { english: "Cork / Cap", explanation: "Korki is the stopper material used to seal bottles, or a bottle cap." },
+    "koro": { english: "Choir / Chorus", explanation: "Koro refers to an organized group of singers or the repeating main part of a song." },
+    "korokoro": { english: "Throat / Voice box / Windpipe", explanation: "Korokoro is an informal or anatomical term for the human throat." },
+    "kosmiko": { english: "Cosmic", explanation: "Kosmiko describes anything related to outer space, the universe, or astronomy." },
+    "kosmos": { english: "Cosmos / Universe", explanation: "Kosmos refers to the universe seen as a well-ordered whole." },
+    "kriki": { english: "Cricket (insect)", explanation: "Kriki is the small jumping insect known for making chirping sounds at night." },
+    "krio": { english: "Creole / Native-born", explanation: "Krio refers to things, traditions, or language varieties originating locally in the region." },
+    "krioyismo": { english: "Local folklore / Creole localism", explanation: "Krioyismo represents the local cultural expressions, idioms, and traditions unique to the island." },
+    "krioyo": { english: "Local / Creole / Traditional", explanation: "Krioyo describes authentic local cuisine, culture, or traditions (such as 'kuminda krioyo', meaning local island food)." },
+    "krisis": { english: "Crisis", explanation: "Krisis refers to a time of intense difficulty, danger, or emergency." },
+    "kros": { english: "Cross / Crossing", explanation: "Kros refers to an intersecting shape/symbol or passing across a path." },
+    "mikro": { english: "Micro", explanation: "Mikro is a prefix or modifier meaning extremely small." },
+    "mimiko": { english: "Mimic / Mime", explanation: "Mimiko refers to non-verbal theatrical performance using gestures and facial expressions." },
+    "morkoi": { english: "Land tortoise", explanation: "Morkoi is the Papiamentu term for a terrestrial tortoise found on the islands." },
+    "rikisimo": { english: "Extremely rich / Delicious", explanation: "Rikisimo is used to describe food that is exceptionally tasty or a person with vast wealth." },
+    "sikiko": { english: "Psychic / Mental", explanation: "Sikiko pertains to the human mind or extra-sensory psychic abilities." },
+    "sirko": { english: "Circus", explanation: "Sirko refers to a traveling show of acrobats, clowns, and performances." },
+    "sismiko": { english: "Seismic", explanation: "Sismiko refers to phenomena related to earthquakes or earth vibrations." },
+    "skor": { english: "Score", explanation: "Skor is the tally of points scored in a game or match." },
+    "yorki": { english: "Dried meat / Jerky / Traditional Curaçaoan stew", explanation: "In Curaçao, Yorki is a traditional comfort dish made of salted, cured goat meat (or sometimes pork) that is soaked, boiled until tender, and sautéed with aromatics like onions, tomatoes, peppers, and vinegar." },
+  },
 };
 
 function normaliseGlossaryKey(value) {
@@ -62,8 +96,9 @@ export default class extends WorkerEntrypoint {
     if (url.pathname === "/api/auth/signin" && request.method === "POST") {
       return this.handleSignin(request);
     }
+    // Password reset is temporarily disabled until the flow is finished (see handleResetPassword below).
     if (url.pathname === "/api/auth/reset-password" && request.method === "POST") {
-      return this.handleResetPassword(request);
+      return json({ error: "Password reset is temporarily unavailable" }, 503);
     }
     if (url.pathname === "/api/auth/me" && request.method === "GET") {
       return this.handleAuthMe(request);
