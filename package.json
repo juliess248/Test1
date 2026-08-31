@@ -2,7 +2,8 @@
   "name": "silent-voice-208c",
   "private": true,
   "scripts": {
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "preview:tomorrow": "node preview-tomorrow-puzzle.js"
   },
   "devDependencies": {
     "wrangler": "*"
