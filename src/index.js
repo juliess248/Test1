@@ -1,5 +1,57 @@
 import { WorkerEntrypoint } from "cloudflare:workers";
 
+const DAILY_GLOSSARIES = {
+  "2026-08-31": {
+    "dios": { english: "God", explanation: "When you're talking about God in a religious or spiritual sense. \"Thank God,\" \"God willing.\"" },
+    "disidi": { english: "decide, choose", explanation: "This is for when someone makes up their mind about something. \"I decided to stay home instead of going out.\"" },
+    "disididu": { english: "determined, resolute", explanation: "Describes someone who's firm and won't change their mind. \"She was determined to finish the race.\"" },
+    "domi": { english: "pastor, minister", explanation: "What you call the pastor at church. \"The domi gave a great sermon on Sunday.\"" },
+    "dominio": { english: "control, mastery, dominance", explanation: "For when someone has strong control or skill over something. \"He has real mastery over the language.\"" },
+    "domino": { english: "dominoes", explanation: "Dominoes is a major part of everyday social life in Curaçao, played outdoors in neighborhoods and at family gatherings, often with real competitive spirit, not just casual fun." },
+    "dùim": { english: "thumb", explanation: "The body part. \"He hurt his thumb closing the door.\"" },
+    "dùin": { english: "dune", explanation: "A sand mound near the beach. \"We walked over the dune to reach the shore.\"" },
+    "indio": { english: "Indian", explanation: "Describes someone or something from India. \"My neighbor is Indian.\"" },
+    "inisio": { english: "beginning, start", explanation: "The start of something. \"At the beginning of the movie, nothing made sense yet.\"" },
+    "insiso": { english: "clause, point", explanation: "One point or clause in a document. \"Check clause three of the contract.\"" },
+    "midi": { english: "measure; midi skirt", explanation: "Either measuring something, or a mid-length skirt. \"Can you measure the table?\" / \"She wore a midi skirt to the party.\"" },
+    "midí": { english: "measurement, size", explanation: "The actual measurement or size that results. \"What's the measurement of this room?\"" },
+    "mimu": { english: "thin-skinned, overly sensitive to pain", explanation: "For teasing someone who overreacts to tiny pains. \"Stop being such a baby, it's just a scratch.\"" },
+    "mini": { english: "mini, miniskirt", explanation: "A very short skirt. \"She bought a new miniskirt for the party.\"" },
+    "minímo": { english: "minimum, least", explanation: "The smallest possible amount. \"That's the minimum you need to pass.\"" },
+    "minusioso": { english: "meticulous, thorough", explanation: "Describes someone extremely careful and detail-oriented. \"He checked every detail meticulously.\"" },
+    "mion": { english: "million", explanation: "The number one million. \"The lottery prize was a million dollars.\"" },
+    "miou": { english: "meow", explanation: "The sound a cat makes. \"The cat let out a loud meow.\"" },
+    "modismo": { english: "idiom, expression", explanation: "An expression that doesn't translate literally. \"'Kick the bucket' is an idiom for dying.\"" },
+    "mondi": { english: "bush, scrubland", explanation: "Wild, uncultivated countryside. \"We went hiking through the bush.\"" },
+    "niun": { english: "none, not one", explanation: "Saying \"not even one.\" \"None of the students answered correctly.\"" },
+    "nodi": { english: "necessity, need", explanation: "When something is required. \"There's no need to worry about it.\"" },
+    "nudismo": { english: "nudism", explanation: "Talking about the practice of going nude socially. \"That beach is known for nudism.\"" },
+    "nunsio": { english: "nuncio", explanation: "The Pope's diplomatic representative. \"The nuncio visited the president.\"" },
+    "odio": { english: "hatred", explanation: "Strong hatred. \"His hatred for injustice drove him to act.\"" },
+    "odioso": { english: "hateful, spiteful", explanation: "Describes someone or something spiteful. \"That was a really hateful comment.\"" },
+    "oido": { english: "hearing, ear (for music)", explanation: "Hearing, or a natural talent for music. \"She has a great ear for music.\"" },
+    "sino": { english: "but rather, otherwise", explanation: "Contrasting with what was just said. \"It's not red, but rather orange.\"" },
+    "sinónimo": { english: "synonym", explanation: "When two words mean the same thing. \"'Happy' and 'glad' are synonyms.\"" },
+    "sinùs": { english: "sinus", explanation: "The sinus cavity in the face. \"My sinuses are blocked from the cold.\"" },
+    "sismo": { english: "earthquake, tremor", explanation: "An earthquake tremor. \"A small earthquake shook the city last night.\"" },
+    "snui": { english: "prune, trim", explanation: "Trimming trees or plants. \"He pruned the roses before winter.\"" },
+    "sosio": { english: "partner, associate, member", explanation: "A partner, buddy, or club member. \"He's my business partner.\"" },
+    "suin": { english: "swing (dance)", explanation: "The swing dance style. \"They danced the swing all night.\"" },
+    "suisidio": { english: "suicide", explanation: "Talking about someone ending their own life. \"The news reported on the suicide.\"" },
+    "sumiso": { english: "submissive, obedient", explanation: "Describes someone who obeys without resistance. \"The dog was very submissive to its owner.\"" },
+    "union": { english: "union, unity", explanation: "A joining together, like a group or alliance. \"The union represents all the workers.\"" },
+    "unisóno": { english: "unison", explanation: "When everyone sings or plays the same note together. \"The choir sang the last line in unison.\"" },
+  },
+};
+
+function normaliseGlossaryKey(value) {
+  return String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .normalize("NFC")
+    .toLowerCase();
+}
+
 export default class extends WorkerEntrypoint {
   async fetch(request) {
     const url = new URL(request.url);
@@ -1440,8 +1492,7 @@ export default class extends WorkerEntrypoint {
     };
   }
 
-  async sendTomorrowPuzzleEmail() {
-    const date = new Date().toISOString().slice(0, 10);
+  async sendTomorrowPuzzleEmail(date = new Date().toISOString().slice(0, 10)) {
     const puzzle = await this.getPuzzlePreview(date);
     const definitionTemplate = JSON.stringify(puzzle.definitions, null, 2);
     const text = [
@@ -1607,9 +1658,39 @@ export default class extends WorkerEntrypoint {
         .toLowerCase();
       const display = url.searchParams.get("display") || word;
       const tags = (url.searchParams.get("tags") || "").slice(0, 40);
+      const date = url.searchParams.get("date") || "";
 
       if (!word || !/^[a-zàáèéìíòóùúñ]+$/.test(word)) {
         return json({ error: "Palabra inválido" }, 400);
+      }
+
+      const dailyGlossary = DAILY_GLOSSARIES[date];
+      const dailyEntry = dailyGlossary && (
+        dailyGlossary[display] ||
+        dailyGlossary[word] ||
+        Object.entries(dailyGlossary).find(
+          ([entryWord]) => normaliseGlossaryKey(entryWord) === normaliseGlossaryKey(display)
+        )?.[1]
+      );
+      if (dailyEntry) {
+        if (!this.env.GOOGLE_TRANSLATE_API_KEY) {
+          return json({ error: "Google Translate no ta konfigurá" }, 503);
+        }
+        const definition = await this.translateTextGoogle(dailyEntry.explanation, "en", "pap");
+        if (!definition) {
+          return json({ error: "Definishon no ta disponibel awor aki", word }, 503);
+        }
+        return json({
+          word,
+          display,
+          definition: definition.trim().slice(0, 500),
+          example: "",
+          english: dailyEntry.english,
+          source: "daily_google_translate",
+          definition_source: "google",
+          translation_source: "google",
+          cached: false,
+        }, 200);
       }
 
       /*
@@ -1654,9 +1735,9 @@ export default class extends WorkerEntrypoint {
         return json({ word, ...cached, definitionNl: cached.definition, cached: true }, 200);
       }
 
-      if (cached && cached.definition_source === "anthropic" &&
-          ["google", "anthropic"].includes(cached.translation_source) &&
-          cached.pipeline_version === 2) {
+        if (cached && cached.definition_source === "google" &&
+          cached.translation_source === "google" &&
+          cached.pipeline_version === 3) {
         return json({ word, ...cached, definitionNl: cached.definition, cached: true }, 200);
       }
 
@@ -1735,7 +1816,7 @@ export default class extends WorkerEntrypoint {
           generated.verification_status || "unverified",
           generated.needs_review ? 1 : 0,
           generated.translation_ambiguous ? 1 : 0,
-          2
+          3
         )
         .run();
 
@@ -1803,12 +1884,11 @@ export default class extends WorkerEntrypoint {
   async googleTranslateWord(word) {
     try {
       const googleResponse = await fetch(
-        "https://translation.googleapis.com/language/translate/v2",
+        `https://translation.googleapis.com/language/translate/v2?key=${encodeURIComponent(this.env.GOOGLE_TRANSLATE_API_KEY)}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-goog-api-key": this.env.GOOGLE_TRANSLATE_API_KEY,
           },
           body: JSON.stringify({
             q: word,
@@ -1890,14 +1970,16 @@ export default class extends WorkerEntrypoint {
   */
   async translateTextGoogle(text, sourceLang, targetLang) {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10_000);
       const res = await fetch(
-        "https://translation.googleapis.com/language/translate/v2",
+        `https://translation.googleapis.com/language/translate/v2?key=${encodeURIComponent(this.env.GOOGLE_TRANSLATE_API_KEY)}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-goog-api-key": this.env.GOOGLE_TRANSLATE_API_KEY,
           },
+          signal: controller.signal,
           body: JSON.stringify({
             q: text,
             source: sourceLang,
@@ -1906,6 +1988,11 @@ export default class extends WorkerEntrypoint {
           }),
         }
       );
+      clearTimeout(timeout);
+      if (!res.ok) {
+        console.error("Google text translation failed:", res.status, await res.text());
+        return null;
+      }
       const data = await res.json();
       return data?.data?.translations?.[0]?.translatedText ?? null;
     } catch (e) {
@@ -2167,6 +2254,39 @@ export default class extends WorkerEntrypoint {
         .normalize("NFC")
         .trim()
         .toLowerCase();
+
+    if (!this.env.GOOGLE_TRANSLATE_API_KEY) {
+      return null;
+    }
+
+    const googleMeaning = await this.googleTranslateWord(displayWord);
+    if (!googleMeaning?.meaning) {
+      return null;
+    }
+
+    const definition = await this.translateTextGoogle(
+      `This word means: ${googleMeaning.meaning}.`,
+      "en",
+      "pap"
+    );
+    if (!definition) {
+      return null;
+    }
+
+    return {
+      display: (display || word).slice(0, 60),
+      definition: definition.trim().slice(0, 500),
+      example: "",
+      english: googleMeaning.meaning,
+      source: "google_translate",
+      definition_source: "google",
+      translation_source: "google",
+      source_language: "pap",
+      target_language: "en",
+      verification_status: "automatic",
+      needs_review: 1,
+      translation_ambiguous: googleMeaning.needsReview ? 1 : 0,
+    };
 
     /*
       Also try the spelling without accent marks.
