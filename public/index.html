@@ -35991,11 +35991,38 @@ const soundToggleButton =
 
 if(soundToggleButton){
 
+  let touchToggleHandled = false;
+
+  soundToggleButton.addEventListener(
+    'touchend',
+    event => {
+
+      event.preventDefault();
+      touchToggleHandled = true;
+      SOUND.toggle();
+      window.setTimeout(
+        () => {
+          touchToggleHandled = false;
+        },
+        500
+      );
+
+    },
+    {
+      passive:false
+    }
+  );
+
   soundToggleButton.addEventListener(
     'click',
     event => {
 
       event.preventDefault();
+
+      if(touchToggleHandled){
+        touchToggleHandled = false;
+        return;
+      }
 
       SOUND.toggle();
 
