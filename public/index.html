@@ -5592,17 +5592,47 @@ button:focus-visible{
 
   pointer-events:none;
 
+  background:rgba(4,14,26,0);
+  -webkit-backdrop-filter:blur(0px);
+  backdrop-filter:blur(0px);
+
   opacity:0;
   visibility:hidden;
 
   transition:
     opacity .2s ease,
-    visibility .2s ease;
+    visibility .2s ease,
+    background .32s ease,
+    -webkit-backdrop-filter .32s ease,
+    backdrop-filter .32s ease;
 }
 
 .rank-up-overlay.show{
   opacity:1;
   visibility:visible;
+  pointer-events:auto;
+  cursor:pointer;
+  background:rgba(4,14,26,.6);
+  -webkit-backdrop-filter:blur(3px);
+  backdrop-filter:blur(3px);
+}
+
+.rank-up-overlay::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:0;
+  pointer-events:none;
+  background:radial-gradient(circle at 50% 42%, rgba(255,255,255,.85), transparent 60%);
+}
+
+.rank-up-overlay.show::before{
+  animation:rewardFlash .5s ease-out forwards;
+}
+
+@keyframes rewardFlash{
+  0%{ opacity:.6; }
+  100%{ opacity:0; }
 }
 
 
@@ -5624,13 +5654,16 @@ button:focus-visible{
     1px solid
     rgba(249,227,0,.25);
 
-  background:#081F36;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(15,159,224,.38), transparent 55%),
+    linear-gradient(165deg, #0d2d4d, #081F36 62%);
 
   text-align:center;
 
   box-shadow:
-    0 24px 65px
-    rgba(0,0,0,.30);
+    0 24px 65px rgba(0,0,0,.35),
+    0 0 0 1px rgba(249,227,0,.08) inset,
+    0 0 42px rgba(15,159,224,.28);
 
   transform:
     translateY(14px)
@@ -5664,7 +5697,7 @@ button:focus-visible{
 
   height:4px;
 
-  background:#0F9FE0;
+  background:linear-gradient(90deg, transparent, #0F9FE0, #F9E300, #0F9FE0, transparent);
 }
 
 
@@ -5673,8 +5706,9 @@ button:focus-visible{
 ---------------------------------------------------------- */
 
 .rank-up-icon{
-  width:54px;
-  height:54px;
+  position:relative;
+  width:64px;
+  height:64px;
 
   margin:
     0
@@ -5687,10 +5721,11 @@ button:focus-visible{
 
   border-radius:50%;
 
-  background:
-    rgba(249,227,0,.12);
+  background:radial-gradient(circle at 35% 30%, #16416b, #081F36 70%);
 
   color:#F9E300;
+
+  box-shadow:0 0 0 3px rgba(249,227,0,.35), 0 0 22px rgba(249,227,0,.35), inset 0 0 12px rgba(15,159,224,.45);
 
   font-size:26px;
 
@@ -5699,6 +5734,17 @@ button:focus-visible{
     .55s
     cubic-bezier(.2,1.45,.35,1);
 }
+
+.rank-up-icon::before{
+  content:"";
+  position:absolute;
+  inset:-7px;
+  border-radius:50%;
+  border:1.5px dashed rgba(249,227,0,.5);
+  animation:rankBadgeSpin 6s linear infinite;
+}
+
+@keyframes rankBadgeSpin{ to{ transform:rotate(360deg); } }
 
 
 @keyframes rankUpPop{
@@ -5793,6 +5839,61 @@ button:focus-visible{
   font-weight:500;
 
   line-height:1.4;
+}
+
+.reward-chips{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin-top:15px;
+}
+
+.reward-chip{
+  display:inline-flex;
+  align-items:center;
+  padding:6px 12px;
+  border-radius:999px;
+  font-family:'Karla',sans-serif;
+  font-size:11.5px;
+  font-weight:800;
+  background:rgba(255,255,255,.12);
+  color:#fff;
+}
+
+.rank-up-overlay.theme-pangram .rank-up-card{
+  border-color:rgba(8,31,54,.12);
+  background:
+    radial-gradient(circle at 50% -8%, rgba(255,255,255,.6), transparent 55%),
+    linear-gradient(160deg, #FFE066, #F9E300 45%, #E8A33D 100%);
+  box-shadow:0 24px 65px rgba(0,0,0,.30);
+}
+
+.rank-up-overlay.theme-pangram .rank-up-card::before{
+  background:rgba(8,31,54,.22);
+}
+
+.rank-up-overlay.theme-pangram .rank-up-icon{
+  background:rgba(8,31,54,.10);
+  color:#081F36;
+  box-shadow:none;
+}
+
+.rank-up-overlay.theme-pangram .rank-up-kicker{
+  color:rgba(8,31,54,.58);
+}
+
+.rank-up-overlay.theme-pangram .rank-up-title,
+.rank-up-overlay.theme-pangram .rank-up-title strong{
+  color:#081F36;
+}
+
+.rank-up-overlay.theme-pangram .rank-up-compliment{
+  color:rgba(8,31,54,.72);
+}
+
+.rank-up-overlay.theme-pangram .reward-chip{
+  background:rgba(8,31,54,.10);
+  color:#081F36;
 }
 
 
@@ -9478,7 +9579,7 @@ tbody tr + tr td{
 
       <div>
         <div class="amiga-kicker">
-          Bo progreso
+        <span id="rewardKicker">Rango nobo</span>
         </div>
 
         
@@ -35652,6 +35753,28 @@ const SOUND = (function(){
     });
   }
 
+  function pangramEncore(){
+    playWhenReady(c=>{
+      const t=c.currentTime+0.002;
+      [659.25,783.99,987.77,1174.66,1567.98].forEach((f,i)=>{
+        tone(c,f,t+i*0.055,0.14,'triangle',0.030);
+      });
+      tone(c,2093.00,t+0.30,0.22,'sine',0.012);
+      tone(c,2637.02,t+0.32,0.18,'sine',0.008);
+    });
+  }
+
+  function rankUp(){
+    playWhenReady(c=>{
+      const t=c.currentTime+0.002;
+      tone(c,659.25,t,0.09,'triangle',0.030);
+      tone(c,783.99,t+0.07,0.09,'triangle',0.032);
+      tone(c,1046.50,t+0.14,0.20,'triangle',0.038);
+      tone(c,1318.51,t+0.15,0.18,'sine',0.014);
+      tone(c,1567.98,t+0.16,0.16,'sine',0.010);
+    });
+  }
+
   function hunga(){
     playWhenReady(c=>{
       const t = c.currentTime + 0.002;
@@ -35894,6 +36017,8 @@ function signupSuccess(){
     hunga,
     word,
     pangram,
+    pangramEncore,
+    rankUp,
     invalid,
     complete,
     signupSuccess,
@@ -36143,7 +36268,7 @@ function shake(){
 }
 
 
-function celebratePangram(){
+function celebratePangramLegacy(){
 
   const centre =
     document.querySelector(
@@ -36175,6 +36300,36 @@ function celebratePangram(){
 
   }
 
+}
+
+function celebratePangram(result){
+  const centre=document.querySelector('.cell.centre');
+  if(centre){
+    centre.classList.remove('pangram-burst');
+    void centre.offsetWidth;
+    centre.classList.add('pangram-burst');
+  }
+  if(navigator.vibrate){
+    navigator.vibrate([30,50,30,50,70]);
+  }
+  const pangramsFound=[...P.found].filter(word=>P.pangrams.has(word)).length;
+  const ordinal=pangramsFound === 1 ? 'promé' :
+    pangramsFound === 2 ? 'di dos' :
+    pangramsFound === 3 ? 'di tres' : pangramsFound + 'de';
+  if(pangramsFound > 1){
+    ACTION_SOUND.encore();
+  }
+  queueCelebration({
+    type:'pangram',
+    icon:'★',
+    kicker:'Pangrama',
+    titleHtml:'Bo a haña <strong>' + escapeAmigaHtml(result.display || result.word) + '</strong>!',
+    compliment:pangramsFound > 1
+      ? 'Esaki ta bo ' + ordinal + ' pangrama di awe, bo bista pa palabra ta imbatibel!'
+      : 'Bo a usa tur 7 lèter i a dominá henter e hive!',
+    chips:['+' + result.points + ' punto', pangramsFound + ' / ' + P.pangrams.size + ' pangrama'],
+    duration:1650
+  });
 }
 
 
@@ -38544,6 +38699,8 @@ const ACTION_SOUND = (() => {
   return {
     correct(){ SOUND.word(); },
     special(){ SOUND.pangram(); },
+    encore(){ SOUND.pangramEncore(); },
+    rank(){ SOUND.rankUp(); },
     invalid(){ SOUND.invalid(); },
     complete(){ SOUND.complete(); }
   };
@@ -38611,7 +38768,10 @@ const RANK_UP_MESSAGES = {
 };
 
 
-let rankUpTimer = null;
+let celebrationQueue = [];
+let celebrationBusy = false;
+let celebrationHideTimer = null;
+let celebrationAdvanceTimer = null;
 
 
 /* ==========================================================
@@ -38681,14 +38841,15 @@ function getRankUpOverlay(){
       </div>
 
       <div class="rank-up-title">
-        Bo a yega na
-        <strong id="rankUpName"></strong>!
+        <span id="rewardTitle"></span>
       </div>
 
       <div
         class="rank-up-compliment"
         id="rankUpCompliment">
       </div>
+
+      <div class="reward-chips" id="rewardChips"></div>
 
     </div>
   `;
@@ -38697,6 +38858,12 @@ function getRankUpOverlay(){
   document.body.appendChild(
     overlay
   );
+
+  overlay.addEventListener('click', () => {
+    if(overlay.classList.contains('show')){
+      dismissCelebration();
+    }
+  });
 
 
   return overlay;
@@ -38707,7 +38874,7 @@ function getRankUpOverlay(){
    SHOW CELEBRATION
 ========================================================== */
 
-function showRankUp(rankName){
+function showRankUpLegacy(rankName){
 
   const message =
     RANK_UP_MESSAGES[
@@ -38794,6 +38961,84 @@ function showRankUp(rankName){
       1900
     );
 
+}
+
+function escapeAmigaHtml(value){
+  const div=document.createElement('div');
+  div.textContent=value;
+  return div.innerHTML;
+}
+
+function queueCelebration(data){
+  celebrationQueue.push(data);
+  if(!celebrationBusy){
+    advanceCelebrationQueue();
+  }
+}
+
+function advanceCelebrationQueue(){
+  clearTimeout(celebrationHideTimer);
+  clearTimeout(celebrationAdvanceTimer);
+  if(!celebrationQueue.length){
+    celebrationBusy=false;
+    return;
+  }
+  celebrationBusy=true;
+  renderCelebration(celebrationQueue.shift());
+}
+
+function dismissCelebration(){
+  const overlay=document.getElementById('rankUpOverlay');
+  if(!overlay){ return; }
+  clearTimeout(celebrationHideTimer);
+  overlay.classList.remove('show');
+  clearTimeout(celebrationAdvanceTimer);
+  celebrationAdvanceTimer=setTimeout(advanceCelebrationQueue,220);
+}
+
+function renderCelebration(data){
+  const overlay=getRankUpOverlay();
+  overlay.className='rank-up-overlay theme-' + data.type;
+  $('rankUpIcon').textContent=data.icon || '★';
+  $('rewardKicker').textContent=data.kicker || '';
+  $('rewardTitle').innerHTML=data.titleHtml || '';
+  $('rankUpCompliment').textContent=data.compliment || '';
+  const chips=$('rewardChips');
+  chips.innerHTML='';
+  (data.chips || []).forEach(text=>{
+    const chip=document.createElement('span');
+    chip.className='reward-chip';
+    chip.textContent=text;
+    chips.appendChild(chip);
+  });
+  chips.style.display=data.chips && data.chips.length ? '' : 'none';
+  void overlay.offsetWidth;
+  overlay.classList.add('show');
+  if(data.type==='rank'){
+    const rankNameEl=$('rankName');
+    if(rankNameEl){
+      rankNameEl.classList.remove('rank-up-pulse');
+      void rankNameEl.offsetWidth;
+      rankNameEl.classList.add('rank-up-pulse');
+    }
+  }
+  clearTimeout(celebrationHideTimer);
+  celebrationHideTimer=setTimeout(dismissCelebration,data.duration || 1700);
+}
+
+function showRankUp(rankName){
+  const message=RANK_UP_MESSAGES[rankName];
+  if(!message){ return; }
+  ACTION_SOUND.rank();
+  if(navigator.vibrate){ navigator.vibrate([25,40,90]); }
+  queueCelebration({
+    type:'rank',
+    icon:message.icon,
+    kicker:'Rango nobo',
+    titleHtml:'Bo a yega na <strong>' + escapeAmigaHtml(rankName) + '</strong>!',
+    compliment:message.compliment,
+    duration:1900
+  });
 }
 
 
@@ -38958,7 +39203,7 @@ function submit(){
 
       );
 
-      celebratePangram();
+      celebratePangram(result);
 
     }else{
 
