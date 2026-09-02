@@ -41857,20 +41857,12 @@ function enterApp(pageId){
 }
 
 
-$('playBtn').onclick =
+const playButton =
+  $('playBtn');
+
+playButton.addEventListener(
+  'pointerdown',
   () => {
-
-    /*
-      Guests and signed-in players can
-      both enter the game immediately.
-    */
-
-    /*
-      Immediate feedback when Hunga is pressed.
-
-      Uses its own warm pop sound rather than
-      reusing the letter tick.
-    */
     if(
       typeof SOUND !== 'undefined' &&
       SOUND &&
@@ -41878,9 +41870,17 @@ $('playBtn').onclick =
     ){
       SOUND.hunga();
     }
+  },
+  { passive:true }
+);
 
+playButton.onclick =
+  () => {
 
-
+    /*
+      Guests and signed-in players can
+      both enter the game immediately.
+    */
     enterApp(
       'gamePage'
     );
