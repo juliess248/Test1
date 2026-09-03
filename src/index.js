@@ -1783,7 +1783,8 @@ export default class extends WorkerEntrypoint {
         cached.source === "verified_dictionary" ||
         cached.source === "owner_approved" ||
         cached.definition_source === "verified_dictionary" ||
-        cached.definition_source === "owner_approved"
+        cached.definition_source === "owner_approved" ||
+        cached.definition_source === "owner_supplied"
       )) {
         return json({ word, ...cached, definitionNl: cached.definition, cached: true }, 200);
       }
