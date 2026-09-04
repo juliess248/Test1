@@ -434,6 +434,22 @@
   .win-banner .big { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
   .win-banner .small { font-size: 13px; font-weight: 400; font-family: 'Karla', sans-serif; opacity: 0.8; }
 
+  .game-switch-link {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin: 16px auto 0;
+    padding: 8px 4px;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    opacity: .65;
+    text-decoration: underline;
+    text-decoration-color: var(--line);
+    text-underline-offset: 3px;
+  }
+  .game-switch-link:hover { opacity: 1; }
+
   .confetti-container {
     position: fixed;
     left: 0;
@@ -466,15 +482,6 @@
       <h1><span class="highlight">Kaha</span> di Palabra</h1>
 
       <div class="header-actions">
-
-        <a class="header-btn" href="/" aria-label="Hunga Palabra di Kòrsou" title="Hunga Palabra di Kòrsou">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block" aria-hidden="true">
-            <rect x="4" y="4" width="6" height="6" rx="1"></rect>
-            <rect x="14" y="4" width="6" height="6" rx="1"></rect>
-            <rect x="4" y="14" width="6" height="6" rx="1"></rect>
-            <rect x="14" y="14" width="6" height="6" rx="1"></rect>
-          </svg>
-        </a>
 
         <button class="header-btn" id="btnInfo" aria-label="Informashon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
@@ -529,6 +536,8 @@
     <div class="big">Bon trabou! 🎉</div>
     <div class="small" id="winDetail"></div>
   </div>
+
+  <a class="game-switch-link" href="/?play=1">Hunga Palabra di Kòrsou</a>
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop">
