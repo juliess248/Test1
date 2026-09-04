@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="pap">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaha di Palabra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* PALETA — KÒRSOU / HANDELSKADE (matches palabradikorsou.com) */
+  :root {
+    --ink: #081F36;
+    --flag: #F9E300;
+    --curacao: #0F9FE0;
+    --ochre: #E8A33D;
+    --coral: #D96A5B;
+    --mint: #6FBFA8;
+    --rose: #DE9AA6;
+    --sand: #F0E4D0;
+    --white: #FFFFFF;
+    --ink-fixed: #081F36; /* stays navy in both light and dark mode, for outlines that need to read against yellow either way */
+    --overlay: 8, 31, 54; /* rgb triple for header-btn's rgba() backgrounds, matches the main site */
+    --line: rgba(var(--overlay), .12);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #F0E4D0;
+      --curacao: #29B6F0;
+      --white: #10202F;
+      --sand: #16283A;
+      --overlay: 237, 231, 220;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--white);
+    color: var(--ink);
+    font-family: 'Karla', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh; /* dynamic viewport height — avoids the mobile-Safari address-bar scroll bug */
+    display: flex;
+    justify-content: center;
+    padding: 20px 16px 40px;
+    background-image: radial-gradient(var(--sand) 1px, transparent 1px);
+    background-size: 24px 24px;
+    touch-action: manipulation; /* disables double-tap-to-zoom, reduces accidental gesture conflicts */
+    overscroll-behavior: none; /* reduces rubber-band scroll while dragging near page edges */
+  }
+
+  .app {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: 30px;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+  h1 .highlight {
+    color: var(--flag);
+    text-shadow:
+      -1px -1px 0 var(--ink-fixed),
+      1px -1px 0 var(--ink-fixed),
+      -1px 1px 0 var(--ink-fixed),
+      1px 1px 0 var(--ink-fixed);
+  }
+
+  .puzzle-date {
+    margin: 6px 0 0;
+    color: rgba(var(--overlay), .62);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  /* header-actions / header-btn: matches palabradikorsou.com's game-page
+     header row exactly (info / settings / feedback circle icon buttons) */
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .header-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: rgba(var(--overlay), .05);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: transform .15s, background .15s;
+  }
+  .header-btn:hover {
+    background: rgba(var(--overlay), .12);
+  }
+  .header-btn:active {
+    transform: scale(.92);
+  }
+  .header-btn[aria-pressed="true"] {
+    background: rgba(var(--overlay), .12);
+    color: var(--sand);
+  }
+
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 31, 54, 0.55);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 50;
+  }
+  .modal-backdrop.show { display: flex; }
+
+  .modal-card {
+    position: relative;
+    background: var(--white);
+    border-radius: 20px;
+    padding: 26px 22px 22px;
+    max-width: 340px;
+    width: 100%;
+    box-shadow: 0 12px 32px rgba(8, 31, 54, 0.25);
+  }
+
+  .modal-card h2 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    margin: 0 0 12px;
+    color: var(--ink);
+  }
+
+  .modal-card p {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink);
+    margin: 0 0 12px;
+  }
+  .modal-card p strong { color: var(--curacao); }
+
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--sand);
+    color: var(--ink);
+    font-size: 13px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-start {
+    width: 100%;
+    margin-top: 6px;
+  }
+
+  .board-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 22px;
+  }
+
+  svg { overflow: visible; touch-action: none; user-select: none; }
+
+  .trace-line {
+    fill: none;
+    stroke: var(--curacao);
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+  }
+  .trace-line.pulse { animation: line-spring 0.22s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes line-spring {
+    0% { stroke-width: 6; }
+    100% { stroke-width: 3.5; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .trace-line.pulse { animation: none; }
+  }
+
+  /* larger circle tiles + generous gaps, especially at corners */
+  .dot {
+    fill: var(--white);
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    cursor: pointer;
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: filter 0.12s ease, stroke-width 0.12s ease;
+  }
+  .dot:hover { filter: brightness(1.14); }
+  /* completed letters use mint, not flag-yellow — flag is reserved for the win banner only,
+     so there's no ambiguity between "done" and "you just won" states */
+  .dot.used-letter { fill: var(--mint); stroke: var(--mint); }
+  .dot.active { fill: var(--curacao); stroke: var(--curacao); stroke-width: 0; }
+  .dot.active.last-tapped { animation: tap-pulse 0.18s ease; }
+  @keyframes tap-pulse {
+    0% { filter: brightness(1.35); transform: scale(1.15); }
+    100% { filter: brightness(1); transform: scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dot.active.last-tapped { animation: none; }
+  }
+
+  /* pulsing hint on the letters a new word must start with (the previous word's
+     ending) — mainly relevant if the player deletes the auto-filled starting
+     letters and wants a reminder of what's required */
+  .dot.hint-start {
+    animation: hint-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes hint-pulse {
+    0%, 100% { filter: drop-shadow(0 0 0px rgba(232, 163, 61, 0)); }
+    50% { filter: drop-shadow(0 0 6px var(--ochre)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dot.hint-start { animation: none; }
+  }
+
+  .letter-label {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 23px;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* current word shown as tile chips, echoing the board's circles */
+  .current-word {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    margin-bottom: 6px;
+  }
+  .current-word .placeholder {
+    font-size: 13px;
+    color: var(--ink);
+    opacity: 0.45;
+    font-family: 'Karla', sans-serif;
+  }
+  .letter-tile {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: var(--curacao);
+    color: var(--white);
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: tile-pop 0.18s ease;
+  }
+  /* letters auto-filled from the previous word's ending — outlined instead of
+     solid so it's visually clear they weren't typed by the player just now */
+  .letter-tile.chained {
+    background: var(--white);
+    color: var(--ink);
+    border: 2px dashed var(--ochre);
+  }
+  @keyframes tile-pop {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .letter-tile { animation: none; }
+  }
+
+  .current-word-wrap.shake { animation: shake 0.3s ease; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .current-word-wrap.shake { animation: none; }
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  button {
+    font-family: 'Karla', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    border-radius: 999px;
+    padding: 11px 22px;
+    cursor: pointer;
+    transition: transform 0.08s ease, opacity 0.15s ease, filter 0.12s ease;
+  }
+  button:active:not(:disabled) { transform: scale(0.97); }
+  button:hover:not(:disabled) { filter: brightness(1.08); }
+  button:disabled { opacity: 0.35; cursor: default; }
+
+  .btn-ghost { background: var(--sand); color: var(--ink); }
+  .btn-enter { background: var(--curacao); color: var(--white); }
+
+  .message {
+    text-align: center;
+    font-size: 13px;
+    min-height: 18px;
+    margin-bottom: 16px;
+    color: var(--ink);
+    opacity: 0.75;
+    font-weight: 700;
+  }
+  .message.ok { color: var(--curacao); opacity: 1; }
+
+  .progress-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--sand);
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--curacao);
+    border-radius: 999px;
+    transition: width 0.25s ease;
+  }
+  .progress-label {
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink);
+    opacity: 0.75;
+    margin-bottom: 18px;
+  }
+  .progress-label strong { opacity: 1; color: var(--curacao); }
+
+  .found-words {
+    background: var(--white);
+    border: 1px solid var(--sand);
+    border-radius: 16px;
+    padding: 14px 16px;
+  }
+
+  .found-words h2 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    color: var(--ink);
+  }
+
+  .found-words ol {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 15px;
+    line-height: 1.9;
+  }
+  .found-words li.pop { animation: pop 0.35s ease; }
+  @keyframes pop {
+    0% { transform: scale(0.9); opacity: 0.4; }
+    60% { transform: scale(1.04); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .found-words li.pop { animation: none; }
+  }
+  .found-words li span.overlap {
+    color: var(--curacao);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .found-words .empty {
+    font-size: 13px;
+    color: var(--sand);
+    list-style: none;
+    padding-left: 0;
+    font-style: italic;
+  }
+
+  .win-banner {
+    display: none;
+    text-align: center;
+    background: var(--flag);
+    color: var(--ink);
+    border-radius: 16px;
+    padding: 18px;
+    margin-top: 18px;
+    font-family: 'Bricolage Grotesque', sans-serif;
+  }
+  .win-banner.show { display: block; animation: pop 0.4s ease; }
+  .win-banner .big { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .win-banner .small { font-size: 13px; font-weight: 400; font-family: 'Karla', sans-serif; opacity: 0.8; }
+
+  .confetti-container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .confetti-piece {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    animation: confetti-burst 0.6s ease-out forwards;
+  }
+  @keyframes confetti-burst {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .confetti-piece { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title-row">
+      <h1><span class="highlight">Kaha</span> di Palabra</h1>
+
+      <div class="header-actions">
+
+        <button class="header-btn" id="btnInfo" aria-label="Informashon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2.2-2.4 3.7"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+        </button>
+
+        <button class="header-btn" id="btnSoundToggle" type="button" aria-label="Pagá zonido" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-2.83 2.83-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21h-4v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06-2.83-2.83.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3v-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06 2.83-2.83.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3h4v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06 2.83 2.83-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21v4h-.09A1.65 1.65 0 0 0 19.4 15z"></path>
+          </svg>
+        </button>
+
+        <button class="header-btn" id="btnFeedback" type="button" aria-label="Duna feedback">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
+            <path d="M21 11.5a8.38 8.38 0 0 1-8.85 8.38a8.5 8.5 0 0 1-3.15-.62L3 20l1.3-3.9a8.38 8.38 0 0 1-.62-3.15a8.5 8.5 0 0 1 8.38-8.85h.14a8.44 8.44 0 0 1 8.5 8.34z"></path>
+          </svg>
+        </button>
+
+      </div>
+    </div>
+    <p class="puzzle-date" id="puzzleDate"></p>
+  </header>
+
+  <div class="board-wrap">
+    <svg id="board" width="360" height="360" viewBox="0 0 360 360"></svg>
+  </div>
+
+  <div class="current-word-wrap" id="currentWordWrap">
+    <div class="current-word" id="currentWord"><span class="placeholder">Toka òf tipa un delegra pa kuminsá</span></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-ghost" id="btnDelete">Bora</button>
+    <button class="btn-enter" id="btnEnter">Manda</button>
+  </div>
+
+  <div class="message" id="message"></div>
+
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-label" id="progress"></div>
+
+  <div class="found-words">
+    <h2>Palabra hañá</h2>
+    <ol id="foundList"><li class="empty">Ainda ningun palabra</li></ol>
+  </div>
+
+  <div class="win-banner" id="winBanner">
+    <div class="big">Bon trabou! 🎉</div>
+    <div class="small" id="winDetail"></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal-card">
+    <button class="modal-close" id="modalClose" aria-label="Sera">✕</button>
+    <h2>Kon hunga</h2>
+    <p>Usa tur 12 delegra. Traha e menos palabra posibel.</p>
+    <p><strong>Regla:</strong> e proksimo palabra mester kuminsá ku e último 2 òf 3 delegra di e palabra anterior — no ku ún delegra so, manera Letter Boxed original.</p>
+    <p>Drag òf tapa e delegranan — òf simplemente tipa nan riba bo teklado.</p>
+    <button class="btn-enter modal-start" id="modalStart">Kuminsá</button>
+  </div>
+</div>
+
+<script>
+// ---------- Puzzle data (from generate_batch.js output) ----------
+const BASE_SIDES = [
+  ['e', 'b', 'h'],
+  ['t', 'k', 's'],
+  ['r', 'd', 'n'],
+  ['u', 'i', 'a'],
+];
+
+let ALL_WORDS = ["ariba","baha","baranka","baru","basha","biba","bibida","bishita","bishu","brisa","buni","bunita","buriku","bushi","buta","dabudabu","dansa","dara","dashi","dushi","kabritu","kadushi","kanan","kanari","kanta","kas","kubata","kubri","kuku","kunuku","nabu","nada","nanishi","nanka","rabu","ratu","reda","ruta","rutina","sabana","sabi","sanka","shabi","shara","shibaru","shibi","shina","shuku","sinku","tabata","tabu","tabuku","tanki","tasa","tata","teki","trenta","tur","turu"];
+
+let WORD_SET = new Set();
+const MATCH_LENS = [3, 2];
+const PROGRESS_KEY = 'kahaDiPalabraProgress';
+
+// ---------- Sound (same synthesized Web Audio approach as the main game —
+// no audio files, oscillator-based, positive-only: errors stay silent) ----------
+let audioCtx = null;
+let soundEnabled = true;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playTone(freqStart, freqEnd, duration, gainValue) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freqStart, ctx.currentTime);
+    if (freqEnd !== freqStart) {
+      osc.frequency.linearRampToValueAtTime(freqEnd, ctx.currentTime + duration);
+    }
+    gain.gain.setValueAtTime(gainValue, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch (e) {
+    // Web Audio unavailable/blocked — fail silently, sound is a nice-to-have
+  }
+}
+
+function playTapSound() {
+  playTone(660, 660, 0.05, 0.15);
+}
+function playDeleteSound() {
+  playTone(320, 180, 0.1, 0.1);
+}
+function playSuccessSound() {
+  playTone(523, 523, 0.09, 0.2);
+  setTimeout(() => playTone(659, 659, 0.11, 0.2), 90);
+}
+function playStartSound() {
+  // a cheerful little three-note upward skip to kick off the game
+  playTone(440, 440, 0.08, 0.18);
+  setTimeout(() => playTone(554, 554, 0.08, 0.18), 80);
+  setTimeout(() => playTone(659, 659, 0.14, 0.2), 160);
+}
+
+// ---------- Geometry ----------
+// Larger board + wider gaps (including at corners) than a naive equal split
+const SIZE = 360;
+const PAD = 66;
+const INNER = SIZE - PAD * 2;
+const DOT_R = 22;
+const HIT_RADIUS = 34; // generous distance-based hit test for drag, covers gaps between dots
+
+function sidePositions() {
+  const pts = [];
+  const top = PAD, bottom = SIZE - PAD, left = PAD, right = SIZE - PAD;
+  const step = INNER / 3;
+  for (let i = 0; i < 3; i++) pts.push({ side: 0, x: left + step * (i + 0.5), y: top });
+  for (let i = 0; i < 3; i++) pts.push({ side: 1, x: right, y: top + step * (i + 0.5) });
+  for (let i = 0; i < 3; i++) pts.push({ side: 2, x: right - step * (i + 0.5), y: bottom });
+  for (let i = 0; i < 3; i++) pts.push({ side: 3, x: left, y: bottom - step * (i + 0.5) });
+  return pts;
+}
+
+const positions = sidePositions();
+let letterMeta = [];
+let letterToIndex = new Map();
+
+function gameDate() {
+  return new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(new Date());
+}
+
+function seededRandom(seedText) {
+  let seed = 0;
+  for (let index = 0; index < seedText.length; index++) {
+    seed = (seed * 31 + seedText.charCodeAt(index)) >>> 0;
+  }
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let value = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffle(items, random) {
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index--) {
+    const other = Math.floor(random() * (index + 1));
+    [copy[index], copy[other]] = [copy[other], copy[index]];
+  }
+  return copy;
+}
+
+function canUseWord(word, sideByLetter) {
+  let previousSide = -1;
+  for (const letter of word) {
+    const side = sideByLetter.get(letter);
+    if (side === undefined || side === previousSide) return false;
+    previousSide = side;
+  }
+  return true;
+}
+
+function isChainable(words) {
+  const explore = (chain, lettersUsed) => {
+    if (lettersUsed.size === 12) return chain;
+    if (chain.length === 6) return null;
+    const lastWord = chain[chain.length - 1];
+    for (const word of words) {
+      if (chain.includes(word)) continue;
+      if (!MATCH_LENS.some(length => lastWord.endsWith(word.slice(0, length)))) continue;
+      const result = explore([...chain, word], new Set([...lettersUsed, ...word]));
+      if (result) return result;
+    }
+    return null;
+  };
+  return words.some(word => explore([word], new Set(word)));
+}
+
+function puzzleForDate(date) {
+  const random = seededRandom('kaha-di-palabra-' + date);
+  const baseLetters = BASE_SIDES.flat();
+  for (let attempt = 0; attempt < 500; attempt++) {
+    const letters = shuffle(baseLetters, random);
+    const sides = [letters.slice(0, 3), letters.slice(3, 6), letters.slice(6, 9), letters.slice(9, 12)];
+    const sideByLetter = new Map(sides.flatMap((side, index) => side.map(letter => [letter, index])));
+    const usableWords = ALL_WORDS.filter(word => canUseWord(word, sideByLetter));
+    if (usableWords.length >= 6 && isChainable(usableWords)) return { sides, usableWords };
+  }
+  const sideByLetter = new Map(BASE_SIDES.flatMap((side, index) => side.map(letter => [letter, index])));
+  return { sides: BASE_SIDES, usableWords: ALL_WORDS.filter(word => canUseWord(word, sideByLetter)) };
+}
+
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {}; } catch { return {}; }
+}
+
+function saveProgress() {
+  const progress = loadProgress();
+  progress[currentDate] = { found: foundWords.map(entry => entry.word), completed: usedLetters.size === 12 };
+  localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+}
+
+function normaliseWord(value) {
+  return String(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+async function loadSharedWords() {
+  try {
+    const response = await fetch('/api/words');
+    const data = response.ok ? await response.json() : null;
+    if (!data || !Array.isArray(data.words)) return;
+
+    const words = new Set(
+      data.words
+        .map(normaliseWord)
+        .filter(word => word.length >= 3 && word.length <= 9 && /^[a-z]+$/.test(word))
+    );
+
+    if (words.size) ALL_WORDS = [...words];
+  } catch {
+    // Offline play uses the local seed list.
+  }
+}
+
+// ---------- State ----------
+let trace = [];
+let foundWords = [];
+let usedLetters = new Set();
+let lastSubmittedWord = null; // used to hint the required starting letters if trace is emptied
+let chainedCount = 0; // how many entries at the START of trace were auto-filled from the previous word
+let dragging = false;
+let dragAddedCount = 0;
+let lastPointerOverIdx = -1;
+const currentDate = gameDate();
+
+const svg = document.getElementById('board');
+const currentWordEl = document.getElementById('currentWord');
+const currentWordWrapEl = document.getElementById('currentWordWrap');
+const messageEl = document.getElementById('message');
+const progressEl = document.getElementById('progress');
+const progressFillEl = document.getElementById('progressFill');
+const foundListEl = document.getElementById('foundList');
+const winBanner = document.getElementById('winBanner');
+const winDetail = document.getElementById('winDetail');
+const modalBackdrop = document.getElementById('modalBackdrop');
+
+function openModal() {
+  modalBackdrop.classList.add('show');
+}
+function closeModal() {
+  modalBackdrop.classList.remove('show');
+}
+document.getElementById('btnInfo').addEventListener('click', openModal);
+
+const btnSoundToggle = document.getElementById('btnSoundToggle');
+btnSoundToggle.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  btnSoundToggle.setAttribute('aria-pressed', String(!soundEnabled));
+  btnSoundToggle.setAttribute('aria-label', soundEnabled ? 'Pagá zonido' : 'Prendé zonido');
+  if (soundEnabled) playTapSound(); // quick confirmation blip that sound is back on
+});
+
+document.getElementById('btnFeedback').addEventListener('click', () => {
+  const message = window.prompt('Bo opinion tokante e wega (demo — no ta wòrdu mandá na niun lugá):');
+  if (message && message.trim()) {
+    flashMessage('Danki pa bo opinion!', true);
+  }
+});
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modalStart').addEventListener('click', () => {
+  playStartSound();
+  closeModal();
+});
+modalBackdrop.addEventListener('click', (e) => {
+  if (e.target === modalBackdrop) closeModal();
+});
+
+// ---------- Board: built ONCE, then only attributes/classes are updated ----------
+// (avoids svg.innerHTML='' on every render, which was causing layout
+// recalcs and breaking CSS transitions on every keystroke/drag tick)
+let dotEls = [];
+let labelEls = [];
+let traceLineEl;
+
+function initBoard() {
+  svg.innerHTML = '';
+
+  const outline = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  outline.setAttribute('x', PAD);
+  outline.setAttribute('y', PAD);
+  outline.setAttribute('width', INNER);
+  outline.setAttribute('height', INNER);
+  outline.setAttribute('rx', 18);
+  outline.setAttribute('fill', 'none');
+  outline.setAttribute('stroke', '#F0E4D0');
+  outline.setAttribute('stroke-width', '1.5');
+  svg.appendChild(outline);
+
+  traceLineEl = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+  traceLineEl.setAttribute('class', 'trace-line');
+  traceLineEl.setAttribute('points', '');
+  svg.appendChild(traceLineEl);
+
+  letterMeta.forEach((m, i) => {
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', m.x);
+    circle.setAttribute('cy', m.y);
+    circle.setAttribute('r', DOT_R);
+    circle.setAttribute('class', 'dot');
+    circle.dataset.letterIndex = i;
+    circle.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      startDrag(i);
+    });
+    svg.appendChild(circle);
+    dotEls[i] = circle;
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', m.x);
+    label.setAttribute('y', m.y);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('dominant-baseline', 'central');
+    label.setAttribute('alignment-baseline', 'central'); // Safari fallback
+    label.setAttribute('class', 'letter-label');
+    label.style.fill = 'var(--ink)';
+    label.textContent = m.ch.toUpperCase();
+    label.style.pointerEvents = 'none';
+    svg.appendChild(label);
+    labelEls[i] = label;
+  });
+}
+
+function render() {
+  // trace line
+  if (trace.length > 1) {
+    const pts = trace.map((i) => `${letterMeta[i].x},${letterMeta[i].y}`).join(' ');
+    traceLineEl.setAttribute('points', pts);
+  } else {
+    traceLineEl.setAttribute('points', '');
+  }
+
+  const lastTraceIdx = trace[trace.length - 1];
+
+  // which dots to pulse as "you must start here" — only relevant when the
+  // trace is empty (i.e. the auto-filled starting letters were deleted)
+  let hintIdxSet = new Set();
+  if (trace.length === 0 && lastSubmittedWord) {
+    const tailLen = Math.min(2, lastSubmittedWord.length);
+    lastSubmittedWord.slice(-tailLen).split('').forEach((ch) => {
+      if (letterToIndex.has(ch)) hintIdxSet.add(letterToIndex.get(ch));
+    });
+  }
+
+  letterMeta.forEach((m, i) => {
+    const isActive = trace.includes(i);
+    const isUsed = usedLetters.has(m.ch) && !isActive;
+    const isLastTapped = i === lastTraceIdx;
+    const isHintStart = hintIdxSet.has(i);
+
+    const newClass =
+      'dot' +
+      (isActive ? ' active' : '') +
+      (isUsed ? ' used-letter' : '') +
+      (isActive && isLastTapped ? ' last-tapped' : '') +
+      (isHintStart ? ' hint-start' : '');
+
+    const circle = dotEls[i];
+    if (circle.getAttribute('class') !== newClass) circle.setAttribute('class', newClass);
+    labelEls[i].style.fill = isActive ? 'var(--white)' : 'var(--ink)';
+  });
+
+  if (trace.length === 0) {
+    currentWordEl.innerHTML = '<span class="placeholder">Toka òf tipa un delegra pa kuminsá</span>';
+  } else {
+    currentWordEl.innerHTML = '';
+    trace.forEach((i, pos) => {
+      const tile = document.createElement('div');
+      tile.className = 'letter-tile' + (pos < chainedCount ? ' chained' : '');
+      tile.textContent = letterMeta[i].ch.toUpperCase();
+      currentWordEl.appendChild(tile);
+    });
+  }
+
+  document.getElementById('btnDelete').disabled = trace.length === 0;
+  document.getElementById('btnEnter').disabled = trace.length < 3;
+
+  const remaining = 12 - usedLetters.size;
+  progressFillEl.style.width = `${(usedLetters.size / 12) * 100}%`;
+  progressEl.innerHTML = remaining === 0
+    ? '<strong>Tur 12 delegra kompletá!</strong>'
+    : `<strong>${usedLetters.size}/12</strong> delegra usá — ${remaining} restu`;
+
+  foundListEl.innerHTML = '';
+  if (foundWords.length === 0) {
+    foundListEl.innerHTML = '<li class="empty">Ainda ningun palabra</li>';
+  } else {
+    foundWords.forEach((f, idx) => {
+      const li = document.createElement('li');
+      const overlapNote = idx === 0 ? '' : ` <span class="overlap">(${f.overlapLen} delegra)</span>`;
+      li.innerHTML = f.word.toUpperCase() + overlapNote;
+      if (idx === foundWords.length - 1) li.classList.add('pop');
+      foundListEl.appendChild(li);
+    });
+  }
+
+  if (remaining === 0) {
+    winBanner.classList.add('show');
+    winDetail.textContent = `Bo a gana ku ${foundWords.length} palabra.`;
+  }
+}
+
+// Returns true if the letter was actually appended to the trace
+function tryAddLetter(i) {
+  const m = letterMeta[i];
+  const last = trace[trace.length - 1];
+
+  if (trace.length === 0) {
+    trace.push(i);
+    playTapSound();
+    return true;
+  }
+  if (last === i) {
+    return false; // hovering/tapping the same dot again — no-op
+  }
+  if (letterMeta[last].side === m.side) {
+    triggerShake();
+    return false;
+  }
+  trace.push(i);
+  if (trace.length > 1) pulseTraceLine();
+  playTapSound();
+  return true;
+}
+
+function pulseTraceLine() {
+  traceLineEl.classList.remove('pulse');
+  void traceLineEl.getBoundingClientRect(); // restart animation
+  traceLineEl.classList.add('pulse');
+}
+
+function startDrag(i) {
+  dragging = true;
+  dragAddedCount = 0;
+  lastPointerOverIdx = i;
+  const added = tryAddLetter(i);
+  if (added) dragAddedCount++;
+  clearMessage();
+  render();
+}
+
+// Converts a client (screen) coordinate into the SVG's own viewBox coordinate
+// space, so hit-testing is correct regardless of any CSS scaling of the SVG.
+function getSvgPoint(clientX, clientY) {
+  const pt = svg.createSVGPoint();
+  pt.x = clientX;
+  pt.y = clientY;
+  const ctm = svg.getScreenCTM();
+  if (!ctm) return { x: clientX, y: clientY };
+  const transformed = pt.matrixTransform(ctm.inverse());
+  return { x: transformed.x, y: transformed.y };
+}
+
+// Distance-based hit test instead of elementFromPoint — a fast drag can move
+// the pointer over empty space between dots on every animation frame, and
+// elementFromPoint only registers a hit when the pointer is exactly over a
+// circle's painted area. Checking distance-to-center against a generous
+// radius catches those in-between frames too.
+function findNearestDot(svgX, svgY) {
+  let nearestIdx = -1;
+  let nearestDist = Infinity;
+  letterMeta.forEach((m, i) => {
+    const d = Math.hypot(m.x - svgX, m.y - svgY);
+    if (d < nearestDist) {
+      nearestDist = d;
+      nearestIdx = i;
+    }
+  });
+  return nearestDist <= HIT_RADIUS ? nearestIdx : -1;
+}
+
+function onPointerMove(e) {
+  if (!dragging) return;
+  const { x, y } = getSvgPoint(e.clientX, e.clientY);
+  const idx = findNearestDot(x, y);
+  if (idx === -1 || idx === lastPointerOverIdx) return;
+  lastPointerOverIdx = idx;
+  const added = tryAddLetter(idx);
+  if (added) dragAddedCount++;
+  render();
+}
+
+function onPointerUp() {
+  if (!dragging) return;
+  dragging = false;
+  lastPointerOverIdx = -1;
+  if (dragAddedCount >= 3) {
+    // a real drag spanning a full word auto-submits, like the original game
+    submitWord();
+  }
+  dragAddedCount = 0;
+}
+
+document.addEventListener('pointermove', onPointerMove);
+document.addEventListener('pointerup', onPointerUp);
+document.addEventListener('pointercancel', onPointerUp);
+
+function triggerShake() {
+  currentWordWrapEl.classList.remove('shake');
+  void currentWordWrapEl.offsetWidth; // restart animation
+  currentWordWrapEl.classList.add('shake');
+  if (navigator.vibrate) navigator.vibrate(50);
+}
+
+function flashMessage(text, ok) {
+  messageEl.textContent = text;
+  messageEl.classList.toggle('ok', !!ok);
+  if (!ok) triggerShake();
+}
+
+function clearMessage() {
+  messageEl.textContent = '';
+  messageEl.classList.remove('ok');
+}
+
+const CONFETTI_COLORS = ['var(--curacao)', 'var(--mint)', 'var(--ochre)', 'var(--coral)', 'var(--rose)', 'var(--flag)'];
+
+function spawnConfetti(clientX, clientY) {
+  const container = document.createElement('div');
+  container.className = 'confetti-container';
+  container.style.left = `${clientX}px`;
+  container.style.top = `${clientY}px`;
+  document.body.appendChild(container);
+
+  const pieceCount = 10;
+  for (let n = 0; n < pieceCount; n++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const angle = (Math.PI * 2 * n) / pieceCount + Math.random() * 0.5;
+    const distance = 30 + Math.random() * 26;
+    piece.style.setProperty('--tx', `${Math.cos(angle) * distance}px`);
+    piece.style.setProperty('--ty', `${Math.sin(angle) * distance}px`);
+    piece.style.setProperty('--rot', `${Math.random() * 360}deg`);
+    piece.style.background = CONFETTI_COLORS[n % CONFETTI_COLORS.length];
+    container.appendChild(piece);
+  }
+
+  setTimeout(() => container.remove(), 650);
+}
+
+let lastDeleteClickTime = 0;
+document.getElementById('btnDelete').addEventListener('click', () => {
+  const now = Date.now();
+  if (now - lastDeleteClickTime < 350 && trace.length > chainedCount) {
+    // double-tap: snap back to the chained starting letters, not fully empty
+    trace = trace.slice(0, chainedCount);
+  } else {
+    trace.pop();
+    if (trace.length < chainedCount) chainedCount = trace.length;
+  }
+  lastDeleteClickTime = now;
+  playDeleteSound();
+  clearMessage();
+  render();
+});
+
+document.getElementById('btnEnter').addEventListener('click', submitWord);
+
+document.addEventListener('keydown', (e) => {
+  const key = e.key.toLowerCase();
+
+  if (key === 'escape' && modalBackdrop.classList.contains('show')) {
+    closeModal();
+    return;
+  }
+  if (key === 'backspace') {
+    e.preventDefault();
+    trace.pop();
+    if (trace.length < chainedCount) chainedCount = trace.length;
+    playDeleteSound();
+    clearMessage();
+    render();
+    return;
+  }
+  if (key === 'enter') {
+    e.preventDefault();
+    submitWord();
+    return;
+  }
+  if (key === 'escape') {
+    trace = [];
+    chainedCount = 0;
+    clearMessage();
+    render();
+    return;
+  }
+  if (letterToIndex.has(key)) {
+    tryAddLetter(letterToIndex.get(key));
+    clearMessage();
+    render();
+  }
+});
+
+function submitWord() {
+  const word = trace.map((i) => letterMeta[i].ch).join('');
+
+  if (word.length < 3) {
+    flashMessage('Palabra mester tin op lo menos 3 delegra', false);
+    return;
+  }
+  if (!WORD_SET.has(word)) {
+    flashMessage(`"${word.toUpperCase()}" no ta den e diksionario`, false);
+    return;
+  }
+  if (foundWords.some((f) => f.word === word)) {
+    flashMessage('Bo a usa e palabra aki kaba', false);
+    return;
+  }
+
+  let overlapLen = 0;
+  if (foundWords.length > 0) {
+    const prevWord = foundWords[foundWords.length - 1].word;
+    for (const len of MATCH_LENS) {
+      if (prevWord.length >= len && word.length >= len && prevWord.slice(-len) === word.slice(0, len)) {
+        overlapLen = len;
+        break;
+      }
+    }
+    if (overlapLen === 0) {
+      flashMessage(`Mester kuminsá ku e último 2 òf 3 delegra di "${prevWord.toUpperCase()}"`, false);
+      return;
+    }
+  }
+
+  foundWords.push({ word, overlapLen });
+  word.split('').forEach((ch) => usedLetters.add(ch));
+  lastSubmittedWord = word;
+
+  // capture the last tile's on-screen position for the confetti burst
+  // BEFORE render() replaces these tiles with the next word's preload
+  const lastTileEl = currentWordEl.lastElementChild;
+  let confettiPos = null;
+  if (lastTileEl) {
+    const rect = lastTileEl.getBoundingClientRect();
+    confettiPos = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  }
+
+  // Preload the next word's required starting letters (the last 2 of this
+  // one) instead of clearing the trace — matches the original Letter Boxed
+  // behavior of carrying the connecting letter(s) forward automatically.
+  // 2 (not 3) is used here specifically because it's always a valid prefix
+  // whether the *next* submission ends up using a 2- or 3-letter overlap —
+  // preloading 3 could force the player to delete a letter if they intended
+  // a 2-letter overlap instead.
+  const tailLen = Math.min(2, word.length);
+  trace = word.slice(-tailLen).split('').map((ch) => letterToIndex.get(ch));
+  chainedCount = trace.length;
+
+  flashMessage(foundWords.length === 1 ? 'Bon kuminsamentu!' : '¡Bon!', true);
+  playSuccessSound();
+  render();
+  if (confettiPos) spawnConfetti(confettiPos.x, confettiPos.y);
+  saveProgress();
+}
+
+function startDailyPuzzle() {
+  const puzzle = puzzleForDate(currentDate);
+  const letters = puzzle.sides.flat();
+  letterMeta = letters.map((ch, index) => ({ ch, ...positions[index] }));
+  letterToIndex = new Map(letterMeta.map((meta, index) => [meta.ch, index]));
+  WORD_SET = new Set(puzzle.usableWords);
+
+  const saved = loadProgress()[currentDate];
+  foundWords = [];
+  usedLetters = new Set();
+  let previousWord = null;
+  (saved && Array.isArray(saved.found) ? saved.found : []).forEach(word => {
+    if (!WORD_SET.has(word)) return;
+    const overlapLen = previousWord
+      ? MATCH_LENS.find(length => previousWord.endsWith(word.slice(0, length))) || 0
+      : 0;
+    if (previousWord && !overlapLen) return;
+    foundWords.push({ word, overlapLen });
+    word.split('').forEach(letter => usedLetters.add(letter));
+    previousWord = word;
+  });
+  lastSubmittedWord = previousWord;
+  trace = previousWord
+    ? previousWord.slice(-2).split('').map(letter => letterToIndex.get(letter))
+    : [];
+  chainedCount = trace.length;
+
+  document.getElementById('puzzleDate').textContent = 'WEGA DI AWE · ' + currentDate;
+  initBoard();
+  render();
+}
+
+loadSharedWords().finally(() => {
+  startDailyPuzzle();
+  openModal();
+});
+</script>
+</body>
+</html>

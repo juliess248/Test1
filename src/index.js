@@ -160,6 +160,9 @@ export default class extends WorkerEntrypoint {
     if (url.pathname === "/api/stats" && request.method === "GET") {
       return this.handleStatsGet(request);
     }
+    if (url.pathname === "/api/words" && request.method === "GET") {
+      return this.handleWordsGet();
+    }
     if (url.pathname === "/api/feedback" && request.method === "POST") {
       return this.handleFeedbackPost(request);
     }
@@ -1543,6 +1546,31 @@ export default class extends WorkerEntrypoint {
       pangrams: puzzle.pangrams.map((word) => display[word]),
       definitions: Object.fromEntries(puzzle.answers.map((word) => [word, ""])),
     };
+  }
+
+  async handleWordsGet() {
+    const assetResponse = await this.env.ASSETS.fetch(
+      new Request("https://assets.local/index.html")
+    );
+    if (!assetResponse.ok) {
+      return json({ error: "Could not load the game dictionary" }, 503);
+    }
+
+    const page = await assetResponse.text();
+    const listStart = page.indexOf("const PALABRANAN = [");
+    const arrayStart = page.indexOf("[", listStart);
+    const arrayEnd = page.indexOf("\n];", arrayStart);
+    if (listStart < 0 || arrayStart < 0 || arrayEnd < 0) {
+      return json({ error: "Could not find the game dictionary" }, 500);
+    }
+
+    const words = JSON.parse(page.slice(arrayStart, arrayEnd + 2));
+    return new Response(JSON.stringify({ words }), {
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "public, max-age=3600",
+      },
+    });
   }
 
   async sendTomorrowPuzzleEmail(date = new Date().toISOString().slice(0, 10)) {

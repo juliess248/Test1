@@ -2827,12 +2827,10 @@ header{
 }
 
 #glossaryActions{
-  align-items:center;
   border-top:1px solid var(--line);
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px 16px;
-  justify-content:space-between;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
   margin-top:22px;
   padding-top:14px;
 }
@@ -2841,6 +2839,17 @@ header{
   border-top:0;
   margin-top:0;
   padding-top:0;
+}
+
+#glossaryActions .glossary-source{
+  grid-column:1 / -1;
+}
+
+#glossaryActions .thumbs-up-btn,
+#glossaryActions .report-word-btn{
+  justify-content:center;
+  min-width:0;
+  width:100%;
 }
 
 .glossary-note{
