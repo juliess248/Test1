@@ -108,6 +108,50 @@
     gap: 7px;
   }
 
+  .game-mode-menu {
+    position: relative;
+    margin-left: auto;
+  }
+  .game-mode-menu summary { list-style: none; cursor: pointer; }
+  .game-mode-menu summary::-webkit-details-marker { display: none; }
+  .game-mode-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 7px 9px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(var(--overlay), .05);
+    color: var(--ink);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .game-mode-badge::after { content: '▾'; margin-left: 6px; opacity: .65; }
+  .game-mode-menu[open] .game-mode-badge::after { transform: rotate(180deg); }
+  .game-mode-options {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 20;
+    width: 180px;
+    padding: 5px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--white);
+    box-shadow: 0 10px 24px rgba(var(--overlay), .16);
+  }
+  .game-mode-option {
+    display: block;
+    padding: 9px 10px;
+    border-radius: 6px;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .game-mode-option:hover,
+  .game-mode-option[aria-current="page"] { background: rgba(249, 227, 0, .14); }
+
   .header-btn {
     width: 36px;
     height: 36px;
@@ -434,22 +478,6 @@
   .win-banner .big { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
   .win-banner .small { font-size: 13px; font-weight: 400; font-family: 'Karla', sans-serif; opacity: 0.8; }
 
-  .game-switch-link {
-    display: block;
-    width: max-content;
-    max-width: 100%;
-    margin: 16px auto 0;
-    padding: 8px 4px;
-    color: var(--ink);
-    font-size: 12px;
-    font-weight: 700;
-    opacity: .65;
-    text-decoration: underline;
-    text-decoration-color: var(--line);
-    text-underline-offset: 3px;
-  }
-  .game-switch-link:hover { opacity: 1; }
-
   .confetti-container {
     position: fixed;
     left: 0;
@@ -482,6 +510,14 @@
       <h1><span class="highlight">Kaha</span> di Palabra</h1>
 
       <div class="header-actions">
+
+        <details class="game-mode-menu">
+          <summary class="game-mode-badge">Modo: Kaha</summary>
+          <div class="game-mode-options">
+            <a class="game-mode-option" href="/?play=1">Palabra di Kòrsou</a>
+            <a class="game-mode-option" href="/kaha-di-palabra.html" aria-current="page">Kaha di Palabra</a>
+          </div>
+        </details>
 
         <button class="header-btn" id="btnInfo" aria-label="Informashon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
@@ -536,8 +572,6 @@
     <div class="big">Bon trabou! 🎉</div>
     <div class="small" id="winDetail"></div>
   </div>
-
-  <a class="game-switch-link" href="/?play=1">Hunga Palabra di Kòrsou</a>
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop">
