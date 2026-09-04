@@ -241,6 +241,43 @@
     margin-top: 6px;
   }
 
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 18px 0 4px;
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  .feedback-textarea {
+    display: block;
+    width: 100%;
+    min-height: 110px;
+    margin: 16px 0 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    resize: vertical;
+    font: inherit;
+    color: var(--ink);
+    background: var(--white);
+    box-sizing: border-box;
+  }
+
+  .feedback-textarea:focus {
+    outline: 2px solid rgba(var(--overlay), .2);
+    border-color: var(--curacao);
+  }
+
+  .feedback-status {
+    min-height: 18px;
+    margin: 0 0 8px;
+    font-size: 12px;
+    color: var(--curacao);
+  }
+
   .board-wrap {
     display: flex;
     justify-content: center;
@@ -448,53 +485,68 @@
     font-weight: 800;
   }
 
-  .found-words {
-    background: var(--white);
-    border: 1px solid var(--sand);
-    border-radius: 16px;
-    padding: 14px 16px;
-    max-height: 170px;
-    overflow: hidden;
+  .found{
+    border-top: 1px solid var(--line);
+    padding-top: 11px;
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 
-  .found-words h2 {
-    font-family: 'Bricolage Grotesque', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    margin: 0 0 10px;
+  .found-head{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+
+  .found-head span{
+    font-size: 11px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: rgba(var(--overlay), .62);
+  }
+
+  .words{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 7px;
+    align-content: flex-start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 8px;
+  }
+
+  .words:empty::after{
+    content: 'Ainda ningun palabra';
+    font-size: 12.5px;
+    color: rgba(var(--overlay), .62);
+    font-style: italic;
+  }
+
+  .w{
+    font-size: 13.5px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(var(--overlay), .08);
+    border: 1px solid transparent;
+    cursor: pointer;
+    animation: pop 0.3s cubic-bezier(.2,1.3,.4,1);
     color: var(--ink);
   }
 
-  .found-words ol {
-    margin: 0;
-    padding-left: 20px;
-    font-size: 15px;
-    line-height: 1.9;
-    max-height: 120px;
-    overflow: auto;
+  .w.pan{
+    background: rgba(249, 227, 0, .16);
+    border-color: var(--flag);
+    font-weight: 700;
   }
-  .found-words li.pop { animation: pop 0.35s ease; }
+
   @keyframes pop {
-    0% { transform: scale(0.9); opacity: 0.4; }
-    60% { transform: scale(1.04); }
-    100% { transform: scale(1); opacity: 1; }
+    from { transform: scale(.6); opacity: 0; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .found-words li.pop { animation: none; }
-  }
-  .found-words li span.overlap {
-    color: var(--curacao);
-    font-size: 12px;
-    font-weight: 500;
-  }
-  .found-words .empty {
-    font-size: 13px;
-    color: var(--sand);
-    list-style: none;
-    padding-left: 0;
-    font-style: italic;
+    .w { animation: none; }
   }
 
   .win-banner {
@@ -552,7 +604,7 @@
           </svg>
         </button>
 
-        <button class="header-btn" id="btnSoundToggle" type="button" aria-label="Pagá zonido" aria-pressed="false">
+        <button class="header-btn" id="settingsBtn" type="button" aria-label="Setingan">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-2.83 2.83-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21h-4v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06-2.83-2.83.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3v-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06 2.83-2.83.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3h4v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06 2.83 2.83-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21v4h-.09A1.65 1.65 0 0 0 19.4 15z"></path>
@@ -597,9 +649,12 @@
   <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
   <div class="progress-label" id="progress"></div>
 
-  <div class="found-words">
-    <h2>Palabra hañá</h2>
-    <ol id="foundList"><li class="empty">Ainda ningun palabra</li></ol>
+  <div class="found">
+    <div class="found-head">
+      <span id="foundCount">0 palabra</span>
+      <span id="panCount"></span>
+    </div>
+    <div class="words" id="foundList"></div>
   </div>
 
   <div class="win-banner" id="winBanner">
@@ -616,6 +671,30 @@
     <p><strong>Regla:</strong> e proksimo palabra mester kuminsá ku e último 2 òf 3 delegra di e palabra anterior — no ku ún delegra so, manera Letter Boxed original.</p>
     <p>Drag òf tapa e delegranan — òf simplemente tipa nan riba bo teklado.</p>
     <button class="btn-enter modal-start" id="modalStart">Kuminsá</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="settingsBackdrop">
+  <div class="modal-card">
+    <button class="modal-close" id="settingsClose" aria-label="Sera">✕</button>
+    <h2>Setingan</h2>
+    <div class="settings-row">
+      <span>Zonido</span>
+      <button class="btn-ghost" id="settingsSound" type="button">Pagá</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="feedbackBackdrop">
+  <div class="modal-card">
+    <button class="modal-close" id="feedbackClose" aria-label="Sera">✕</button>
+    <h2>Bo opinion ta importante</h2>
+    <p>Kontami kiko bo ta pensa riba e wega.</p>
+    <form id="feedbackForm">
+      <textarea class="feedback-textarea" id="feedbackMessage" maxlength="2000" placeholder="Skirbi bo komentario aki..."></textarea>
+      <div class="feedback-status" id="feedbackStatus"></div>
+      <button class="btn-enter" type="submit">Manda</button>
+    </form>
   </div>
 </div>
 
@@ -863,18 +942,65 @@ function closeModal() {
 }
 document.getElementById('btnInfo').addEventListener('click', openModal);
 
-const btnSoundToggle = document.getElementById('btnSoundToggle');
-btnSoundToggle.addEventListener('click', () => {
+const settingsSound = document.getElementById('settingsSound');
+function updateSoundControls() {
+  settingsSound.textContent = soundEnabled ? 'Pagá' : 'Prendé';
+}
+
+function toggleSound() {
   soundEnabled = !soundEnabled;
-  btnSoundToggle.setAttribute('aria-pressed', String(!soundEnabled));
-  btnSoundToggle.setAttribute('aria-label', soundEnabled ? 'Pagá zonido' : 'Prendé zonido');
+  updateSoundControls();
   if (soundEnabled) playTapSound(); // quick confirmation blip that sound is back on
+}
+
+const settingsBackdrop = document.getElementById('settingsBackdrop');
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  settingsBackdrop.classList.add('show');
+});
+document.getElementById('settingsClose').addEventListener('click', () => {
+  settingsBackdrop.classList.remove('show');
+});
+settingsSound.addEventListener('click', toggleSound);
+updateSoundControls();
+settingsBackdrop.addEventListener('click', (event) => {
+  if (event.target === settingsBackdrop) settingsBackdrop.classList.remove('show');
 });
 
+const feedbackBackdrop = document.getElementById('feedbackBackdrop');
+const feedbackForm = document.getElementById('feedbackForm');
+const feedbackMessage = document.getElementById('feedbackMessage');
+const feedbackStatus = document.getElementById('feedbackStatus');
 document.getElementById('btnFeedback').addEventListener('click', () => {
-  const message = window.prompt('Bo opinion tokante e wega (demo — no ta wòrdu mandá na niun lugá):');
-  if (message && message.trim()) {
-    flashMessage('Danki pa bo opinion!', true);
+  feedbackStatus.textContent = '';
+  feedbackBackdrop.classList.add('show');
+  feedbackMessage.focus();
+});
+document.getElementById('feedbackClose').addEventListener('click', () => {
+  feedbackBackdrop.classList.remove('show');
+});
+feedbackBackdrop.addEventListener('click', (event) => {
+  if (event.target === feedbackBackdrop) feedbackBackdrop.classList.remove('show');
+});
+feedbackForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const message = feedbackMessage.value.trim();
+  if (!message) {
+    feedbackStatus.textContent = 'Skirbi un komentario promé.';
+    feedbackMessage.focus();
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ message, category: 'kaha', date: currentDate })
+    });
+    if (!response.ok) throw new Error('feedback request failed');
+    feedbackMessage.value = '';
+    feedbackStatus.textContent = 'Danki pa bo opinion!';
+  } catch {
+    feedbackStatus.textContent = 'No por a manda awor. Purba atrobe mas despues.';
   }
 });
 document.getElementById('modalClose').addEventListener('click', closeModal);
@@ -1003,16 +1129,21 @@ function render() {
 
   foundListEl.innerHTML = '';
   if (foundWords.length === 0) {
-    foundListEl.innerHTML = '<li class="empty">Ainda ningun palabra</li>';
+    foundListEl.innerHTML = '';
   } else {
-    foundWords.forEach((f, idx) => {
-      const li = document.createElement('li');
-      const overlapNote = idx === 0 ? '' : ` <span class="overlap">(${f.overlapLen} delegra)</span>`;
-      li.innerHTML = f.word.toUpperCase() + overlapNote;
-      if (idx === foundWords.length - 1) li.classList.add('pop');
-      foundListEl.appendChild(li);
+    foundWords.forEach((f) => {
+      const chip = document.createElement('div');
+      chip.className = 'w';
+      chip.textContent = f.word.toUpperCase();
+      foundListEl.appendChild(chip);
     });
   }
+
+  const foundCountEl = document.getElementById('foundCount');
+  if (foundCountEl) foundCountEl.textContent = `${foundWords.length} palabra`;
+
+  const panCountEl = document.getElementById('panCount');
+  if (panCountEl) panCountEl.textContent = '';
 
   if (remaining === 0) {
     winBanner.classList.add('show');
