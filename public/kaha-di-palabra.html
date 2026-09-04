@@ -59,11 +59,14 @@
   .app {
     width: 100%;
     max-width: 460px;
+    min-height: calc(100dvh - 32px);
+    display: flex;
+    flex-direction: column;
   }
 
   header {
     text-align: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   h1 {
@@ -241,7 +244,7 @@
   .board-wrap {
     display: flex;
     justify-content: center;
-    margin-bottom: 22px;
+    margin-bottom: 10px;
   }
 
   svg { overflow: visible; touch-action: none; user-select: none; }
@@ -316,7 +319,7 @@
     align-items: center;
     gap: 6px;
     min-height: 44px;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
   }
   .current-word .placeholder {
     font-size: 13px;
@@ -367,7 +370,7 @@
     display: flex;
     gap: 9px;
     justify-content: center;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     flex-shrink: 0;
   }
 
@@ -410,7 +413,7 @@
     text-align: center;
     font-size: 13px;
     min-height: 18px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     color: var(--ink);
     opacity: 0.75;
     font-weight: 700;
@@ -418,32 +421,42 @@
   .message.ok { color: var(--curacao); opacity: 1; }
 
   .progress-track {
-    height: 6px;
-    border-radius: 999px;
-    background: var(--sand);
+    height: 4px;
+    border-radius: 3px;
+    background: var(--line);
     overflow: hidden;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .progress-fill {
     height: 100%;
-    background: var(--curacao);
-    border-radius: 999px;
+    background: var(--flag);
+    border-radius: 3px;
     transition: width 0.25s ease;
   }
   .progress-label {
     text-align: center;
-    font-size: 13px;
-    color: var(--ink);
-    opacity: 0.75;
-    margin-bottom: 18px;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(var(--overlay), .62);
+    margin-bottom: 14px;
   }
-  .progress-label strong { opacity: 1; color: var(--curacao); }
+  .progress-label strong {
+    opacity: 1;
+    color: var(--ink-fixed);
+    font-weight: 800;
+  }
 
   .found-words {
     background: var(--white);
     border: 1px solid var(--sand);
     border-radius: 16px;
     padding: 14px 16px;
+    max-height: 170px;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
   }
 
   .found-words h2 {
@@ -459,6 +472,8 @@
     padding-left: 20px;
     font-size: 15px;
     line-height: 1.9;
+    max-height: 120px;
+    overflow: auto;
   }
   .found-words li.pop { animation: pop 0.35s ease; }
   @keyframes pop {

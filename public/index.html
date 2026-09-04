@@ -263,19 +263,66 @@ header{
   color:var(--dim2);
 }
 
-.game-mode-link{
-  color:var(--flag-ink);
-
-  font-size:11px;
-  font-weight:700;
-
-  text-decoration:underline;
-  text-decoration-color:var(--line);
-  text-underline-offset:3px;
+.game-mode-menu{
+  position:relative;
 }
 
-.game-mode-link:hover{
+.game-mode-menu summary{
+  display:inline-flex;
+  align-items:center;
+  cursor:pointer;
+  list-style:none;
+  padding:0;
+  border:0;
+  background:transparent;
+
+  color:inherit;
+
+  font:inherit;
+  font-weight:700;
+  letter-spacing:inherit;
+  text-transform:inherit;
+}
+
+.game-mode-menu summary::-webkit-details-marker{
+  display:none;
+}
+
+.game-mode-options{
+  position:absolute;
+  top:calc(100% + 6px);
+  left:0;
+  z-index:20;
+
+  width:170px;
+
+  padding:5px;
+
+  border:1px solid var(--line);
+  border-radius:8px;
+
+  background:var(--bg);
+
+  box-shadow:0 10px 24px rgba(var(--overlay),.16);
+}
+
+.game-mode-option{
+  display:block;
+
+  padding:9px 10px;
+
+  border-radius:6px;
+
   color:var(--ink);
+
+  font-size:12px;
+  font-weight:700;
+
+  text-decoration:none;
+}
+
+.game-mode-option:hover{
+  background:transparent;
 }
 
 
@@ -9286,15 +9333,15 @@ tbody tr + tr td{
 
     <div class="date-line">
 
-      <span id="todayDate">
-        PALABRA DI KÒRSOU
-      </span>
+      <details class="game-mode-menu" id="gameModeMenu">
+        <summary>Wega ▾</summary>
+        <div class="game-mode-options">
+          <a class="game-mode-option" href="/?play=1">Palabra di Kòrsou</a>
+          <a class="game-mode-option" href="/kaha-di-palabra.html">Kaha di Palabra</a>
+        </div>
+      </details>
 
-      <a
-        class="game-mode-link"
-        href="/kaha-di-palabra.html">
-        Kaha di Palabra
-      </a>
+      <span id="todayDate"></span>
 
     </div>
 
@@ -35186,7 +35233,6 @@ function formatDate(dateString){
 
 
 $('todayDate').textContent =
-  'PALABRA DI KÒRSOU · ' +
   formatDate(GAME_DATE);
 
 
@@ -42019,7 +42065,7 @@ function applyLanguage(lang){
   if(rankTitle) rankTitle.textContent = dict.rankingTitle;
 
   $('todayDate').textContent =
-    'PALABRA DI KÒRSOU · ' + formatDate(GAME_DATE);
+    formatDate(GAME_DATE);
 
   try{
     localStorage.setItem(LANG_KEY, selectedLang);
@@ -42191,6 +42237,21 @@ playButton.onclick =
 
   };
 
+
+document.addEventListener('click', (event) => {
+  const menu = document.getElementById('gameModeMenu');
+  if (!menu) return;
+
+  const clickedOption = event.target.closest('.game-mode-option');
+  if (clickedOption) {
+    menu.removeAttribute('open');
+    return;
+  }
+
+  if (!event.target.closest('.game-mode-menu')) {
+    menu.removeAttribute('open');
+  }
+});
 
 if(
   new URLSearchParams(
