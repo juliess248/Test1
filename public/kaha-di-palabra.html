@@ -51,15 +51,14 @@
     display: flex;
     justify-content: center;
     padding: 20px 16px 40px;
-    background-image: radial-gradient(var(--sand) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background: var(--white);
     touch-action: manipulation; /* disables double-tap-to-zoom, reduces accidental gesture conflicts */
     overscroll-behavior: none; /* reduces rubber-band scroll while dragging near page edges */
   }
 
   .app {
     width: 100%;
-    max-width: 420px;
+    max-width: 460px;
   }
 
   header {
@@ -86,23 +85,56 @@
 
   .puzzle-date {
     display: flex;
+    align-items: center;
     justify-content: space-between;
+    gap: 8px;
     margin: 6px 0 0;
     color: rgba(var(--overlay), .62);
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: .08em;
+    letter-spacing: .10em;
     text-transform: uppercase;
   }
 
-  .game-mode-link {
-    color: var(--curacao);
-    font-size: 11px;
+  .game-mode-menu { position: relative; }
+  .game-mode-menu summary {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    list-style: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
     font-weight: 700;
-    text-decoration: underline;
-    text-decoration-color: var(--line);
-    text-underline-offset: 3px;
+    letter-spacing: inherit;
+    text-transform: inherit;
   }
+  .game-mode-menu summary::-webkit-details-marker { display: none; }
+  .game-mode-options {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 20;
+    width: 170px;
+    padding: 5px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--white);
+    box-shadow: 0 10px 24px rgba(var(--overlay), .16);
+  }
+  .game-mode-option {
+    display: block;
+    padding: 9px 10px;
+    border-radius: 6px;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .game-mode-option:hover,
+  .game-mode-option[aria-current="page"] { background: rgba(249, 227, 0, .14); }
 
   .title-row {
     display: flex;
@@ -333,27 +365,46 @@
 
   .controls {
     display: flex;
-    gap: 10px;
+    gap: 9px;
     justify-content: center;
     margin-bottom: 14px;
+    flex-shrink: 0;
   }
 
   button {
     font-family: 'Karla', sans-serif;
+    font-size: 13.5px;
     font-weight: 700;
-    font-size: 14px;
-    border: none;
+    letter-spacing: .02em;
+    border: 1.5px solid var(--line);
     border-radius: 999px;
-    padding: 11px 22px;
+    padding: 11px 20px;
     cursor: pointer;
-    transition: transform 0.08s ease, opacity 0.15s ease, filter 0.12s ease;
+    transition: background .15s, border-color .15s, transform .1s, opacity .15s, filter .12s ease;
   }
-  button:active:not(:disabled) { transform: scale(0.97); }
+  button:active:not(:disabled) { transform: scale(0.96); }
   button:hover:not(:disabled) { filter: brightness(1.08); }
   button:disabled { opacity: 0.35; cursor: default; }
 
-  .btn-ghost { background: var(--sand); color: var(--ink); }
-  .btn-enter { background: var(--curacao); color: var(--white); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--line);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: rgba(var(--overlay), .09);
+    border-color: rgba(var(--overlay), .34);
+  }
+
+  .btn-enter {
+    background: var(--ink);
+    color: var(--sand);
+    border-color: var(--ink);
+  }
+  .btn-enter:hover:not(:disabled) {
+    background: #0b2744;
+    border-color: #0b2744;
+  }
 
   .message {
     text-align: center;
@@ -502,8 +553,14 @@
       </div>
     </div>
     <div class="puzzle-date">
+      <details class="game-mode-menu">
+        <summary>Wega ▾</summary>
+        <div class="game-mode-options">
+          <a class="game-mode-option" href="/?play=1">Palabra di Kòrsou</a>
+          <a class="game-mode-option" href="/kaha-di-palabra.html" aria-current="page">Kaha di Palabra</a>
+        </div>
+      </details>
       <span id="puzzleDate"></span>
-      <a class="game-mode-link" href="/?play=1">Palabra di Kòrsou</a>
     </div>
   </header>
 
@@ -633,6 +690,29 @@ function sidePositions() {
 const positions = sidePositions();
 let letterMeta = [];
 let letterToIndex = new Map();
+
+const WEEKDAYS_PAP = [
+  'djadumingu','djaluna','djamars','djarason',
+  'djaweps','djabierna','djasabra'
+];
+
+const MONTHS_PAP = [
+  'yanüari','febrüari','mart','aprel','mei','yüni',
+  'yüli','ougùstùs','sèptèmber','òktober','novèmber','desèmber'
+];
+
+function formatLongDate(dateString) {
+  const date = new Date(dateString + 'T12:00:00');
+  return (
+    WEEKDAYS_PAP[date.getDay()] +
+    ' ' +
+    date.getDate() +
+    ' di ' +
+    MONTHS_PAP[date.getMonth()] +
+    ' ' +
+    date.getFullYear()
+  );
+}
 
 function gameDate() {
   return new Intl.DateTimeFormat('en-CA', {
@@ -1205,7 +1285,7 @@ function startDailyPuzzle() {
     : [];
   chainedCount = trace.length;
 
-  document.getElementById('puzzleDate').textContent = 'KAHA DI PALABRA · ' + currentDate;
+  document.getElementById('puzzleDate').textContent = formatLongDate(currentDate);
   initBoard();
   render();
 }
