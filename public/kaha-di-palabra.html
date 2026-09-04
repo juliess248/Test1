@@ -89,8 +89,8 @@
   .puzzle-date {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+    justify-content: flex-start;
+    gap: 10px;
     margin: 6px 0 0;
     color: rgba(var(--overlay), .62);
     font-size: 11px;
@@ -462,7 +462,6 @@
     border-radius: 3px;
     background: var(--line);
     overflow: hidden;
-    margin-bottom: 6px;
   }
   .progress-fill {
     height: 100%;
@@ -470,24 +469,28 @@
     border-radius: 3px;
     transition: width 0.25s ease;
   }
-  .progress-label {
-    text-align: center;
+  .progress-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 7px;
+    font-size: 12px;
+    color: var(--dim);
+  }
+  .progress-head strong {
+    color: var(--ink);
+    font-weight: 800;
+  }
+  .progress-remaining {
     font-size: 11.5px;
     font-weight: 600;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: rgba(var(--overlay), .62);
-    margin-bottom: 14px;
+    color: var(--dim);
   }
-  .progress-label strong {
-    opacity: 1;
-    color: var(--ink-fixed);
-    font-weight: 800;
+  .progress-wrap {
+    margin-bottom: 14px;
   }
 
   .found{
-    border-top: 1px solid var(--line);
-    padding-top: 11px;
     flex: 1;
     min-height: 0;
     display: flex;
@@ -631,6 +634,14 @@
     </div>
   </header>
 
+  <div class="progress-wrap">
+    <div class="progress-head">
+      <span><strong id="progressUsed">0/12</strong> delegra usá</span>
+      <span class="progress-remaining" id="progressRemaining">12 restu</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
   <div class="board-wrap">
     <svg id="board" width="360" height="360" viewBox="0 0 360 360"></svg>
   </div>
@@ -645,9 +656,6 @@
   </div>
 
   <div class="message" id="message"></div>
-
-  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-  <div class="progress-label" id="progress"></div>
 
   <div class="found">
     <div class="found-head">
@@ -756,10 +764,9 @@ function playSuccessSound() {
   setTimeout(() => playTone(659, 659, 0.11, 0.2), 90);
 }
 function playStartSound() {
-  // a cheerful little three-note upward skip to kick off the game
-  playTone(440, 440, 0.08, 0.18);
-  setTimeout(() => playTone(554, 554, 0.08, 0.18), 80);
-  setTimeout(() => playTone(659, 659, 0.14, 0.2), 160);
+  // Match the landing page Hunga sound.
+  playTone(392, 392, 0.09, 0.18);
+  setTimeout(() => playTone(523.25, 523.25, 0.11, 0.2), 70);
 }
 
 // ---------- Geometry ----------
@@ -927,7 +934,8 @@ const svg = document.getElementById('board');
 const currentWordEl = document.getElementById('currentWord');
 const currentWordWrapEl = document.getElementById('currentWordWrap');
 const messageEl = document.getElementById('message');
-const progressEl = document.getElementById('progress');
+const progressUsedEl = document.getElementById('progressUsed');
+const progressRemainingEl = document.getElementById('progressRemaining');
 const progressFillEl = document.getElementById('progressFill');
 const foundListEl = document.getElementById('foundList');
 const winBanner = document.getElementById('winBanner');
@@ -1123,9 +1131,8 @@ function render() {
 
   const remaining = 12 - usedLetters.size;
   progressFillEl.style.width = `${(usedLetters.size / 12) * 100}%`;
-  progressEl.innerHTML = remaining === 0
-    ? '<strong>Tur 12 delegra kompletá!</strong>'
-    : `<strong>${usedLetters.size}/12</strong> delegra usá — ${remaining} restu`;
+  progressUsedEl.textContent = `${usedLetters.size}/12`;
+  progressRemainingEl.textContent = remaining === 0 ? 'Kompletá' : `${remaining} restu`;
 
   foundListEl.innerHTML = '';
   if (foundWords.length === 0) {
