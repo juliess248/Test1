@@ -426,27 +426,6 @@ header{
   letter-spacing:.04em;
 }
 
-.entry .caret{
-  display:inline-block;
-
-  width:2px;
-  height:28px;
-
-  background:var(--flag);
-
-  margin-left:2px;
-
-  animation:blink 1s steps(1,end) infinite;
-
-  vertical-align:-3px;
-}
-
-@keyframes blink{
-  50%{
-    opacity:0;
-  }
-}
-
 .c-centre{
   color:var(--flag-ink);
 }
@@ -9385,7 +9364,6 @@ tbody tr + tr td{
   <div
     class="entry"
     id="entry">
-    <span class="caret"></span>
   </div>
 
 
@@ -35361,8 +35339,7 @@ function renderEntry(){
 
   if(!typed){
 
-    entry.innerHTML =
-      '<span class="caret"></span>';
+    entry.innerHTML = '';
 
     return;
 
@@ -35402,11 +35379,7 @@ function renderEntry(){
         }
 
       )
-      .join('')
-
-    +
-
-    '<span class="caret"></span>';
+      .join('');
 
 }
 
