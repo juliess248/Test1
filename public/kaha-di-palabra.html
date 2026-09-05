@@ -62,6 +62,7 @@
     color: var(--ink);
     font-family: 'Karla', sans-serif;
     -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none; /* stops rubber-band/bounce scroll chaining on the whole document */
   }
 
   body {
@@ -78,7 +79,9 @@
   .app {
     width: 100%;
     max-width: 460px;
-    min-height: calc(100dvh - 32px);
+    /* stretches to fill body's height automatically (flex cross-axis stretch) —
+       an explicit min-height here previously didn't match body's padding and
+       made the page permanently a bit taller than the viewport */
     display: flex;
     flex-direction: column;
   }
@@ -897,7 +900,7 @@ h1 {
 }
 
 .board-wrap {
-  margin-top: 72px;
+  margin-top: 24px;
   margin-bottom: 6px;
 }
 
@@ -959,7 +962,7 @@ button {
 
 @media (max-width: 520px) {
   body { padding: 18px 16px 32px; }
-  .board-wrap { margin-top: 44px; }
+  .board-wrap { margin-top: 16px; }
   #board { width: 286px; height: 286px; }
   h1 { font-size: 23px; }
 }
@@ -1346,15 +1349,15 @@ h1 .highlight { text-shadow: none !important; color: var(--flag-ink) !important;
         <div class="instruction-number">1</div>
         <div class="instruction-copy">
           <h3>Forma un palabra</h3>
-          <p>Toka e deletranan pa forma un palabra. Dos deletra ku ta banda di otro <strong>no por sigui otro</strong>.</p>
+          <p>Dos deletra di e mesun banda <strong>no por sigui otro</strong>.</p>
         </div>
       </div>
 
       <div class="instruction-step">
         <div class="instruction-number">2</div>
         <div class="instruction-copy">
-          <h3>Bo por usa un deletra mas ku un biaha</h3>
-          <p>Bo por usa e mesun deletra <strong>atrobe den e mesun palabra</strong>. Por ehèmpel: si tin un solo <strong>A</strong>, bo por usa e <strong>A</strong> dos biaha den un palabra.</p>
+          <h3>Usa un deletra mas ku un biaha</h3>
+          <p>Bo por ripiti e mesun deletra <strong>den e mesun palabra</strong>.</p>
         </div>
       </div>
 
@@ -1362,8 +1365,7 @@ h1 .highlight { text-shadow: none !important; color: var(--flag-ink) !important;
         <div class="instruction-number">3</div>
         <div class="instruction-copy">
           <h3>Konekta bo palabranan</h3>
-          <p>Bo siguiente palabra mester kuminsá ku e <strong>último 2 òf 3 deletra</strong> di e palabra anterior.</p>
-          <p><strong>Ehèmpel:</strong> <strong>KAS → ASTA</strong> — <em>KAS</em> ta kaba ku <strong>AS</strong>, pues e siguiente palabra ta kuminsá ku <strong>AS</strong>.</p>
+          <p>Kuminsá ku e <strong>último 2 òf 3 deletra</strong> di e palabra anterior. <strong>Ehèmpel:</strong> KAS → ASTA.</p>
         </div>
       </div>
 
@@ -1371,7 +1373,7 @@ h1 .highlight { text-shadow: none !important; color: var(--flag-ink) !important;
         <div class="instruction-number">4</div>
         <div class="instruction-copy">
           <h3>Usa tur 12 deletra</h3>
-          <p>Sigui forma palabranan te ora bo a usa <strong>tur 12 deletra por lo ménos un biaha</strong>.</p>
+          <p>Sigui te ora bo a usa <strong>tur 12 deletra</strong> por lo ménos un biaha.</p>
         </div>
       </div>
     </div>
