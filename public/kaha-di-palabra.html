@@ -89,8 +89,8 @@
   .puzzle-date {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 8px;
     margin: 6px 0 0;
     color: rgba(var(--overlay), .62);
     font-size: 11px;
@@ -491,6 +491,8 @@
   }
 
   .found{
+    border-top: 1px solid var(--line);
+    padding-top: 11px;
     flex: 1;
     min-height: 0;
     display: flex;
@@ -589,13 +591,158 @@
   @media (prefers-reduced-motion: reduce) {
     .confetti-piece { display: none; }
   }
+
+/* ===== Visual alignment with Palabra di Kòrsou ===== */
+:root {
+  --page-max: 460px;
+}
+
+body {
+  padding: 26px 16px 40px;
+}
+
+.app {
+  max-width: var(--page-max);
+}
+
+header {
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.title-row {
+  align-items: center;
+  gap: 14px;
+}
+
+h1 {
+  font-size: 24px;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  margin: 0;
+}
+
+.header-actions {
+  margin-left: auto;
+  gap: 7px;
+}
+
+.header-btn {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(var(--overlay), .14);
+  background: rgba(var(--overlay), .045);
+}
+
+.puzzle-date {
+  margin-top: 16px;
+  font-size: 10.5px;
+  letter-spacing: .14em;
+}
+
+.progress-wrap {
+  margin-bottom: 18px;
+}
+
+.progress-head {
+  margin-bottom: 7px;
+  font-size: 12px;
+}
+
+.progress-track {
+  height: 4px;
+  background: rgba(var(--overlay), .12);
+  border-radius: 999px;
+}
+
+.progress-fill {
+  border-radius: 999px;
+}
+
+.board-wrap {
+  margin-top: 72px;
+  margin-bottom: 6px;
+}
+
+#board {
+  width: 300px;
+  height: 300px;
+  max-width: 100%;
+}
+
+.current-word {
+  min-height: 44px;
+  margin-bottom: 8px;
+}
+
+.current-word .placeholder {
+  color: rgba(var(--overlay), .52);
+  font-size: 13px;
+}
+
+.controls {
+  gap: 9px;
+  margin-bottom: 16px;
+}
+
+button {
+  min-height: 42px;
+  padding: 10px 20px;
+}
+
+.btn-ghost {
+  background: var(--white);
+  border-color: rgba(var(--overlay), .14);
+}
+
+.btn-enter {
+  min-width: 92px;
+  background: var(--ink-fixed);
+  color: #fff;
+  border-color: var(--ink-fixed);
+}
+
+.message {
+  min-height: 10px;
+  margin-bottom: 8px;
+}
+
+.found {
+  border-top: 1px solid rgba(var(--overlay), .12);
+  padding-top: 12px;
+}
+
+.found-head {
+  margin-bottom: 8px;
+}
+
+.words:empty::after {
+  color: rgba(var(--overlay), .52);
+}
+
+@media (max-width: 520px) {
+  body { padding: 18px 16px 32px; }
+  .board-wrap { margin-top: 44px; }
+  #board { width: 286px; height: 286px; }
+  h1 { font-size: 23px; }
+}
+
+
+/* Match Palabra di Korsou logo + letter-button language */
+h1 { font-size: 20px !important; letter-spacing: -0.035em !important; }
+h1 .highlight { text-shadow: none !important; color: #9a7200 !important; }
+.dot { fill: #F3EEE5 !important; stroke: none !important; }
+.dot:hover { filter: brightness(.98) !important; }
+.dot.active { fill: var(--flag) !important; stroke: none !important; }
+.dot.used-letter { fill: #F3EEE5 !important; stroke: none !important; }
+.letter-label { font-size: 24px !important; font-weight: 800 !important; text-transform: lowercase; }
 </style>
 </head>
 <body>
 <div class="app">
   <header>
     <div class="title-row">
-      <h1><span class="highlight">Kaha</span> di Palabra</h1>
+      <h1>Kaha di <span class="highlight">Palabra</span></h1>
 
       <div class="header-actions">
 
@@ -802,17 +949,9 @@ const MONTHS_PAP = [
   'yüli','ougùstùs','sèptèmber','òktober','novèmber','desèmber'
 ];
 
-function formatLongDate(dateString) {
+function formatDate(dateString) {
   const date = new Date(dateString + 'T12:00:00');
-  return (
-    WEEKDAYS_PAP[date.getDay()] +
-    ' ' +
-    date.getDate() +
-    ' di ' +
-    MONTHS_PAP[date.getMonth()] +
-    ' ' +
-    date.getFullYear()
-  );
+  return date.toLocaleDateString('pap', { day: 'numeric', month: 'short' });
 }
 
 function gameDate() {
@@ -1438,7 +1577,7 @@ function startDailyPuzzle() {
     : [];
   chainedCount = trace.length;
 
-  document.getElementById('puzzleDate').textContent = formatLongDate(currentDate);
+  document.getElementById('puzzleDate').textContent = formatDate(currentDate);
   initBoard();
   render();
 }
