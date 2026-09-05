@@ -2034,6 +2034,26 @@ async function loadKahaRankingPage(scope='today') {
 
 syncKahaNameUI();
 
+// Live-sync the account across tabs: 'storage' fires in this tab whenever
+// another tab on the same origin (e.g. the main game) changes localStorage.
+window.addEventListener('storage', (event) => {
+  if (event.key !== SHARED_ACCOUNT_KEY) return;
+  syncKahaNameUI();
+  if (document.getElementById('rankingPage').classList.contains('active')) {
+    loadKahaRankingPage(kahaRankScope);
+  }
+});
+
+// Also catch same-tab sign-in/out (e.g. user logs in on the main game, then
+// switches back to this tab without a full reload) — 'storage' alone only
+// fires in *other* tabs, so re-check on focus/visibility too.
+function recheckSharedAccount() {
+  if (document.visibilityState === 'hidden') return;
+  syncKahaNameUI();
+}
+document.addEventListener('visibilitychange', recheckSharedAccount);
+window.addEventListener('focus', recheckSharedAccount);
+
 // ---------- Board: built ONCE, then only attributes/classes are updated ----------
 // (avoids svg.innerHTML='' on every render, which was causing layout
 // recalcs and breaking CSS transitions on every keystroke/drag tick)
