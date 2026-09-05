@@ -70,7 +70,7 @@
     min-height: 100dvh; /* dynamic viewport height — avoids the mobile-Safari address-bar scroll bug */
     display: flex;
     justify-content: center;
-    padding: 20px 16px 40px;
+    padding: 20px 16px 0; /* no bottom padding — .bottom-nav supplies its own safe-area padding, same as the main game */
     background: var(--bg);
     touch-action: manipulation; /* disables double-tap-to-zoom, reduces accidental gesture conflicts */
     overscroll-behavior: none; /* reduces rubber-band scroll while dragging near page edges */
@@ -838,7 +838,7 @@
 }
 
 body {
-  padding: 26px 16px 40px;
+  padding: 26px 16px 0;
 }
 
 .app {
@@ -961,7 +961,7 @@ button {
 }
 
 @media (max-width: 520px) {
-  body { padding: 18px 16px 32px; }
+  body { padding: 18px 16px 0; }
   .board-wrap { margin-top: 16px; }
   #board { width: 286px; height: 286px; }
   h1 { font-size: 23px; }
@@ -2374,6 +2374,11 @@ document.getElementById('btnDelete').addEventListener('click', () => {
 document.getElementById('btnEnter').addEventListener('click', submitWord);
 
 document.addEventListener('keydown', (e) => {
+  // Don't hijack typing in the feedback textarea, name input, etc. — without
+  // this, Backspace/Enter/letter keys fought with normal text editing there.
+  const targetTag = e.target && e.target.tagName;
+  if (targetTag === 'INPUT' || targetTag === 'TEXTAREA') return;
+
   const key = e.key.toLowerCase();
 
   if (key === 'escape' && modalBackdrop.classList.contains('show')) {
