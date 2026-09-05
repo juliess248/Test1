@@ -151,6 +151,12 @@ export default class extends WorkerEntrypoint {
     if (url.pathname === "/api/leaderboard" && request.method === "POST") {
       return this.handleLeaderboardPost(request);
     }
+    if (url.pathname === "/api/kaha-score" && request.method === "POST") {
+      return this.handleKahaScorePost(request);
+    }
+    if (url.pathname === "/api/kaha-leaderboard" && request.method === "GET") {
+      return this.handleKahaLeaderboardGet(request);
+    }
     if (url.pathname === "/api/progress" && request.method === "GET") {
       return this.handleProgressGet(request);
     }
@@ -387,6 +393,131 @@ export default class extends WorkerEntrypoint {
         },
         500
       );
+    }
+  }
+
+  async ensureKahaScoresTable() {
+    await this.env.GAME_HISTORY
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS kaha_leaderboard_scores (
+          player_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          date TEXT NOT NULL,
+          score INTEGER NOT NULL DEFAULT 0,
+          word_count INTEGER NOT NULL DEFAULT 0,
+          optimal_word_count INTEGER,
+          updated_at TEXT DEFAULT (datetime('now')),
+          PRIMARY KEY (player_id, date)
+        )`
+      )
+      .run();
+  }
+
+  async handleKahaScorePost(request) {
+    try {
+      await this.ensureKahaScoresTable();
+
+      // The player identity always comes from the authenticated session
+      // cookie, never from client-supplied fields — the request body's
+      // username/playerId are ignored to prevent spoofing.
+      const user = await this.getAuthenticatedUser(request);
+      if (!user) {
+        return json({ error: "Sign in required to save score" }, 401);
+      }
+
+      const { date, score, wordCount, optimalWordCount } = await request.json();
+      if (!date) {
+        return json({ error: "date required" }, 400);
+      }
+
+      const playerId = "acct:" + user.id;
+
+      await this.env.GAME_HISTORY
+        .prepare(
+          `INSERT INTO kaha_leaderboard_scores
+             (player_id, name, date, score, word_count, optimal_word_count)
+           VALUES (?, ?, ?, ?, ?, ?)
+           ON CONFLICT(player_id, date) DO UPDATE SET
+             name = excluded.name,
+             score = excluded.score,
+             word_count = excluded.word_count,
+             optimal_word_count = excluded.optimal_word_count,
+             updated_at = datetime('now')`
+        )
+        .bind(
+          playerId,
+          user.username,
+          date,
+          score || 0,
+          wordCount || 0,
+          Number.isFinite(Number(optimalWordCount)) ? Number(optimalWordCount) : null
+        )
+        .run();
+
+      const rankRow = await this.env.GAME_HISTORY
+        .prepare(
+          `SELECT COUNT(*) AS higher
+           FROM kaha_leaderboard_scores
+           WHERE date = ? AND score > ?`
+        )
+        .bind(date, score || 0)
+        .first();
+
+      const rank = (rankRow?.higher || 0) + 1;
+
+      return json({ rank }, 200);
+    } catch (e) {
+      console.error("Kaha score POST error:", e);
+      return json({ error: "Server error" }, 500);
+    }
+  }
+
+  async handleKahaLeaderboardGet(request) {
+    try {
+      await this.ensureKahaScoresTable();
+      const url = new URL(request.url);
+      const date = url.searchParams.get("date");
+      const scope = url.searchParams.get("scope") || "today";
+
+      if (scope === "allTime") {
+        const allTime = await this.env.GAME_HISTORY
+          .prepare(
+            `SELECT
+               l1.player_id AS playerId,
+               (SELECT name FROM kaha_leaderboard_scores l2
+                  WHERE l2.player_id = l1.player_id
+                  ORDER BY date DESC LIMIT 1) AS username,
+               SUM(l1.score) AS score,
+               SUM(l1.word_count) AS wordCount
+             FROM kaha_leaderboard_scores l1
+             GROUP BY l1.player_id
+             ORDER BY score DESC
+             LIMIT 50`
+          )
+          .all();
+
+        return json({ entries: allTime.results || [] }, 200);
+      }
+
+      if (!date) {
+        return json({ error: "date query param required" }, 400);
+      }
+
+      const today = await this.env.GAME_HISTORY
+        .prepare(
+          `SELECT player_id AS playerId, name AS username, score, word_count AS wordCount
+           FROM kaha_leaderboard_scores
+           WHERE date = ?
+           ORDER BY score DESC, word_count ASC
+           LIMIT 50`
+        )
+        .bind(date)
+        .all();
+
+      return json({ entries: today.results || [] }, 200);
+    } catch (e) {
+      console.error("Kaha leaderboard GET error:", e);
+      return json({ error: "Server error" }, 500);
     }
   }
 
