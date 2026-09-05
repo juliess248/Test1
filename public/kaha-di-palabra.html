@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
 <title>Kaha di Palabra</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,27 +11,45 @@
 <style>
   /* PALETA — KÒRSOU / HANDELSKADE (matches palabradikorsou.com) */
   :root {
-    --ink: #081F36;
-    --flag: #F9E300;
-    --curacao: #0F9FE0;
+    --bg: #FFFFFF;
+    --overlay: 8, 31, 54;
+    --sea: #FFFFFF;
+    --sky: #FFFFFF;
+    --sky-lift: #F1ECE2;
     --ochre: #E8A33D;
     --coral: #D96A5B;
     --mint: #6FBFA8;
     --rose: #DE9AA6;
     --sand: #F0E4D0;
-    --white: #FFFFFF;
-    --ink-fixed: #081F36; /* stays navy in both light and dark mode, for outlines that need to read against yellow either way */
-    --overlay: 8, 31, 54; /* rgb triple for header-btn's rgba() backgrounds, matches the main site */
+    --flag: #F9E300;
+    --flag-ink: #8A6D00;
+    --curacao: #0F9FE0;
+    --ink: #081F36;
+    --ink-fixed: #081F36;
+    --dim: rgba(var(--overlay), .62);
+    --dim2: rgba(var(--overlay), .40);
     --line: rgba(var(--overlay), .12);
+    --ok: #2E7864;
+    --no: #C1503F;
+    --white: var(--bg);
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --ink: #F0E4D0;
-      --curacao: #29B6F0;
-      --white: #10202F;
-      --sand: #16283A;
+      --bg: #0E1826;
       --overlay: 237, 231, 220;
+      --sea: #0E1826;
+      --sky: #0E1826;
+      --sky-lift: #1D2C40;
+      --sand: #F0E4D0;
+      --flag: #F9E300;
+      --flag-ink: #F9E300;
+      --curacao: #29B6F0;
+      --ink: #EDE7DC;
+      --ink-fixed: #081F36;
+      --ok: #6FBFA8;
+      --no: #E1806D;
+      --white: var(--bg);
     }
   }
 
@@ -39,7 +58,7 @@
   html, body {
     margin: 0;
     padding: 0;
-    background: var(--white);
+    background: var(--bg);
     color: var(--ink);
     font-family: 'Karla', sans-serif;
     -webkit-tap-highlight-color: transparent;
@@ -51,7 +70,7 @@
     display: flex;
     justify-content: center;
     padding: 20px 16px 40px;
-    background: var(--white);
+    background: var(--bg);
     touch-action: manipulation; /* disables double-tap-to-zoom, reduces accidental gesture conflicts */
     overscroll-behavior: none; /* reduces rubber-band scroll while dragging near page edges */
   }
@@ -124,7 +143,7 @@
     padding: 5px;
     border: 1px solid var(--line);
     border-radius: 8px;
-    background: var(--white);
+    background: var(--bg);
     box-shadow: 0 10px 24px rgba(var(--overlay), .16);
   }
   .game-mode-option {
@@ -196,7 +215,7 @@
 
   .modal-card {
     position: relative;
-    background: var(--white);
+    background: var(--bg);
     border-radius: 20px;
     padding: 26px 22px 22px;
     max-width: 340px;
@@ -241,6 +260,116 @@
     margin-top: 6px;
   }
 
+
+  /* Kaha instructions — same visual language as the main Palabra di Kòrsou help screen */
+  #modalBackdrop {
+    align-items: flex-start;
+    padding: 12px 16px 24px;
+  }
+
+  #modalBackdrop .instructions-card {
+    max-width: 440px;
+    border-radius: 24px;
+    padding: 26px 22px 24px;
+    box-shadow: 0 10px 30px rgba(8, 31, 54, 0.14);
+  }
+
+  #modalBackdrop .instructions-card h2 {
+    font-size: 30px;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin: 0 52px 8px 0;
+  }
+
+  .instructions-subtitle {
+    margin: 0 0 24px !important;
+    color: rgba(var(--overlay), .62) !important;
+    font-size: 15px !important;
+    line-height: 1.45 !important;
+  }
+
+  .instruction-list {
+    display: grid;
+    gap: 20px;
+    margin: 0 0 22px;
+  }
+
+  .instruction-step {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .instruction-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--flag);
+    color: var(--ink-fixed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .instruction-copy h3 {
+    margin: 0 0 3px;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 18px;
+    line-height: 1.2;
+    font-weight: 800;
+    color: var(--ink);
+  }
+
+  .instruction-copy p {
+    margin: 0 !important;
+    color: rgba(var(--overlay), .62) !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+  }
+
+  #modalBackdrop .modal-close {
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--line);
+    background: rgba(var(--overlay), .04);
+    font-size: 19px;
+    font-weight: 400;
+  }
+
+  #modalBackdrop .modal-start {
+    width: 100%;
+    margin-top: 2px;
+    padding: 13px 20px;
+    background: var(--flag);
+    color: var(--ink-fixed);
+    border-color: var(--flag);
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  #modalBackdrop .modal-start:hover:not(:disabled) {
+    background: var(--flag);
+    border-color: var(--flag);
+  }
+
+  @media (max-width: 520px) {
+    #modalBackdrop { padding: 8px; }
+    #modalBackdrop .instructions-card {
+      max-width: none;
+      border-radius: 22px;
+      padding: 24px 20px 22px;
+    }
+    #modalBackdrop .instructions-card h2 { font-size: 28px; }
+    .instruction-list { gap: 18px; }
+  }
+
   .settings-row {
     display: flex;
     align-items: center;
@@ -251,24 +380,97 @@
     color: var(--ink);
   }
 
+  /* Feedback modal — mirrors the main Palabra di Korsou feedback sheet */
+  #feedbackBackdrop {
+    align-items: center;
+    padding: 18px;
+  }
+
+  #feedbackBackdrop .feedback-card {
+    max-width: 440px;
+    width: 100%;
+    border-radius: 24px;
+    padding: 26px 22px 22px;
+    box-shadow: 0 16px 42px rgba(8, 31, 54, .24);
+  }
+
+  #feedbackBackdrop .feedback-card h2 {
+    margin: 0 50px 16px 0;
+    font-size: 24px;
+    line-height: 1.08;
+    letter-spacing: -.02em;
+  }
+
+  #feedbackBackdrop .modal-close {
+    top: 18px;
+    right: 18px;
+    width: 38px;
+    height: 38px;
+    background: rgba(var(--overlay), .035);
+    border: 1px solid rgba(var(--overlay), .14);
+    color: var(--ink);
+    font-size: 18px;
+  }
+
+  .feedback-intro {
+    margin: 0 0 16px !important;
+    padding: 14px 16px;
+    border: 1px solid rgba(249, 227, 0, .48);
+    border-radius: 14px;
+    background: rgba(249, 227, 0, .07);
+    color: rgba(var(--overlay), .66) !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+  }
+
+  .feedback-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 14px;
+  }
+
+  .feedback-chip {
+    padding: 9px 12px;
+    border: 1.5px solid rgba(var(--overlay), .14);
+    border-radius: 999px;
+    background: rgba(var(--overlay), .035);
+    color: var(--ink);
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .feedback-chip:hover {
+    background: rgba(var(--overlay), .07);
+  }
+
+  .feedback-chip[aria-pressed="true"] {
+    background: rgba(249, 227, 0, .18);
+    border-color: var(--flag);
+  }
+
   .feedback-textarea {
     display: block;
     width: 100%;
-    min-height: 110px;
-    margin: 16px 0 10px;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
+    min-height: 118px;
+    margin: 0 0 10px;
+    padding: 14px 14px;
+    border: 1.5px solid rgba(249, 227, 0, .52);
+    border-radius: 14px;
     resize: vertical;
     font: inherit;
+    font-size: 14px;
+    line-height: 1.5;
     color: var(--ink);
-    background: var(--white);
+    background: rgba(var(--overlay), .018);
     box-sizing: border-box;
   }
 
   .feedback-textarea:focus {
-    outline: 2px solid rgba(var(--overlay), .2);
-    border-color: var(--curacao);
+    outline: none;
+    border-color: var(--flag);
+    box-shadow: 0 0 0 3px rgba(249, 227, 0, .13);
   }
 
   .feedback-status {
@@ -276,6 +478,41 @@
     margin: 0 0 8px;
     font-size: 12px;
     color: var(--curacao);
+  }
+
+  .feedback-submit {
+    width: 100%;
+    margin: 2px 0 12px;
+    background: var(--flag);
+    color: var(--ink-fixed);
+    border-color: var(--flag);
+    font-size: 14px;
+    padding: 12px 18px;
+  }
+
+  .feedback-submit:hover:not(:disabled) {
+    background: var(--flag);
+    border-color: var(--flag);
+    filter: brightness(.98);
+  }
+
+  .feedback-suggest {
+    width: 100%;
+    padding: 11px 18px;
+    background: rgba(249, 227, 0, .045);
+    border: 1.5px solid rgba(249, 227, 0, .42);
+    color: var(--ink);
+  }
+
+  @media (max-width: 520px) {
+    #feedbackBackdrop { padding: 10px; }
+    #feedbackBackdrop .feedback-card {
+      max-width: none;
+      border-radius: 22px;
+      padding: 24px 18px 20px;
+    }
+    #feedbackBackdrop .feedback-card h2 { font-size: 22px; }
+    .feedback-chip { font-size: 12px; padding: 9px 10px; }
   }
 
   .board-wrap {
@@ -381,7 +618,7 @@
   /* letters auto-filled from the previous word's ending — outlined instead of
      solid so it's visually clear they weren't typed by the player just now */
   .letter-tile.chained {
-    background: var(--white);
+    background: var(--bg);
     color: var(--ink);
     border: 2px dashed var(--ochre);
   }
@@ -691,7 +928,7 @@ button {
 }
 
 .btn-ghost {
-  background: var(--white);
+  background: var(--bg);
   border-color: rgba(var(--overlay), .14);
 }
 
@@ -729,13 +966,35 @@ button {
 
 
 /* Match Palabra di Korsou logo + letter-button language */
-h1 { font-size: 20px !important; letter-spacing: -0.035em !important; }
-h1 .highlight { text-shadow: none !important; color: #9a7200 !important; }
-.dot { fill: #F3EEE5 !important; stroke: none !important; }
-.dot:hover { filter: brightness(.98) !important; }
+h1 { font-size: 20px !important; line-height: 1 !important; letter-spacing: -.03em !important; }
+h1 .highlight { text-shadow: none !important; color: var(--flag-ink) !important; }
+.dot { fill: var(--sky-lift) !important; stroke: none !important; }
+.dot:hover { filter: brightness(1.14) !important; }
 .dot.active { fill: var(--flag) !important; stroke: none !important; }
-.dot.used-letter { fill: #F3EEE5 !important; stroke: none !important; }
-.letter-label { font-size: 24px !important; font-weight: 800 !important; text-transform: lowercase; }
+.dot.used-letter { fill: var(--sky-lift) !important; stroke: none !important; }
+.letter-label { font-size: 25px !important; font-weight: 800 !important; text-transform: lowercase; }
+
+  @media (prefers-color-scheme: dark) {
+    .btn-enter {
+      background: var(--flag);
+      color: var(--ink-fixed);
+      border-color: var(--flag);
+    }
+    .btn-enter:hover:not(:disabled) {
+      background: #ffe94d;
+      border-color: #ffe94d;
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink);
+    }
+    .feedback-submit {
+      background: var(--flag);
+      color: var(--ink-fixed);
+      border-color: var(--flag);
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -754,7 +1013,7 @@ h1 .highlight { text-shadow: none !important; color: #9a7200 !important; }
           </svg>
         </button>
 
-        <button class="header-btn" id="settingsBtn" type="button" aria-label="Setingan">
+        <button class="header-btn" id="settingsBtn" type="button" aria-label="Ajustenan">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-2.83 2.83-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21h-4v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06-2.83-2.83.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3v-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06 2.83-2.83.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3h4v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06 2.83 2.83-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21v4h-.09A1.65 1.65 0 0 0 19.4 15z"></path>
@@ -819,12 +1078,37 @@ h1 .highlight { text-shadow: none !important; color: #9a7200 !important; }
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop">
-  <div class="modal-card">
+  <div class="modal-card instructions-card">
     <button class="modal-close" id="modalClose" aria-label="Sera">✕</button>
-    <h2>Kon hunga</h2>
-    <p>Usa tur 12 delegra. Traha e menos palabra posibel.</p>
-    <p><strong>Regla:</strong> e proksimo palabra mester kuminsá ku e último 2 òf 3 delegra di e palabra anterior — no ku ún delegra so, manera Letter Boxed original.</p>
-    <p>Drag òf tapa e delegranan — òf simplemente tipa nan riba bo teklado.</p>
+    <h2>Kon ta hunga?</h2>
+    <p class="instructions-subtitle">Un reto di palabra diario pa Kòrsou.</p>
+
+    <div class="instruction-list">
+      <div class="instruction-step">
+        <div class="instruction-number">1</div>
+        <div class="instruction-copy">
+          <h3>Forma un palabra</h3>
+          <p>Toka, hala òf tipa e delegranan. Bo no por skohe dos delegra di e mesun banda tras di otro.</p>
+        </div>
+      </div>
+
+      <div class="instruction-step">
+        <div class="instruction-number">2</div>
+        <div class="instruction-copy">
+          <h3>Konekta palabranan</h3>
+          <p>E siguiente palabra mester kuminsá ku e último 2 òf 3 delegra di e palabra anterior.</p>
+        </div>
+      </div>
+
+      <div class="instruction-step">
+        <div class="instruction-number">3</div>
+        <div class="instruction-copy">
+          <h3>Usa tur 12 delegra</h3>
+          <p>Kompletá e kaha usando tur e delegranan. Purba hasi esaki ku e menos palabra posibel.</p>
+        </div>
+      </div>
+    </div>
+
     <button class="btn-enter modal-start" id="modalStart">Kuminsá</button>
   </div>
 </div>
@@ -832,7 +1116,7 @@ h1 .highlight { text-shadow: none !important; color: #9a7200 !important; }
 <div class="modal-backdrop" id="settingsBackdrop">
   <div class="modal-card">
     <button class="modal-close" id="settingsClose" aria-label="Sera">✕</button>
-    <h2>Setingan</h2>
+    <h2>Ajustenan</h2>
     <div class="settings-row">
       <span>Zonido</span>
       <button class="btn-ghost" id="settingsSound" type="button">Pagá</button>
@@ -841,14 +1125,21 @@ h1 .highlight { text-shadow: none !important; color: #9a7200 !important; }
 </div>
 
 <div class="modal-backdrop" id="feedbackBackdrop">
-  <div class="modal-card">
+  <div class="modal-card feedback-card">
     <button class="modal-close" id="feedbackClose" aria-label="Sera">✕</button>
     <h2>Bo opinion ta importante</h2>
-    <p>Kontami kiko bo ta pensa riba e wega.</p>
+    <p class="feedback-intro">E wega ainda ta den desaroyo. Kontami kiko bo ta pensa, kiko bo ta gusta, i kiko nos por mehorá.</p>
+    <div class="feedback-categories" role="group" aria-label="Tipo di feedback">
+      <button class="feedback-chip" type="button" data-feedback-category="fayo" aria-pressed="false">🐛 Fayo</button>
+      <button class="feedback-chip" type="button" data-feedback-category="idea" aria-pressed="false">💡 Idea</button>
+      <button class="feedback-chip" type="button" data-feedback-category="mi-ta-gusta" aria-pressed="false">❤️ Mi ta gusta</button>
+      <button class="feedback-chip" type="button" data-feedback-category="konfuso" aria-pressed="false">😕 Konfuso</button>
+    </div>
     <form id="feedbackForm">
       <textarea class="feedback-textarea" id="feedbackMessage" maxlength="2000" placeholder="Skirbi bo komentario aki..."></textarea>
       <div class="feedback-status" id="feedbackStatus"></div>
-      <button class="btn-enter" type="submit">Manda</button>
+      <button class="feedback-submit" type="submit">Manda</button>
+      <button class="feedback-suggest" id="feedbackSuggestWord" type="button">✍️ Sugerí palabra</button>
     </form>
   </div>
 </div>
@@ -1117,8 +1408,35 @@ const feedbackBackdrop = document.getElementById('feedbackBackdrop');
 const feedbackForm = document.getElementById('feedbackForm');
 const feedbackMessage = document.getElementById('feedbackMessage');
 const feedbackStatus = document.getElementById('feedbackStatus');
+const feedbackCategoryButtons = [...document.querySelectorAll('.feedback-chip')];
+const feedbackSuggestWord = document.getElementById('feedbackSuggestWord');
+let selectedFeedbackCategory = 'kaha';
+
+feedbackCategoryButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    const isSelected = button.getAttribute('aria-pressed') === 'true';
+    feedbackCategoryButtons.forEach((item) => item.setAttribute('aria-pressed', 'false'));
+    if (isSelected) {
+      selectedFeedbackCategory = 'kaha';
+    } else {
+      button.setAttribute('aria-pressed', 'true');
+      selectedFeedbackCategory = button.dataset.feedbackCategory || 'kaha';
+    }
+  });
+});
+
+feedbackSuggestWord.addEventListener('click', () => {
+  feedbackCategoryButtons.forEach((item) => item.setAttribute('aria-pressed', 'false'));
+  selectedFeedbackCategory = 'palabra';
+  feedbackMessage.placeholder = 'Kua palabra bo kier sugerí?';
+  feedbackMessage.focus();
+});
+
 document.getElementById('btnFeedback').addEventListener('click', () => {
   feedbackStatus.textContent = '';
+  feedbackMessage.placeholder = 'Skirbi bo komentario aki...';
+  selectedFeedbackCategory = 'kaha';
+  feedbackCategoryButtons.forEach((item) => item.setAttribute('aria-pressed', 'false'));
   feedbackBackdrop.classList.add('show');
   feedbackMessage.focus();
 });
@@ -1141,10 +1459,13 @@ feedbackForm.addEventListener('submit', async (event) => {
     const response = await fetch('/api/feedback', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ message, category: 'kaha', date: currentDate })
+      body: JSON.stringify({ message, category: selectedFeedbackCategory, date: currentDate })
     });
     if (!response.ok) throw new Error('feedback request failed');
     feedbackMessage.value = '';
+    feedbackMessage.placeholder = 'Skirbi bo komentario aki...';
+    selectedFeedbackCategory = 'kaha';
+    feedbackCategoryButtons.forEach((item) => item.setAttribute('aria-pressed', 'false'));
     feedbackStatus.textContent = 'Danki pa bo opinion!';
   } catch {
     feedbackStatus.textContent = 'No por a manda awor. Purba atrobe mas despues.';
@@ -1176,7 +1497,7 @@ function initBoard() {
   outline.setAttribute('height', INNER);
   outline.setAttribute('rx', 18);
   outline.setAttribute('fill', 'none');
-  outline.setAttribute('stroke', '#F0E4D0');
+  outline.setAttribute('stroke', 'rgba(var(--overlay), .12)');
   outline.setAttribute('stroke-width', '1.5');
   svg.appendChild(outline);
 
@@ -1250,7 +1571,7 @@ function render() {
 
     const circle = dotEls[i];
     if (circle.getAttribute('class') !== newClass) circle.setAttribute('class', newClass);
-    labelEls[i].style.fill = isActive ? 'var(--white)' : 'var(--ink)';
+    labelEls[i].style.fill = isActive ? 'var(--ink-fixed)' : 'var(--ink)';
   });
 
   if (trace.length === 0) {
